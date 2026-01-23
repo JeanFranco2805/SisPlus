@@ -16,12 +16,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByUser(User user);
 
     @Query("SELECT a FROM Attendance a WHERE a.entryTime >= :startDate AND a.entryTime < :endDate ORDER BY a.entryTime DESC")
-    List<Attendance> findByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    List<Attendance> findByDateRange(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 
     @Query("SELECT a FROM Attendance a WHERE a.user.id = :userId AND a.entryTime >= :startDate AND a.entryTime < :endDate ORDER BY a.entryTime DESC")
     List<Attendance> findByUserAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT a FROM Attendance a WHERE DATE(a.entryTime) = CURRENT_DATE ORDER BY a.entryTime DESC")
+    @Query("SELECT a FROM Attendance a WHERE a.entryTime >= :startOfDay AND a.entryTime < :endOfDay ORDER BY a.entryTime DESC")
     List<Attendance> findTodayAttendances();
 
     Optional<Attendance> findById(Long id);
