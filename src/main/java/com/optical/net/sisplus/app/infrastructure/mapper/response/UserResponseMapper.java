@@ -1,4 +1,4 @@
-package com.optical.net.sisplus.app.infrastructure.mapper;
+package com.optical.net.sisplus.app.infrastructure.mapper.response;
 
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
@@ -27,6 +27,14 @@ public class UserResponseMapper {
                 .pagoOrdinarioDiurnoSemanal(user.calcularPagoOrdinarioDiurnoSemanal(date))
                 .pagoOrdinarioDiurnoMensual(user.calcularPagoOrdinarioDiurnoMensual(month, year))
                 .pagoRecargoNocturno(user.calcularPagoRecargoNocturno(date))
+                .build();
+    }
+    public static UserResponse toUserResponse(UserDomain user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .lastName(user.getLastName())
+                .cc(user.getCc())
                 .build();
     }
 

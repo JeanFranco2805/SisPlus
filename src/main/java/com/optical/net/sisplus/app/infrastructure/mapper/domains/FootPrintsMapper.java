@@ -1,4 +1,4 @@
-package com.optical.net.sisplus.app.infrastructure.mapper;
+package com.optical.net.sisplus.app.infrastructure.mapper.domains;
 
 import com.optical.net.sisplus.app.domain.FootPrintsDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.FootPrints;

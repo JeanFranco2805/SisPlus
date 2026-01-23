@@ -896,7 +896,6 @@
     let filteredAttendances = [];
     let employees = [];
 
-    // Paginación
     const ITEMS_PER_PAGE = 15;
     let currentPage = 1;
     let totalPages = 1;
@@ -1427,6 +1426,7 @@
         }
     }
 
+    // Inicialización
     window.onload = function() {
         loadEmployees();
         loadAttendances('today');

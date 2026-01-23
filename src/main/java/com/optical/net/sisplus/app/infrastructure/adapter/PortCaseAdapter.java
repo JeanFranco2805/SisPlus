@@ -5,9 +5,9 @@ import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.domain.FootPrintsDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Attendance;
-import com.optical.net.sisplus.app.infrastructure.mapper.AttendanceMapper;
-import com.optical.net.sisplus.app.infrastructure.mapper.FootPrintsMapper;
-import com.optical.net.sisplus.app.infrastructure.mapper.UserMapper;
+import com.optical.net.sisplus.app.infrastructure.mapper.domains.AttendanceMapper;
+import com.optical.net.sisplus.app.infrastructure.mapper.domains.FootPrintsMapper;
+import com.optical.net.sisplus.app.infrastructure.mapper.domains.UserMapper;
 import com.optical.net.sisplus.app.infrastructure.repository.AttendanceRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.FootPrintsRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.UserRepository;
@@ -41,7 +41,6 @@ public class PortCaseAdapter implements PortAdapter {
         this.footPrintsMapper = footPrintsMapper;
     }
 
-    // ========== USUARIOS ==========
 
     @Override
     public UserDomain guardarUsuario(UserDomain userDomain) {
@@ -64,7 +63,6 @@ public class PortCaseAdapter implements PortAdapter {
                 .toList();
     }
 
-    // ========== HUELLAS ==========
 
     @Override
     public void guardarHuella(FootPrintsDomain footPrintsDomain) {
@@ -77,7 +75,6 @@ public class PortCaseAdapter implements PortAdapter {
         return userMapper.toDomain(fps.getUser());
     }
 
-    // ========== ASISTENCIAS - CREATE ==========
 
     @Override
     public void registrarEntrada(Long usuarioId) {
@@ -127,7 +124,6 @@ public class PortCaseAdapter implements PortAdapter {
         attendanceRepository.save(attendance);
     }
 
-    // ========== ASISTENCIAS - READ ==========
 
     @Override
     public AttendanceDomain obtenerAsistenciaDelDia(Long usuarioId, LocalDate fecha) {
