@@ -9,16 +9,22 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Builder
+@Entity
+@Table(name = "attendances")
 public class Attendance {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
     private LocalDateTime dateTime;
-    private LocalDateTime entry_time;
-    private LocalDateTime departure_time;
+
+    private LocalDateTime entryTime;
+
+    private LocalDateTime departureTime;
 }

@@ -5,6 +5,7 @@ import com.optical.net.sisplus.app.domain.FootPrintsDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface PortAdapter {
@@ -15,4 +16,6 @@ public interface PortAdapter {
     AttendanceDomain obtenerAsistenciaDelDia(Long usuarioId, LocalDate fecha);
     void registrarEntrada(Long usuarioId);
     void registrarSalida(Long usuarioId);
+    List<UserDomain> obtenerTodosUsuarios();
+
 }

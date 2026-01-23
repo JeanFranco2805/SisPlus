@@ -5,23 +5,42 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Builder
+@Entity
+@Table(name = "users")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
+
     private String lastName;
+
+    @Column(unique = true, nullable = false)
     private String cc;
-    private LocalDateTime creatAt;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     private boolean status;
-    @OneToMany
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
+    )
     private List<Attendance> attendances;
-    @OneToMany
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
+    )
     private List<FootPrints> footPrints;
 }

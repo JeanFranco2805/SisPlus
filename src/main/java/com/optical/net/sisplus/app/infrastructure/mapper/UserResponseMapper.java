@@ -4,6 +4,8 @@ import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserResponseMapper {
 
@@ -25,7 +27,17 @@ public class UserResponseMapper {
                 .pagoOrdinarioDiurnoSemanal(user.calcularPagoOrdinarioDiurnoSemanal(date))
                 .pagoOrdinarioDiurnoMensual(user.calcularPagoOrdinarioDiurnoMensual(month, year))
                 .pagoRecargoNocturno(user.calcularPagoRecargoNocturno(date))
-
                 .build();
+    }
+
+    public static List<UserResponse> fromDomainList(
+            List<UserDomain> users,
+            LocalDate date,
+            int month,
+            int year
+    ) {
+        return users.stream()
+                .map(user -> fromDomain(user, date, month, year))
+                .collect(Collectors.toList());
     }
 }

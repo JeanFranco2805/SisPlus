@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencias - SisPlus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --sidebar-width: 260px;
+            --topbar-height: 64px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--topbar-height);
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-dark);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: var(--topbar-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--topbar-height));
+            background: white;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 90;
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        .nav-menu {
+            padding: 16px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--text-gray);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+
+        .nav-item.active {
+            background: var(--bg-light);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--topbar-height);
+            padding: 32px;
+            min-height: calc(100vh - var(--topbar-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .filters {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-gray);
+        }
+
+        .filter-select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 160px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-gray);
+        }
+
+        th {
+            padding: 14px 24px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: var(--bg-light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--text-gray);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .form-input, .form-select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-gray);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .user-details {
+                display: none;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .card-actions {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+        </button>
+        <a href="/dashboard" class="logo">
+            <div class="logo-icon">S+</div>
+            <span>SisPlus</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <div class="user-info">
+            <div class="user-avatar">AD</div>
+            <div class="user-details">
+                <div class="user-name">Administrador</div>
+                <div class="user-role">Admin Principal</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <nav class="nav-menu">
+        <a href="/dashboard" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>Dashboard</span>
+        </a>
+        <a href="/employee" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Empleados</span>
+        </a>
+        <a href="#" class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>Asistencias</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Nómina</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+                <path d="M2 12a10 10 0 0 1 18-6"/>
+                <path d="M2 16h.01"/>
+                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+            </svg>
+            <span>Huellas</span>
+        </a>
+    </nav>
+</div>
+
+<div class="main-content" id="mainContent">
+    <div class="page-header">
+        <h1 class="page-title">Registro de Asistencias</h1>
+        <p class="page-subtitle">Control diario de entradas y salidas del personal</p>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h2 class="card-title">Asistencias del Día</h2>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="openEntryModal()">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Registrar Entrada
+                </button>
+                <button class="btn btn-secondary" onclick="openExitModal()">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Registrar Salida
+                </button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Buscar empleado..." onkeyup="filterAttendances()">
+            </div>
+            <input type="date" id="dateFilter" class="filter-select" onchange="loadAttendances()">
+            <select class="filter-select" id="statusFilter" onchange="filterAttendances()">
+                <option value="">Todos los estados</option>
+                <option value="complete">Completo</option>
+                <option value="pending">Pendiente</option>
+            </select>
+        </div>
+
+        <div class="table-container">
+            <div id="loadingIndicator" class="loading">
+                <p>Cargando asistencias...</p>
+            </div>
+            <table id="attendanceTable" class="hidden">
+                <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Hora Entrada</th>
+                    <th>Hora Salida</th>
+                    <th>Horas Trabajadas</th>
+                    <th>Horas Nocturnas</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="entryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Entrada</h3>
+            <button class="btn-close" onclick="closeEntryModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <form id="entryForm" onsubmit="registerEntry(event)">
+            <div class="modal-body">
+                <div id="entryAlert"></div>
+                <div class="form-group">
+                    <label class="form-label" for="entryEmployeeId">Seleccionar Empleado *</label>
+                    <select id="entryEmployeeId" class="form-select" required>
+                        <option value="">-- Seleccione un empleado --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEntryModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="exitModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Salida</h3>
+            <button class="btn-close" onclick="closeExitModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <form id="exitForm" onsubmit="registerExit(event)">
+            <div class="modal-body">
+                <div id="exitAlert"></div>
+                <div class="form-group">
+                    <label class="form-label" for="exitEmployeeId">Seleccionar Empleado *</label>
+                    <select id="exitEmployeeId" class="form-select" required>
+                        <option value="">-- Seleccione un empleado --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeExitModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Salida</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api';
+    let allAttendances = [];
+    let employees = [];
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('open');
+        } else {
+            sidebar.classList.toggle('closed');
+            mainContent.classList.toggle('expanded');
+        }
+    }
+
+    window.addEventListener('resize', function() {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('open');
+        }
+    });
+
+    function showAlert(message, type = 'success', container = 'alertContainer') {
+        const alertContainer = document.getElementById(container);
+        const alertClass = type === 'success' ? 'alert-success' : (type === 'warning' ? 'alert-warning' : 'alert-error');
+        const icon = type === 'success'
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+        alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    ${icon}
+                    <span>${message}</span>
+                </div>
+            `;
+
+        setTimeout(() => {
+            alertContainer.innerHTML = '';
+        }, 5000);
+    }
+
+    function getTodayDate() {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+    }
+
+    function formatTime(dateTimeString) {
+        if (!dateTimeString) return '-';
+        const date = new Date(dateTimeString);
+        return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function calculateWorkedHours(entry, exit) {
+        if (!entry || !exit) return '-';
+        const entryDate = new Date(entry);
+        const exitDate = new Date(exit);
+        const hours = (exitDate - entryDate) / (1000 * 60 * 60);
+        return hours.toFixed(2) + 'h';
+    }
+
+    async function loadEmployees() {
+        try {
+            const response = await fetch(`${API_BASE}/users`);
+            if (!response.ok) throw new Error('Error al cargar empleados');
+
+            employees = await response.json();
+            populateEmployeeSelects();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function populateEmployeeSelects() {
+        const entrySelect = document.getElementById('entryEmployeeId');
+        const exitSelect = document.getElementById('exitEmployeeId');
+
+        const options = employees.map(emp =>
+            `<option value="${emp.userId || emp.id}">${emp.name} ${emp.lastName}</option>`
+        ).join('');
+
+        entrySelect.innerHTML = '<option value="">-- Seleccione un empleado --</option>' + options;
+        exitSelect.innerHTML = '<option value="">-- Seleccione un empleado --</option>' + options;
+    }
+
+    async function loadAttendances() {
+        try {
+            const date = document.getElementById('dateFilter').value;
+            const response = await fetch(`${API_BASE}/attendances?date=${date}`);
+
+            if (!response.ok) throw new Error('Error al cargar asistencias');
+
+            allAttendances = await response.json();
+            displayAttendances(allAttendances);
+            updatePendingAlert();
+
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('attendanceTable').classList.remove('hidden');
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Error al cargar las asistencias. Por favor, recarga la página.', 'error');
+            document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar asistencias</p>';
+        }
+    }
+
+    function displayAttendances(attendances) {
+        const tbody = document.getElementById('attendanceTableBody');
+
+        if (attendances.length === 0) {
+            tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                            No se encontraron asistencias para esta fecha
+                        </td>
+                    </tr>
+                `;
+            return;
+        }
+
+        tbody.innerHTML = attendances.map(att => {
+            const status = att.departureTime ? 'complete' : 'pending';
+            const statusBadge = status === 'complete'
+                ? '<span class="badge badge-success">Completo</span>'
+                : '<span class="badge badge-warning">Pendiente</span>';
+
+            const workedHours = calculateWorkedHours(att.entryTime, att.departureTime);
+            const nightHours = att.nightHours ? att.nightHours.toFixed(2) + 'h' : '0h';
+
+            return `
+                    <tr>
+                        <td><strong>${att.user.name} ${att.user.lastName}</strong></td>
+                        <td>${formatTime(att.entryTime)}</td>
+                        <td>${formatTime(att.departureTime)}</td>
+                        <td>${workedHours}</td>
+                        <td>${nightHours}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            ${status === 'pending'
+                ? `<button class="btn btn-primary" style="padding: 6px 12px;" onclick="quickRegisterExit(${att.user.userId || att.user.id})">Registrar Salida</button>`
+                : `<button class="btn btn-secondary" style="padding: 6px 12px;" disabled>Completo</button>`
+            }
+                        </td>
+                    </tr>
+                `;
+        }).join('');
+    }
+
+    function updatePendingAlert() {
+        const pending = allAttendances.filter(att => !att.departureTime).length;
+        const alertContainer = document.getElementById('alertContainer');
+
+        if (pending > 0) {
+            alertContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span><strong>${pending} empleado${pending > 1 ? 's' : ''}</strong> con salidas pendientes de registro</span>
+                    </div>
+                `;
+        } else {
+            alertContainer.innerHTML = '';
+        }
+    }
+
+    function filterAttendances() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+
+        let filtered = allAttendances.filter(att => {
+            const fullName = `${att.user.name} ${att.user.lastName}`.toLowerCase();
+            const matchesSearch = fullName.includes(searchTerm);
+
+            let matchesStatus = true;
+            if (statusFilter === 'complete') {
+                matchesStatus = att.departureTime !== null;
+            } else if (statusFilter === 'pending') {
+                matchesStatus = att.departureTime === null;
+            }
+
+            return matchesSearch && matchesStatus;
+        });
+
+        displayAttendances(filtered);
+    }
+
+    function openEntryModal() {
+        document.getElementById('entryModal').classList.add('active');
+        document.getElementById('entryForm').reset();
+        document.getElementById('entryAlert').innerHTML = '';
+    }
+
+    function closeEntryModal() {
+        document.getElementById('entryModal').classList.remove('active');
+    }
+
+    function openExitModal() {
+        document.getElementById('exitModal').classList.add('active');
+        document.getElementById('exitForm').reset();
+        document.getElementById('exitAlert').innerHTML = '';
+    }
+
+    function closeExitModal() {
+        document.getElementById('exitModal').classList.remove('active');
+    }
+
+    async function registerEntry(event) {
+        event.preventDefault();
+
+        const employeeId = document.getElementById('entryEmployeeId').value;
+
+        try {
+            const response = await fetch(`${API_BASE}/users/${employeeId}/entry`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al registrar entrada');
+
+            closeEntryModal();
+            showAlert('Entrada registrada exitosamente', 'success');
+            loadAttendances();
+
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Error al registrar la entrada. Intenta nuevamente.', 'error', 'entryAlert');
+        }
+    }
+
+    async function registerExit(event) {
+        event.preventDefault();
+
+        const employeeId = document.getElementById('exitEmployeeId').value;
+
+        try {
+            const response = await fetch(`${API_BASE}/users/${employeeId}/exit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al registrar salida');
+
+            closeExitModal();
+            showAlert('Salida registrada exitosamente', 'success');
+            loadAttendances();
+
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Error al registrar la salida. Intenta nuevamente.', 'error', 'exitAlert');
+        }
+    }
+
+    async function quickRegisterExit(employeeId) {
+        if (!confirm('¿Desea registrar la salida de este empleado ahora?')) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/users/${employeeId}/exit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al registrar salida');
+
+            showAlert('Salida registrada exitosamente', 'success');
+            loadAttendances();
+
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Error al registrar la salida. Intenta nuevamente.', 'error');
+        }
+    }
+
+    window.onclick = function(event) {
+        const entryModal = document.getElementById('entryModal');
+        const exitModal = document.getElementById('exitModal');
+
+        if (event.target === entryModal) {
+            closeEntryModal();
+        }
+        if (event.target === exitModal) {
+            closeExitModal();
+        }
+    }
+
+    window.onload = function() {
+        document.getElementById('dateFilter').value = getTodayDate();
+        loadEmployees();
+        loadAttendances();
+    }
+</script>
+</body>
+</html>

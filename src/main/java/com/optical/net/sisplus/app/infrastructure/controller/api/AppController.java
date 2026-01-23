@@ -1,6 +1,7 @@
-package com.optical.net.sisplus.app.infrastructure.controller;
+package com.optical.net.sisplus.app.infrastructure.controller.api;
 
 import com.optical.net.sisplus.app.application.PortAdapter;
+import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.mapper.UserResponseMapper;
 import com.optical.net.sisplus.app.infrastructure.web.UserRequest;
@@ -8,6 +9,7 @@ import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -18,11 +20,23 @@ public class AppController {
     public AppController(PortAdapter portAdapter) {
         this.portAdapter = portAdapter;
     }
+    @GetMapping("/users")
+    public List<UserResponse> readAll() {
+        var usuarios = portAdapter.obtenerTodosUsuarios();
+        return usuarios.stream()
+                .map(user -> UserResponse.builder()
+                        .name(user.getName())
+                        .lastName(user.getLastName())
+                        .cc(user.getCc())
+                        .build())
+                .toList();
+    }
+
 
     @PostMapping("/users/payroll")
     public UserResponse calcularNomina(@RequestBody UserRequest request) {
 
-        var user = portAdapter.buscarUsuarioPorId(request.getUserId());
+        var user = portAdapter.buscarUsuarioPorId(request.getId());
 
         LocalDate date = request.getDate() != null
                 ? request.getDate()
@@ -101,6 +115,19 @@ public class AppController {
         LocalDate targetDate = date != null ? date : LocalDate.now();
 
         return user.calcularPagoRecargoNocturno(targetDate);
+    }
+    @GetMapping("/attendances")
+    public List<AttendanceDomain> readAttendances(
+            @RequestParam(required = false) LocalDate date
+    ) {
+        LocalDate targetDate = date != null ? date : LocalDate.now();
+
+        List<UserDomain> usuarios = portAdapter.obtenerTodosUsuarios();
+
+        return usuarios.stream()
+                .map(user -> portAdapter.obtenerAsistenciaDelDia(user.getId(), targetDate))
+                .filter(attendance -> attendance != null)
+                .toList();
     }
 
 }

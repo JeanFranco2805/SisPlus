@@ -12,6 +12,7 @@ import com.optical.net.sisplus.app.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class PortCaseAdapter implements PortAdapter {
@@ -71,9 +72,18 @@ public class PortCaseAdapter implements PortAdapter {
     public void registrarSalida(Long usuarioId) {
         var user = userRepository.findById(usuarioId).orElseThrow();
         var attendances = attendanceRepository.findByUser(user);
-        var attendance =  attendances.stream().filter(e-> e.getEntry_time()
+        var attendance =  attendances.stream().filter(e-> e.getEntryTime()
                 .toLocalDate().equals(LocalDate.now())).findFirst().orElseThrow();
-        attendance.setDeparture_time(LocalDateTime.now());
+        attendance.setDepartureTime(
+                LocalDateTime.now());
+    }
+
+    @Override
+    public List<UserDomain> obtenerTodosUsuarios() {
+        return userRepository.findAll()
+                .stream()
+                .map(userMapper::toDomain)
+                .toList();
     }
 
 }
