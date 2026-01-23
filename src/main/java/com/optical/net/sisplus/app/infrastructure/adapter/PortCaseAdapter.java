@@ -63,6 +63,11 @@ public class PortCaseAdapter implements PortAdapter {
                 .toList();
     }
 
+    @Override
+    public void eliminarUsuario(Long id) {
+        userRepository.removeById(id);
+    }
+
 
     @Override
     public void guardarHuella(FootPrintsDomain footPrintsDomain) {

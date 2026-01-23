@@ -12,7 +12,7 @@ public interface PortAdapter {
     UserDomain guardarUsuario(UserDomain userDomain);
     UserDomain buscarUsuarioPorId(Long usuarioId);
     List<UserDomain> obtenerTodosUsuarios();
-
+    void eliminarUsuario(Long id);
     void guardarHuella(FootPrintsDomain footPrintsDomain);
     UserDomain identificarUsuarioPorHuella(byte[] templateHuella);
 

@@ -6,6 +6,7 @@ import com.optical.net.sisplus.app.infrastructure.mapper.response.UserResponseMa
 import com.optical.net.sisplus.app.infrastructure.web.UserRequest;
 import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +26,7 @@ public class UserService {
                 .map(UserResponseMapper::toUserResponse)  // <- este ahora es compatible
                 .toList();
     }
+
     public UserResponse createUser(UserRequest request) {
         UserDomain user = UserDomain.builder()
                 .name(request.getName())
@@ -36,6 +38,24 @@ public class UserService {
         return UserResponseMapper.toUserResponse(saved);
     }
 
+    @Transactional
+    public boolean deleteUserById(Long id) {
+        portAdapter.eliminarUsuario(id);
+        return true;
+    }
+
+    @Transactional
+    public UserResponse updateUser(Long id, UserRequest request) {
+        UserDomain user = UserDomain.builder()
+                .id(id)
+                .name(request.getName())
+                .lastName(request.getLastName())
+                .cc(request.getCc())
+                .build();
+
+        UserDomain saved = portAdapter.guardarUsuario(user);
+        return UserResponseMapper.toUserResponse(saved);
+    }
 
     public UserResponse calculatePayroll(Long id, LocalDate date, Integer month, Integer year) {
         UserDomain user = portAdapter.buscarUsuarioPorId(id);
