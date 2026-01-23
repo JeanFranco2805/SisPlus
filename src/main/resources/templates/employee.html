@@ -619,7 +619,7 @@
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.35-4.35"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Buscar empleado por nombre o CC..." onkeyup="filterEmployees()">
+                <input type="text" id="searchInput" placeholder="Buscar empleado por ID, nombre o CC..." onkeyup="filterEmployees()">
             </div>
         </div>
 
@@ -630,7 +630,9 @@
             <table id="employeesTable" class="hidden">
                 <thead>
                 <tr>
-                    <th>Nombre Completo</th>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
                     <th>Cédula</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -681,7 +683,7 @@
 </div>
 
 <script>
-    const API_BASE = 'http://localhost:8080/api/';
+    const API_BASE = '/api/';
     let allEmployees = [];
 
     function toggleSidebar() {
@@ -748,7 +750,7 @@
         if (employees.length === 0) {
             tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-gray);">
                             No se encontraron empleados
                         </td>
                     </tr>
@@ -756,26 +758,32 @@
             return;
         }
 
-        tbody.innerHTML = employees.map(emp => `
+        tbody.innerHTML = employees.map(emp => {
+            const employeeId = emp.id || emp.id || 'N/A';
+            return `
                 <tr>
-                    <td><strong>${emp.name} ${emp.lastName}</strong></td>
+                    <td><strong>#${employeeId}</strong></td>
+                    <td>${emp.name}</td>
+                    <td>${emp.lastName}</td>
                     <td>${emp.cc}</td>
                     <td><span class="badge badge-success">Activo</span></td>
                     <td>
-                        <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="viewEmployee(${emp.userId || emp.id})">
+                        <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="viewEmployee(${employeeId})">
                             Ver Detalles
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+        }).join('');
     }
 
     function filterEmployees() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const filtered = allEmployees.filter(emp => {
+            const employeeId = (emp.id || emp.userId || '').toString().toLowerCase();
             const fullName = `${emp.name} ${emp.lastName}`.toLowerCase();
             const cc = emp.cc.toLowerCase();
-            return fullName.includes(searchTerm) || cc.includes(searchTerm);
+            return employeeId.includes(searchTerm) || fullName.includes(searchTerm) || cc.includes(searchTerm);
         });
         displayEmployees(filtered);
     }

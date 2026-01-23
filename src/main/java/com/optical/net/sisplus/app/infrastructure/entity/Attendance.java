@@ -22,8 +22,6 @@ public class Attendance {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private LocalDateTime dateTime;
-
     private LocalDateTime entryTime;
 
     private LocalDateTime departureTime;

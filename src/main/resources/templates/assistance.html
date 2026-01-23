@@ -671,6 +671,7 @@
                     <th>Hora Entrada</th>
                     <th>Hora Salida</th>
                     <th>Horas Trabajadas</th>
+                    <th>Horas Extras</th>
                     <th>Horas Nocturnas</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -809,9 +810,11 @@
             if (!response.ok) throw new Error('Error al cargar empleados');
 
             employees = await response.json();
+            console.log('Empleados cargados:', employees);
             populateEmployeeSelects();
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error al cargar empleados:', error);
+            showAlert('Error al cargar la lista de empleados', 'error');
         }
     }
 
@@ -819,9 +822,10 @@
         const entrySelect = document.getElementById('entryEmployeeId');
         const exitSelect = document.getElementById('exitEmployeeId');
 
-        const options = employees.map(emp =>
-            `<option value="${emp.userId || emp.id}">${emp.name} ${emp.lastName}</option>`
-        ).join('');
+        const options = employees.map(emp => {
+            const id = emp.id || emp.userId;
+            return `<option value="${id}">${emp.name} ${emp.lastName} - CC: ${emp.cc}</option>`;
+        }).join('');
 
         entrySelect.innerHTML = '<option value="">-- Seleccione un empleado --</option>' + options;
         exitSelect.innerHTML = '<option value="">-- Seleccione un empleado --</option>' + options;
@@ -830,20 +834,27 @@
     async function loadAttendances() {
         try {
             const date = document.getElementById('dateFilter').value;
-            const response = await fetch(`${API_BASE}/attendances?date=${date}`);
+            const url = `${API_BASE}/attendances${date ? '?date=' + date : ''}`;
 
-            if (!response.ok) throw new Error('Error al cargar asistencias');
+            console.log('Cargando asistencias desde:', url);
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Error al cargar asistencias: ${response.status}`);
+            }
 
             allAttendances = await response.json();
+            console.log('Asistencias cargadas:', allAttendances);
+
             displayAttendances(allAttendances);
             updatePendingAlert();
 
             document.getElementById('loadingIndicator').classList.add('hidden');
             document.getElementById('attendanceTable').classList.remove('hidden');
         } catch (error) {
-            console.error('Error:', error);
-            showAlert('Error al cargar las asistencias. Por favor, recarga la página.', 'error');
-            document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar asistencias</p>';
+            console.error('Error al cargar asistencias:', error);
+            showAlert('Error al cargar las asistencias. ' + error.message, 'error');
+            document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar asistencias: ' + error.message + '</p>';
         }
     }
 
@@ -853,7 +864,7 @@
         if (attendances.length === 0) {
             tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-gray);">
                             No se encontraron asistencias para esta fecha
                         </td>
                     </tr>
@@ -867,20 +878,24 @@
                 ? '<span class="badge badge-success">Completo</span>'
                 : '<span class="badge badge-warning">Pendiente</span>';
 
-            const workedHours = calculateWorkedHours(att.entryTime, att.departureTime);
+            const workedHours = att.workedHours ? att.workedHours.toFixed(2) + 'h' : '-';
+            const extraHours = att.extraHours ? att.extraHours.toFixed(2) + 'h' : '0h';
             const nightHours = att.nightHours ? att.nightHours.toFixed(2) + 'h' : '0h';
+            const userId = att.user?.id || att.user?.userId || 'N/A';
+            const userName = att.user ? `${att.user.name} ${att.user.lastName}` : 'Usuario desconocido';
 
             return `
                     <tr>
-                        <td><strong>${att.user.name} ${att.user.lastName}</strong></td>
+                        <td><strong>${userName}</strong></td>
                         <td>${formatTime(att.entryTime)}</td>
                         <td>${formatTime(att.departureTime)}</td>
                         <td>${workedHours}</td>
+                        <td>${extraHours}</td>
                         <td>${nightHours}</td>
                         <td>${statusBadge}</td>
                         <td>
                             ${status === 'pending'
-                ? `<button class="btn btn-primary" style="padding: 6px 12px;" onclick="quickRegisterExit(${att.user.userId || att.user.id})">Registrar Salida</button>`
+                ? `<button class="btn btn-primary" style="padding: 6px 12px;" onclick="quickRegisterExit(${userId})">Registrar Salida</button>`
                 : `<button class="btn btn-secondary" style="padding: 6px 12px;" disabled>Completo</button>`
             }
                         </td>
@@ -914,7 +929,7 @@
         const statusFilter = document.getElementById('statusFilter').value;
 
         let filtered = allAttendances.filter(att => {
-            const fullName = `${att.user.name} ${att.user.lastName}`.toLowerCase();
+            const fullName = att.user ? `${att.user.name} ${att.user.lastName}`.toLowerCase() : '';
             const matchesSearch = fullName.includes(searchTerm);
 
             let matchesStatus = true;
@@ -955,6 +970,13 @@
 
         const employeeId = document.getElementById('entryEmployeeId').value;
 
+        if (!employeeId) {
+            showAlert('Por favor selecciona un empleado', 'error', 'entryAlert');
+            return;
+        }
+
+        console.log('Registrando entrada para empleado ID:', employeeId);
+
         try {
             const response = await fetch(`${API_BASE}/users/${employeeId}/entry`, {
                 method: 'POST',
@@ -963,15 +985,21 @@
                 }
             });
 
-            if (!response.ok) throw new Error('Error al registrar entrada');
+            console.log('Respuesta del servidor:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error del servidor:', errorText);
+                throw new Error(`Error al registrar entrada: ${response.status} - ${errorText}`);
+            }
 
             closeEntryModal();
             showAlert('Entrada registrada exitosamente', 'success');
-            loadAttendances();
+            await loadAttendances();
 
         } catch (error) {
-            console.error('Error:', error);
-            showAlert('Error al registrar la entrada. Intenta nuevamente.', 'error', 'entryAlert');
+            console.error('Error completo:', error);
+            showAlert('Error al registrar la entrada: ' + error.message, 'error', 'entryAlert');
         }
     }
 
@@ -980,6 +1008,13 @@
 
         const employeeId = document.getElementById('exitEmployeeId').value;
 
+        if (!employeeId) {
+            showAlert('Por favor selecciona un empleado', 'error', 'exitAlert');
+            return;
+        }
+
+        console.log('Registrando salida para empleado ID:', employeeId);
+
         try {
             const response = await fetch(`${API_BASE}/users/${employeeId}/exit`, {
                 method: 'POST',
@@ -988,21 +1023,29 @@
                 }
             });
 
-            if (!response.ok) throw new Error('Error al registrar salida');
+            console.log('Respuesta del servidor:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error del servidor:', errorText);
+                throw new Error(`Error al registrar salida: ${response.status} - ${errorText}`);
+            }
 
             closeExitModal();
             showAlert('Salida registrada exitosamente', 'success');
-            loadAttendances();
+            await loadAttendances();
 
         } catch (error) {
-            console.error('Error:', error);
-            showAlert('Error al registrar la salida. Intenta nuevamente.', 'error', 'exitAlert');
+            console.error('Error completo:', error);
+            showAlert('Error al registrar la salida: ' + error.message, 'error', 'exitAlert');
         }
     }
 
     async function quickRegisterExit(employeeId) {
         if (!confirm('¿Desea registrar la salida de este empleado ahora?')) return;
 
+        console.log('Registro rápido de salida para empleado ID:', employeeId);
+
         try {
             const response = await fetch(`${API_BASE}/users/${employeeId}/exit`, {
                 method: 'POST',
@@ -1011,14 +1054,17 @@
                 }
             });
 
-            if (!response.ok) throw new Error('Error al registrar salida');
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error: ${response.status} - ${errorText}`);
+            }
 
             showAlert('Salida registrada exitosamente', 'success');
-            loadAttendances();
+            await loadAttendances();
 
         } catch (error) {
             console.error('Error:', error);
-            showAlert('Error al registrar la salida. Intenta nuevamente.', 'error');
+            showAlert('Error al registrar la salida: ' + error.message, 'error');
         }
     }
 
