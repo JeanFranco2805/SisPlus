@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser( @RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
         UserResponse response = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -34,51 +34,36 @@ public class UserController {
     @GetMapping("/{id}/payroll")
     public UserResponse calculatePayroll(
             @PathVariable Long id,
-            @RequestParam(required = false) Integer month,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) LocalDate date
-    ) {
-        return userService.calculatePayroll(id, date, month, year);
-    }
-
-    @GetMapping("/{id}/extra-hours")
-    public double getExtraHours(
-            @PathVariable Long id,
-            @RequestParam(defaultValue = "daily") String period,
             @RequestParam(required = false) LocalDate date,
             @RequestParam(required = false) Integer month,
-            @RequestParam(required = false) Integer year
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "daily") String period
     ) {
-        return switch (period.toLowerCase()) {
-            case "daily" -> userService.getDailyExtraHours(id, date);
-            case "weekly" -> userService.getWeeklyExtraHours(id, date);
-            case "monthly" -> userService.getMonthlyExtraHours(id, month, year);
-            default -> throw new IllegalArgumentException("Invalid period: " + period);
-        };
-    }
-
-    @GetMapping("/{id}/night-surcharge")
-    public double getNightSurcharge(
-            @PathVariable Long id,
-            @RequestParam(required = false) LocalDate date
-    ) {
-        return userService.getNightSurcharge(id, date);
+        return userService.calculatePayroll(id, date, month, year, period);
     }
 
     @PostMapping("/{id}/entry")
     public ResponseEntity<String> registerEntry(@PathVariable Long id) {
         userService.registerEntry(id);
-        return ResponseEntity.ok("Entrada registrada exitosamente");
+        return ResponseEntity.ok("Entry registered successfully");
     }
+
+    @PostMapping("/{id}/exit")
+    public ResponseEntity<String> registerExit(@PathVariable Long id) {
+        userService.registerExit(id);
+        return ResponseEntity.ok("Exit registered successfully");
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         boolean deleted = userService.deleteUserById(id);
         if (deleted) {
-            return ResponseEntity.ok("Usuario eliminado exitosamente");
+            return ResponseEntity.ok("User deleted successfully");
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
@@ -91,5 +76,4 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-
 }

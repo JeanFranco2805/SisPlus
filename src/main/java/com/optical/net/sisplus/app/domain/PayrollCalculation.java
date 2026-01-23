@@ -1,23 +1,17 @@
-package com.optical.net.sisplus.app.infrastructure.web;
+package com.optical.net.sisplus.app.domain;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+@Builder
 @Getter
 @Setter
-@Builder
-public class UserResponse {
-    private Long id;
-    private String name;
-    private String lastName;
-    private String cc;
-
+public class PayrollCalculation {
     private double regularHours;
     private double dayOvertimeHours;
     private double nightOvertimeHours;
     private double nightHours;
-    
     private double regularPay;
     private double nightSurchargePay;
     private double dayOvertimePay;

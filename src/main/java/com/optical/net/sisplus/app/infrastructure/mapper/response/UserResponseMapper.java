@@ -1,5 +1,6 @@
 package com.optical.net.sisplus.app.infrastructure.mapper.response;
 
+import com.optical.net.sisplus.app.domain.PayrollCalculation;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 
@@ -9,27 +10,34 @@ import java.util.stream.Collectors;
 
 public class UserResponseMapper {
 
-    public static UserResponse fromDomain(
+    public static UserResponse fromDomainWithPayroll(
             UserDomain user,
             LocalDate date,
-            int month,
-            int year
+            Integer month,
+            Integer year,
+            String period
     ) {
+        PayrollCalculation payroll = calculatePayrollByPeriod(user, date, month, year, period);
+
         return UserResponse.builder()
+                .id(user.getId())
                 .name(user.getName())
                 .lastName(user.getLastName())
                 .cc(user.getCc())
-                .horasExtrasDiarias(user.calcularHorasExtrasDiarias(date))
-                .horasExtrasSemanales(user.calcularHorasExtrasSemanales(date))
-                .horasExtrasMensuales(user.calcularHorasExtrasMensuales(month, year))
-                .horasNocturnas(user.calcularHorasNocturnas(date))
-                .pagoOrdinarioDiurnoDiario(user.calcularPagoOrdinarioDiurnoDiario(date))
-                .pagoOrdinarioDiurnoSemanal(user.calcularPagoOrdinarioDiurnoSemanal(date))
-                .pagoOrdinarioDiurnoMensual(user.calcularPagoOrdinarioDiurnoMensual(month, year))
-                .pagoRecargoNocturno(user.calcularPagoRecargoNocturno(date))
+                .regularHours(payroll.getRegularHours())
+                .dayOvertimeHours(payroll.getDayOvertimeHours())
+                .nightOvertimeHours(payroll.getNightOvertimeHours())
+                .nightHours(payroll.getNightHours())
+                .regularPay(payroll.getRegularPay())
+                .nightSurchargePay(payroll.getNightSurchargePay())
+                .dayOvertimePay(payroll.getDayOvertimePay())
+                .nightOvertimePay(payroll.getNightOvertimePay())
+                .totalOvertimePay(payroll.getTotalOvertimePay())
+                .totalPay(payroll.getTotalPay())
                 .build();
     }
-    public static UserResponse toUserResponse(UserDomain user) {
+
+    public static UserResponse toBasicUserResponse(UserDomain user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getName())
@@ -38,14 +46,35 @@ public class UserResponseMapper {
                 .build();
     }
 
-    public static List<UserResponse> fromDomainList(
-            List<UserDomain> users,
-            LocalDate date,
-            int month,
-            int year
-    ) {
+    public static List<UserResponse> toBasicUserResponseList(List<UserDomain> users) {
         return users.stream()
-                .map(user -> fromDomain(user, date, month, year))
+                .map(UserResponseMapper::toBasicUserResponse)
                 .collect(Collectors.toList());
+    }
+
+    private static PayrollCalculation calculatePayrollByPeriod(
+            UserDomain user,
+            LocalDate date,
+            Integer month,
+            Integer year,
+            String period
+    ) {
+        if (period != null) {
+            return switch (period.toLowerCase()) {
+                case "weekly" -> user.calculateWeeklyPayroll(date != null ? date : LocalDate.now());
+                case "monthly" -> {
+                    int m = month != null ? month : LocalDate.now().getMonthValue();
+                    int y = year != null ? year : LocalDate.now().getYear();
+                    yield user.calculateMonthlyPayroll(m, y);
+                }
+                default -> user.calculateDailyPayroll(date != null ? date : LocalDate.now());
+            };
+        }
+
+        if (month != null && year != null) {
+            return user.calculateMonthlyPayroll(month, year);
+        }
+
+        return user.calculateDailyPayroll(date != null ? date : LocalDate.now());
     }
 }

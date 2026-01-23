@@ -23,4 +23,8 @@ public class MainController {
     public String login(){
         return "login";
     }
+    @GetMapping("payroll")
+    public String payroll(){
+        return "payroll";
+    }
 }

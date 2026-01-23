@@ -21,10 +21,7 @@ public class UserService {
     }
 
     public List<UserResponse> getAllUsers() {
-        return portAdapter.obtenerTodosUsuarios()
-                .stream()
-                .map(UserResponseMapper::toUserResponse)  // <- este ahora es compatible
-                .toList();
+        return UserResponseMapper.toBasicUserResponseList(portAdapter.obtenerTodosUsuarios());
     }
 
     public UserResponse createUser(UserRequest request) {
@@ -35,7 +32,7 @@ public class UserService {
                 .build();
 
         UserDomain saved = portAdapter.guardarUsuario(user);
-        return UserResponseMapper.toUserResponse(saved);
+        return UserResponseMapper.toBasicUserResponse(saved);
     }
 
     @Transactional
@@ -54,39 +51,18 @@ public class UserService {
                 .build();
 
         UserDomain saved = portAdapter.guardarUsuario(user);
-        return UserResponseMapper.toUserResponse(saved);
+        return UserResponseMapper.toBasicUserResponse(saved);
     }
 
-    public UserResponse calculatePayroll(Long id, LocalDate date, Integer month, Integer year) {
+    public UserResponse calculatePayroll(
+            Long id,
+            LocalDate date,
+            Integer month,
+            Integer year,
+            String period
+    ) {
         UserDomain user = portAdapter.buscarUsuarioPorId(id);
-        LocalDate targetDate = date != null ? date : LocalDate.now();
-        int targetMonth = month != null ? month : targetDate.getMonthValue();
-        int targetYear = year != null ? year : targetDate.getYear();
-
-        return UserResponseMapper.fromDomain(user, targetDate, targetMonth, targetYear);
-    }
-
-    public double getDailyExtraHours(Long id, LocalDate date) {
-        UserDomain user = portAdapter.buscarUsuarioPorId(id);
-        return user.calcularHorasExtrasDiarias(date != null ? date : LocalDate.now());
-    }
-
-    public double getWeeklyExtraHours(Long id, LocalDate date) {
-        UserDomain user = portAdapter.buscarUsuarioPorId(id);
-        return user.calcularHorasExtrasSemanales(date != null ? date : LocalDate.now());
-    }
-
-    public double getMonthlyExtraHours(Long id, Integer month, Integer year) {
-        UserDomain user = portAdapter.buscarUsuarioPorId(id);
-        LocalDate now = LocalDate.now();
-        int m = month != null ? month : now.getMonthValue();
-        int y = year != null ? year : now.getYear();
-        return user.calcularHorasExtrasMensuales(m, y);
-    }
-
-    public double getNightSurcharge(Long id, LocalDate date) {
-        UserDomain user = portAdapter.buscarUsuarioPorId(id);
-        return user.calcularPagoRecargoNocturno(date != null ? date : LocalDate.now());
+        return UserResponseMapper.fromDomainWithPayroll(user, date, month, year, period);
     }
 
     public void registerEntry(Long id) {
@@ -94,6 +70,6 @@ public class UserService {
     }
 
     public void registerExit(Long id) {
-        portAdapter.registrarAsistencia(id);
+        portAdapter.registrarSalida(id);
     }
 }

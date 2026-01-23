@@ -1,6 +1,7 @@
 package com.optical.net.sisplus.app.application;
 
 import com.optical.net.sisplus.app.domain.FootPrintsDomain;
+import com.optical.net.sisplus.app.domain.PayrollCalculation;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ public class UseCaseAdapter implements UseCases {
     @Override
     public double calcularHorasExtras(Long usuarioId, LocalDate fecha) {
         var usuario = portAdapter.buscarUsuarioPorId(usuarioId);
-        return usuario.calcularHorasExtrasDiarias(fecha);
+        PayrollCalculation payroll = usuario.calculateDailyPayroll(fecha);
+        return payroll.getDayOvertimeHours() + payroll.getNightOvertimeHours();
     }
 }
