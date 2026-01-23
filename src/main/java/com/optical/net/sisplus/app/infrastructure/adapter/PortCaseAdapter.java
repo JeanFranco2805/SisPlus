@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,10 +42,10 @@ public class PortCaseAdapter implements PortAdapter {
         this.footPrintsMapper = footPrintsMapper;
     }
 
-
     @Override
     public UserDomain guardarUsuario(UserDomain userDomain) {
-        return userMapper.toDomain(userRepository.save(userMapper.toEntity(userDomain)));
+        var savedUser = userRepository.save(userMapper.toEntity(userDomain));
+        return userMapper.toDomain(savedUser);
     }
 
     @Override
@@ -52,14 +53,28 @@ public class PortCaseAdapter implements PortAdapter {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
-        return userMapper.toDomain(user);
+
+        var userDomain = userMapper.toDomain(user);
+
+        var attendanceEntities = attendanceRepository.findByUser(user);
+        List<AttendanceDomain> attendanceDomains = attendanceEntities.stream()
+                .map(attendanceMapper::toDomain)
+                .collect(Collectors.toList());
+
+        userDomain.setAttendance(attendanceDomains != null ? attendanceDomains : new ArrayList<>());
+
+        return userDomain;
     }
 
     @Override
     public List<UserDomain> obtenerTodosUsuarios() {
         return userRepository.findAll()
                 .stream()
-                .map(userMapper::toDomain)
+                .map(user -> {
+                    var userDomain = userMapper.toDomain(user);
+                    userDomain.setAttendance(new ArrayList<>());
+                    return userDomain;
+                })
                 .toList();
     }
 
@@ -67,7 +82,6 @@ public class PortCaseAdapter implements PortAdapter {
     public void eliminarUsuario(Long id) {
         userRepository.removeById(id);
     }
-
 
     @Override
     public void guardarHuella(FootPrintsDomain footPrintsDomain) {
@@ -77,9 +91,10 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     public UserDomain identificarUsuarioPorHuella(byte[] templateHuella) {
         var fps = footPrintsRepository.findByTemplate(templateHuella).getLast();
-        return userMapper.toDomain(fps.getUser());
+        var userDomain = userMapper.toDomain(fps.getUser());
+        userDomain.setAttendance(new ArrayList<>());
+        return userDomain;
     }
-
 
     @Override
     public void registrarAsistencia(Long usuarioId) {
@@ -129,7 +144,6 @@ public class PortCaseAdapter implements PortAdapter {
         attendance.setDepartureTime(ahora);
         attendanceRepository.save(attendance);
     }
-
 
     @Override
     public AttendanceDomain obtenerAsistenciaDelDia(Long usuarioId, LocalDate fecha) {
@@ -190,7 +204,6 @@ public class PortCaseAdapter implements PortAdapter {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public AttendanceDomain actualizarAsistencia(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
         var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
@@ -211,7 +224,6 @@ public class PortCaseAdapter implements PortAdapter {
         var updatedAttendance = attendanceRepository.save(attendance);
         return attendanceMapper.toDomain(updatedAttendance);
     }
-
 
     @Override
     public void eliminarAsistencia(Long attendanceId) {
