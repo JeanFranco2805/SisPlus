@@ -9,17 +9,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PortAdapter {
-    // Usuarios
     UserDomain guardarUsuario(UserDomain userDomain);
     UserDomain buscarUsuarioPorId(Long usuarioId);
     List<UserDomain> obtenerTodosUsuarios();
 
-    // Huellas
     void guardarHuella(FootPrintsDomain footPrintsDomain);
     UserDomain identificarUsuarioPorHuella(byte[] templateHuella);
 
-    // Asistencias - CRUD
-    void registrarEntrada(Long usuarioId);
+    void registrarAsistencia(Long usuarioId);
     void registrarSalida(Long usuarioId);
     AttendanceDomain obtenerAsistenciaDelDia(Long usuarioId, LocalDate fecha);
     AttendanceDomain obtenerAsistenciaPorId(Long attendanceId);

@@ -70,10 +70,10 @@ public class UserService {
     }
 
     public void registerEntry(Long id) {
-        portAdapter.registrarEntrada(id);
+        portAdapter.registrarAsistencia(id);
     }
 
     public void registerExit(Long id) {
-        portAdapter.registrarSalida(id);
+        portAdapter.registrarAsistencia(id);
     }
 }

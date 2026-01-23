@@ -71,10 +71,6 @@ public class UserController {
         return ResponseEntity.ok("Entrada registrada exitosamente");
     }
 
-    @PostMapping("/{id}/exit")
-    public ResponseEntity<String> registerExit(@PathVariable Long id) {
-        userService.registerExit(id);
-        return ResponseEntity.ok("Salida registrada exitosamente");
-    }
+
 
 }

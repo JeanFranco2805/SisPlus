@@ -34,7 +34,7 @@ public class UseCaseAdapter implements UseCases {
 
     @Override
     public void marcarAsistencia(Long usuarioId) {
-        portAdapter.registrarEntrada(usuarioId);
+        portAdapter.registrarAsistencia(usuarioId);
     }
 
     @Override

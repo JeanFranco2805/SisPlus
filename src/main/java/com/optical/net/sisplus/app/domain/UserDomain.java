@@ -44,8 +44,8 @@ public class UserDomain {
     public double calcularHorasExtrasMensuales(int month, int year) {
         LocalDate date = LocalDate.now().withMonth(month).withYear(year);
         Month mes = date.getMonth();
-        int dias = switch (mes){
-            case JANUARY, MARCH, MAY, JULY, AUGUST, OCTOBER, DECEMBER-> 31;
+        int dias = switch (mes) {
+            case JANUARY, MARCH, MAY, JULY, AUGUST, OCTOBER, DECEMBER -> 31;
             case APRIL, JUNE, SEPTEMBER, NOVEMBER -> 30;
             case FEBRUARY -> date.isLeapYear() ? 29 : 28;
         };
@@ -58,10 +58,12 @@ public class UserDomain {
         }
         return extrHours;
     }
+
     public double calcularPagoOrdinarioDiurnoDiario(LocalDate date) {
         double HORA_ORDINARIA_DIURNA = 9948;
         return 8 * HORA_ORDINARIA_DIURNA;
     }
+
     public double calcularPagoOrdinarioDiurnoSemanal(LocalDate date) {
         double HORA_ORDINARIA_DIURNA = 9948;
 
@@ -72,6 +74,7 @@ public class UserDomain {
 
         return asistenciaSemana.size() * 8 * HORA_ORDINARIA_DIURNA;
     }
+
     public double calcularPagoOrdinarioDiurnoMensual(int month, int year) {
         double HORA_ORDINARIA_DIURNA = 9948;
 

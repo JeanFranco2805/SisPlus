@@ -985,7 +985,7 @@
         const exitSelect = document.getElementById('exitEmployeeId');
 
         const options = employees.map(emp => {
-            const id = emp.id || emp.userId;
+            const id = emp.id || emp.id;
             return `<option value="${id}">${emp.name} ${emp.lastName} - CC: ${emp.cc}</option>`;
         }).join('');
 
@@ -1269,7 +1269,7 @@
         }
 
         try {
-            const response = await fetch(`${API_BASE}/users/${employeeId}/exit`, {
+            const response = await fetch(`${API_BASE}/users/${employeeId}/entry`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

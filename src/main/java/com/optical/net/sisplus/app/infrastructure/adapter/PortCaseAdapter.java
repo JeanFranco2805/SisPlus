@@ -77,7 +77,7 @@ public class PortCaseAdapter implements PortAdapter {
 
 
     @Override
-    public void registrarEntrada(Long usuarioId) {
+    public void registrarAsistencia(Long usuarioId) {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
@@ -90,7 +90,8 @@ public class PortCaseAdapter implements PortAdapter {
                         att.getEntryTime().toLocalDate().equals(ahora.toLocalDate()));
 
         if (yaRegistroHoy) {
-            throw new RuntimeException("El empleado ya tiene una entrada registrada para el día de hoy");
+            registrarSalida(usuarioId);
+            return;
         }
 
         Attendance attendance = Attendance.builder()
