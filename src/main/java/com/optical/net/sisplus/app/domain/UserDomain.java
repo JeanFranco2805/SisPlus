@@ -46,8 +46,8 @@ public class UserDomain {
         double regularHours = Math.min(workedHours, REGULAR_WORK_HOURS);
         double totalOvertimeHours = Math.max(0, workedHours - REGULAR_WORK_HOURS);
 
-        double dayOvertimeHours = calculateDayOvertimeHours(date);
-        double nightOvertimeHours = calculateNightOvertimeHours(date);
+        double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(todayAttendance);
+        double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(todayAttendance);
         double nightHours = todayAttendance.getNightHours();
 
         double regularPay = regularHours * REGULAR_HOUR_RATE;
@@ -99,6 +99,13 @@ public class UserDomain {
         return calculatePayrollForPeriod(monthlyAttendances);
     }
 
+    /**
+     * MÉTODO CORREGIDO: Calcula la nómina para un período sin duplicar asistencias
+     * El problema anterior era que llamaba a calculateDailyPayroll() que volvía a buscar
+     * la asistencia en la lista global, causando duplicaciones.
+     *
+     * Ahora calcula directamente desde las asistencias pasadas como parámetro.
+     */
     private PayrollCalculation calculatePayrollForPeriod(List<AttendanceDomain> attendances) {
         double totalRegularHours = 0;
         double totalDayOvertimeHours = 0;
@@ -109,16 +116,32 @@ public class UserDomain {
         double totalDayOvertimePay = 0;
         double totalNightOvertimePay = 0;
 
+        // Calcular directamente desde las asistencias pasadas como parámetro
+        // sin volver a buscar en la lista global para evitar duplicaciones
         for (AttendanceDomain att : attendances) {
-            PayrollCalculation dailyCalc = calculateDailyPayroll(att.getDate());
-            totalRegularHours += dailyCalc.getRegularHours();
-            totalDayOvertimeHours += dailyCalc.getDayOvertimeHours();
-            totalNightOvertimeHours += dailyCalc.getNightOvertimeHours();
-            totalNightHours += dailyCalc.getNightHours();
-            totalRegularPay += dailyCalc.getRegularPay();
-            totalNightSurchargePay += dailyCalc.getNightSurchargePay();
-            totalDayOvertimePay += dailyCalc.getDayOvertimePay();
-            totalNightOvertimePay += dailyCalc.getNightOvertimePay();
+            if (att == null || !att.isComplete()) {
+                continue;
+            }
+
+            double workedHours = att.getWorkedHours();
+            double regularHours = Math.min(workedHours, REGULAR_WORK_HOURS);
+            double nightHours = att.getNightHours();
+
+            // Calcular horas extras directamente de esta asistencia
+            double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att);
+            double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att);
+
+            // Acumular horas
+            totalRegularHours += regularHours;
+            totalDayOvertimeHours += dayOvertimeHours;
+            totalNightOvertimeHours += nightOvertimeHours;
+            totalNightHours += nightHours;
+
+            // Calcular pagos
+            totalRegularPay += regularHours * REGULAR_HOUR_RATE;
+            totalNightSurchargePay += nightHours * NIGHT_SURCHARGE_RATE;
+            totalDayOvertimePay += dayOvertimeHours * DAY_OVERTIME_RATE;
+            totalNightOvertimePay += nightOvertimeHours * NIGHT_OVERTIME_RATE;
         }
 
         double totalOvertimePay = totalDayOvertimePay + totalNightOvertimePay;
@@ -138,8 +161,11 @@ public class UserDomain {
                 .build();
     }
 
-    private double calculateDayOvertimeHours(LocalDate date) {
-        AttendanceDomain attendance = getAttendanceByDate(date);
+    /**
+     * MÉTODO RENOMBRADO Y MODIFICADO: Calcula horas extras diurnas desde una asistencia específica
+     * Antes se llamaba calculateDayOvertimeHours y buscaba la asistencia por fecha
+     */
+    private double calculateDayOvertimeHoursFromAttendance(AttendanceDomain attendance) {
         if (attendance == null || !attendance.isComplete()) {
             return 0.0;
         }
@@ -173,8 +199,11 @@ public class UserDomain {
         return dayMinutes / 60.0;
     }
 
-    private double calculateNightOvertimeHours(LocalDate date) {
-        AttendanceDomain attendance = getAttendanceByDate(date);
+    /**
+     * MÉTODO RENOMBRADO Y MODIFICADO: Calcula horas extras nocturnas desde una asistencia específica
+     * Antes se llamaba calculateNightOvertimeHours y buscaba la asistencia por fecha
+     */
+    private double calculateNightOvertimeHoursFromAttendance(AttendanceDomain attendance) {
         if (attendance == null || !attendance.isComplete()) {
             return 0.0;
         }
@@ -206,6 +235,21 @@ public class UserDomain {
         }
 
         return nightMinutes / 60.0;
+    }
+
+    /**
+     * MÉTODOS DEPRECADOS MANTENIDOS PARA COMPATIBILIDAD
+     * Estos métodos ya no se usan en calculatePayrollForPeriod pero se mantienen
+     * para uso en calculateDailyPayroll
+     */
+    private double calculateDayOvertimeHours(LocalDate date) {
+        AttendanceDomain attendance = getAttendanceByDate(date);
+        return calculateDayOvertimeHoursFromAttendance(attendance);
+    }
+
+    private double calculateNightOvertimeHours(LocalDate date) {
+        AttendanceDomain attendance = getAttendanceByDate(date);
+        return calculateNightOvertimeHoursFromAttendance(attendance);
     }
 
     private AttendanceDomain getAttendanceByDate(LocalDate date) {

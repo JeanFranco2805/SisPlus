@@ -9,21 +9,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PortAdapter {
-    UserDomain guardarUsuario(UserDomain userDomain);
-    UserDomain buscarUsuarioPorId(Long usuarioId);
-    List<UserDomain> obtenerTodosUsuarios();
-    void eliminarUsuario(Long id);
-    void guardarHuella(FootPrintsDomain footPrintsDomain);
-    UserDomain identificarUsuarioPorHuella(byte[] templateHuella);
+    UserDomain saveUser(UserDomain userDomain);
+    UserDomain findUserById(Long usuarioId);
+    List<UserDomain> getAllUsers();
+    void deleteUser(Long id);
+    void saveFingerprint(FootPrintsDomain footPrintsDomain);
+    UserDomain identifyUserByFingerprint(byte[] templateHuella);
 
-    void registrarAsistencia(Long usuarioId);
-    void registrarSalida(Long usuarioId);
-    AttendanceDomain obtenerAsistenciaDelDia(Long usuarioId, LocalDate fecha);
-    AttendanceDomain obtenerAsistenciaPorId(Long attendanceId);
-    List<AttendanceDomain> obtenerAsistenciasDelDia(LocalDate fecha);
-    List<AttendanceDomain> obtenerTodasLasAsistencias();
-    List<AttendanceDomain> obtenerAsistenciasPorRangoFechas(LocalDateTime startDate, LocalDateTime endDate);
-    List<AttendanceDomain> obtenerAsistenciasPorUsuarioYRango(Long usuarioId, LocalDateTime startDate, LocalDateTime endDate);
-    AttendanceDomain actualizarAsistencia(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime);
-    void eliminarAsistencia(Long attendanceId);
+    void registerAttendance(Long usuarioId);
+    void registerDeparture(Long usuarioId);
+    AttendanceDomain getAttendanceForDay(Long usuarioId, LocalDate fecha);
+    AttendanceDomain getAttendanceById(Long attendanceId);
+    List<AttendanceDomain> getAttendancesForDay(LocalDate fecha);
+    List<AttendanceDomain> getAllAttendances();
+    List<AttendanceDomain> getAttendancesByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    List<AttendanceDomain> getAttendancesByUserAndDateRange(Long usuarioId, LocalDateTime startDate, LocalDateTime endDate);
+    AttendanceDomain updateAttendance(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime);
+    void deleteAttendance(Long attendanceId);
 }

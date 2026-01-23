@@ -21,7 +21,7 @@ public class UserService {
     }
 
     public List<UserResponse> getAllUsers() {
-        return UserResponseMapper.toBasicUserResponseList(portAdapter.obtenerTodosUsuarios());
+        return UserResponseMapper.toBasicUserResponseList(portAdapter.getAllUsers());
     }
 
     public UserResponse createUser(UserRequest request) {
@@ -31,13 +31,13 @@ public class UserService {
                 .cc(request.getCc())
                 .build();
 
-        UserDomain saved = portAdapter.guardarUsuario(user);
+        UserDomain saved = portAdapter.saveUser(user);
         return UserResponseMapper.toBasicUserResponse(saved);
     }
 
     @Transactional
     public boolean deleteUserById(Long id) {
-        portAdapter.eliminarUsuario(id);
+        portAdapter.deleteUser(id);
         return true;
     }
 
@@ -50,7 +50,7 @@ public class UserService {
                 .cc(request.getCc())
                 .build();
 
-        UserDomain saved = portAdapter.guardarUsuario(user);
+        UserDomain saved = portAdapter.saveUser(user);
         return UserResponseMapper.toBasicUserResponse(saved);
     }
 
@@ -61,15 +61,15 @@ public class UserService {
             Integer year,
             String period
     ) {
-        UserDomain user = portAdapter.buscarUsuarioPorId(id);
+        UserDomain user = portAdapter.findUserById(id);
         return UserResponseMapper.fromDomainWithPayroll(user, date, month, year, period);
     }
 
     public void registerEntry(Long id) {
-        portAdapter.registrarAsistencia(id);
+        portAdapter.registerAttendance(id);
     }
 
     public void registerExit(Long id) {
-        portAdapter.registrarSalida(id);
+        portAdapter.registerDeparture(id);
     }
 }

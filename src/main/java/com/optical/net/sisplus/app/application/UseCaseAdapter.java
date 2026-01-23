@@ -20,13 +20,13 @@ public class UseCaseAdapter implements UseCases {
     @Override
     public void registrarUsuario(String nombre, String apellido, String cc) {
         var domain = UserDomain.builder().name(nombre).lastName(apellido).cc(cc).build();
-        portAdapter.guardarUsuario(domain);
+        portAdapter.saveUser(domain);
     }
 
     @Override
     public void registrarHuella(Long usuarioId, byte[] templateHuella) {
-        var usuario = portAdapter.buscarUsuarioPorId(usuarioId);
-        portAdapter.guardarHuella(FootPrintsDomain.builder()
+        var usuario = portAdapter.findUserById(usuarioId);
+        portAdapter.saveFingerprint(FootPrintsDomain.builder()
                 .date(LocalDateTime.now())
                 .user(usuario)
                 .template(templateHuella)
@@ -35,17 +35,17 @@ public class UseCaseAdapter implements UseCases {
 
     @Override
     public void marcarAsistencia(Long usuarioId) {
-        portAdapter.registrarAsistencia(usuarioId);
+        portAdapter.registerAttendance(usuarioId);
     }
 
     @Override
     public void marcarSalida(Long usuarioId) {
-        portAdapter.registrarSalida(usuarioId);
+        portAdapter.registerDeparture(usuarioId);
     }
 
     @Override
     public double calcularHorasExtras(Long usuarioId, LocalDate fecha) {
-        var usuario = portAdapter.buscarUsuarioPorId(usuarioId);
+        var usuario = portAdapter.findUserById(usuarioId);
         PayrollCalculation payroll = usuario.calculateDailyPayroll(fecha);
         return payroll.getDayOvertimeHours() + payroll.getNightOvertimeHours();
     }

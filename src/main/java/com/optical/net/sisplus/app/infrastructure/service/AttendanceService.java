@@ -31,14 +31,14 @@ public class AttendanceService {
         List<AttendanceDomain> attendances;
 
         if (date != null) {
-            attendances = portAdapter.obtenerAsistenciasDelDia(date);
+            attendances = portAdapter.getAttendancesForDay(date);
         } else if (startDate != null && endDate != null) {
             LocalDateTime start = startDate.atStartOfDay();
             LocalDateTime end = endDate.atTime(LocalTime.MAX);
 
             attendances = (userId != null)
-                    ? portAdapter.obtenerAsistenciasPorUsuarioYRango(userId, start, end)
-                    : portAdapter.obtenerAsistenciasPorRangoFechas(start, end);
+                    ? portAdapter.getAttendancesByUserAndDateRange(userId, start, end)
+                    : portAdapter.getAttendancesByDateRange(start, end);
         } else if (filter != null) {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime start;
@@ -48,7 +48,7 @@ public class AttendanceService {
                 case "week" -> start = now.minusDays(7).toLocalDate().atStartOfDay();
                 case "month" -> start = now.minusDays(30).toLocalDate().atStartOfDay();
                 case "all" -> {
-                    attendances = portAdapter.obtenerTodasLasAsistencias();
+                    attendances = portAdapter.getAllAttendances();
                     return AttendanceResponseMapper.toResponseList(attendances);
                 }
                 default -> {
@@ -58,22 +58,22 @@ public class AttendanceService {
             }
 
             attendances = (userId != null)
-                    ? portAdapter.obtenerAsistenciasPorUsuarioYRango(userId, start, end)
-                    : portAdapter.obtenerAsistenciasPorRangoFechas(start, end);
+                    ? portAdapter.getAttendancesByUserAndDateRange(userId, start, end)
+                    : portAdapter.getAttendancesByDateRange(start, end);
         } else {
-            attendances = portAdapter.obtenerAsistenciasDelDia(LocalDate.now());
+            attendances = portAdapter.getAttendancesForDay(LocalDate.now());
         }
 
         return AttendanceResponseMapper.toResponseList(attendances);
     }
 
     public AttendanceResponse getAttendanceById(Long id) {
-        AttendanceDomain att = portAdapter.obtenerAsistenciaPorId(id);
+        AttendanceDomain att = portAdapter.getAttendanceById(id);
         return AttendanceResponseMapper.toResponse(att);
     }
 
     public AttendanceResponse updateAttendance(Long id, AttendanceRequest request) {
-        AttendanceDomain updated = portAdapter.actualizarAsistencia(
+        AttendanceDomain updated = portAdapter.updateAttendance(
                 id,
                 request.getEntryTime(),
                 request.getDepartureTime()
@@ -82,7 +82,7 @@ public class AttendanceService {
     }
 
     public void deleteAttendance(Long id) {
-        portAdapter.eliminarAsistencia(id);
+        portAdapter.deleteAttendance(id);
     }
 }
 

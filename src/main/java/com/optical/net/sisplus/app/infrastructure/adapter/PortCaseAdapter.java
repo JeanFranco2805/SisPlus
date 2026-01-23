@@ -43,13 +43,13 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public UserDomain guardarUsuario(UserDomain userDomain) {
+    public UserDomain saveUser(UserDomain userDomain) {
         var savedUser = userRepository.save(userMapper.toEntity(userDomain));
         return userMapper.toDomain(savedUser);
     }
 
     @Override
-    public UserDomain buscarUsuarioPorId(Long usuarioId) {
+    public UserDomain findUserById(Long usuarioId) {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
@@ -67,7 +67,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public List<UserDomain> obtenerTodosUsuarios() {
+    public List<UserDomain> getAllUsers() {
         return userRepository.findAll()
                 .stream()
                 .map(user -> {
@@ -79,17 +79,17 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public void eliminarUsuario(Long id) {
+    public void deleteUser(Long id) {
         userRepository.removeById(id);
     }
 
     @Override
-    public void guardarHuella(FootPrintsDomain footPrintsDomain) {
+    public void saveFingerprint(FootPrintsDomain footPrintsDomain) {
         footPrintsRepository.save(footPrintsMapper.toEntity(footPrintsDomain));
     }
 
     @Override
-    public UserDomain identificarUsuarioPorHuella(byte[] templateHuella) {
+    public UserDomain identifyUserByFingerprint(byte[] templateHuella) {
         var fps = footPrintsRepository.findByTemplate(templateHuella).getLast();
         var userDomain = userMapper.toDomain(fps.getUser());
         userDomain.setAttendance(new ArrayList<>());
@@ -97,7 +97,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public void registrarAsistencia(Long usuarioId) {
+    public void registerAttendance(Long usuarioId) {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
@@ -110,7 +110,7 @@ public class PortCaseAdapter implements PortAdapter {
                         att.getEntryTime().toLocalDate().equals(ahora.toLocalDate()));
 
         if (yaRegistroHoy) {
-            registrarSalida(usuarioId);
+            registerDeparture(usuarioId);
             return;
         }
 
@@ -123,7 +123,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public void registrarSalida(Long usuarioId) {
+    public void registerDeparture(Long usuarioId) {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
@@ -146,7 +146,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public AttendanceDomain obtenerAsistenciaDelDia(Long usuarioId, LocalDate fecha) {
+    public AttendanceDomain getAttendanceForDay(Long usuarioId, LocalDate fecha) {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado")
         );
@@ -162,7 +162,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public AttendanceDomain obtenerAsistenciaPorId(Long attendanceId) {
+    public AttendanceDomain getAttendanceById(Long attendanceId) {
         var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
                 () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
         );
@@ -170,7 +170,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public List<AttendanceDomain> obtenerAsistenciasDelDia(LocalDate fecha) {
+    public List<AttendanceDomain> getAttendancesForDay(LocalDate fecha) {
         List<Attendance> allAttendances = attendanceRepository.findAll();
 
         return allAttendances.stream()
@@ -181,7 +181,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public List<AttendanceDomain> obtenerTodasLasAsistencias() {
+    public List<AttendanceDomain> getAllAttendances() {
         return attendanceRepository.findAll()
                 .stream()
                 .map(attendanceMapper::toDomain)
@@ -189,7 +189,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public List<AttendanceDomain> obtenerAsistenciasPorRangoFechas(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<AttendanceDomain> getAttendancesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         return attendanceRepository.findByDateRange(startDate, endDate)
                 .stream()
                 .map(attendanceMapper::toDomain)
@@ -197,7 +197,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public List<AttendanceDomain> obtenerAsistenciasPorUsuarioYRango(Long usuarioId, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<AttendanceDomain> getAttendancesByUserAndDateRange(Long usuarioId, LocalDateTime startDate, LocalDateTime endDate) {
         return attendanceRepository.findByUserAndDateRange(usuarioId, startDate, endDate)
                 .stream()
                 .map(attendanceMapper::toDomain)
@@ -205,7 +205,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public AttendanceDomain actualizarAsistencia(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
+    public AttendanceDomain updateAttendance(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
         var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
                 () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
         );
@@ -226,7 +226,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    public void eliminarAsistencia(Long attendanceId) {
+    public void deleteAttendance(Long attendanceId) {
         if (!attendanceRepository.existsById(attendanceId)) {
             throw new RuntimeException("Asistencia no encontrada con ID: " + attendanceId);
         }
