@@ -1,13 +1,16 @@
 package com.optical.net.sisplus.app.infrastructure.adapter;
 
 import com.optical.net.sisplus.app.application.PortAdapter;
+import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.domain.ConfigurationDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Attendance;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
+import com.optical.net.sisplus.app.infrastructure.mapper.domains.AdminMapper;
 import com.optical.net.sisplus.app.infrastructure.mapper.domains.AttendanceMapper;
 import com.optical.net.sisplus.app.infrastructure.mapper.domains.UserMapper;
+import com.optical.net.sisplus.app.infrastructure.repository.AdminRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.AttendanceRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.UserRepository;
@@ -29,14 +32,18 @@ public class PortCaseAdapter implements PortAdapter {
 
     private static final ZoneId COLOMBIA_ZONE = ZoneId.of("America/Bogota");
     private final ConfigurationRepository configurationRepository;
+    private final AdminRepository adminRepository;
+    private final AdminMapper adminMapper;
 
     public PortCaseAdapter(UserRepository userRepository, UserMapper userMapper,
-                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper, ConfigurationRepository configurationRepository) {
+                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper, ConfigurationRepository configurationRepository, AdminRepository adminRepository, AdminMapper adminMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.attendanceRepository = attendanceRepository;
         this.attendanceMapper = attendanceMapper;
         this.configurationRepository = configurationRepository;
+        this.adminRepository = adminRepository;
+        this.adminMapper = adminMapper;
     }
 
     @Override
@@ -219,16 +226,24 @@ public class PortCaseAdapter implements PortAdapter {
 
     @Override
     public ConfigurationDomain saveConfig(ConfigurationDomain config) {
-        var configuration = configurationRepository.save(Configuration.builder()
-                .value(config.getValue())
-                .key(config.getKey())
-                .build());
+        var existing = configurationRepository.findByKey(config.getKey());
+        Configuration configuration;
+        if (existing.isPresent()) {
+            existing.get().setValue(config.getValue());
+            configuration = configurationRepository.save(existing.get());
+        } else {
+            configuration = configurationRepository.save(Configuration.builder()
+                    .key(config.getKey())
+                    .value(config.getValue())
+                    .build());
+        }
         return ConfigurationDomain.builder()
-                .key(configuration.getKey())
                 .id(configuration.getId())
+                .key(configuration.getKey())
                 .value(configuration.getValue())
                 .build();
     }
+
 
     @Override
     public ConfigurationDomain getConfig(String key) {
@@ -260,5 +275,26 @@ public class PortCaseAdapter implements PortAdapter {
                 .value(config.getValue())
                 .build());
         return config;
+    }
+
+    @Override
+    public AdminDomain save(AdminDomain adminDomain) {
+        return adminMapper.toDomain(adminRepository.save(adminMapper.toEntity(adminDomain)));
+    }
+
+    @Override
+    public AdminDomain findByUsername(String username) {
+        return adminMapper.toDomain(adminRepository.findByUsername(username));
+    }
+
+    @Override
+    public boolean removeAdmin(String username) {
+        adminRepository.deleteByUsername(username);
+        return true;
+    }
+
+    @Override
+    public List<AdminDomain> findAllAdmins() {
+        return adminMapper.toDomainsList(adminRepository.findAll());
     }
 }

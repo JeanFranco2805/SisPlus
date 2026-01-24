@@ -1,7 +1,10 @@
 package com.optical.net.sisplus.app.application;
+import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.domain.ConfigurationDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
+import com.optical.net.sisplus.app.infrastructure.entity.Admin;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,4 +45,12 @@ public interface PortAdapter {
      List<ConfigurationDomain> getAllConfig();
 
     ConfigurationDomain updateConfig(String key, String value);
+
+    AdminDomain save(AdminDomain adminDomain);
+
+    AdminDomain findByUsername(String username);
+
+    boolean removeAdmin(String username);
+
+    List<AdminDomain> findAllAdmins();
 }

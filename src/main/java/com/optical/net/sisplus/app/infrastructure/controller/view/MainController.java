@@ -27,4 +27,8 @@ public class MainController {
     public String payroll(){
         return "payroll";
     }
+    @GetMapping("config")
+    public String config(){
+        return "configuration";
+    }
 }

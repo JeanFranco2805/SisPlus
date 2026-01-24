@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - SisPlus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --sidebar-width: 260px;
+            --topbar-height: 64px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--topbar-height);
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-dark);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: var(--topbar-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--topbar-height));
+            background: white;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 90;
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        .nav-menu {
+            padding: 16px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--text-gray);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+
+        .nav-item.active {
+            background: var(--bg-light);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--topbar-height);
+            padding: 32px;
+            min-height: calc(100vh - var(--topbar-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .config-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .label-description {
+            font-size: 12px;
+            color: var(--text-gray);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .form-input, .form-select {
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: var(--bg-light);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+        }
+
+        .form-input:disabled {
+            background: var(--bg-gray);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-prefix {
+            font-size: 14px;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: var(--text-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 32px;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary-color);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .info-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .info-box-content {
+            font-size: 13px;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-gray);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .user-details {
+                display: none;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+        </button>
+        <a href="/dashboard" class="logo">
+            <div class="logo-icon">S+</div>
+            <span>SisPlus</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <div class="user-info">
+            <div class="user-avatar">AD</div>
+            <div class="user-details">
+                <div class="user-name">Administrador</div>
+                <div class="user-role">Admin Principal</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <nav class="nav-menu">
+        <a href="/dashboard" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>Dashboard</span>
+        </a>
+        <a href="/employee" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Empleados</span>
+        </a>
+        <a href="/assistance" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>Asistencias</span>
+        </a>
+        <a href="/payroll" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Nómina</span>
+        </a>
+        <a href="/config" class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
+                <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24m0-16.97-4.24 4.24m-5.66 5.66L4.93 19.07"/>
+            </svg>
+            <span>Configuración</span>
+        </a>
+    </nav>
+</div>
+
+<div class="main-content" id="mainContent">
+    <div class="page-header">
+        <h1 class="page-title">Configuración del Sistema</h1>
+        <p class="page-subtitle">Administra los parámetros de cálculo de nómina y horarios</p>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div id="loadingIndicator" class="loading">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 16px;">Cargando configuración...</p>
+    </div>
+
+    <div id="configContent" style="display: none;">
+        <div class="info-box">
+            <div class="info-box-title">
+                <svg style="display: inline; vertical-align: middle; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                Información Importante
+            </div>
+            <div class="info-box-content">
+                Los cambios en la configuración afectarán los cálculos de nómina futuros. Asegúrese de que los valores sean correctos antes de guardar. Los cambios requieren reiniciar la aplicación para aplicarse completamente.
+            </div>
+        </div>
+
+        <form id="configForm" onsubmit="saveConfiguration(event)">
+            <div class="content-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Tarifas de Pago</h2>
+                        <p class="card-description">Valores por hora en pesos colombianos (COP)</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="config-section">
+                        <div class="config-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="regularHourRate">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    Tarifa Hora Regular
+                                    <span class="label-description">Pago por hora normal de trabajo</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="regularHourRate" class="form-input" step="0.01" required min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="dayOvertimeRate">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    Tarifa Hora Extra Diurna
+                                    <span class="label-description">Pago por hora extra durante el día</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="dayOvertimeRate" class="form-input" step="0.01" required min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="nightSurchargeRate">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                                    </svg>
+                                    Tarifa Recargo Nocturno
+                                    <span class="label-description">Recargo por trabajo en horario nocturno</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="nightSurchargeRate" class="form-input" step="0.01" required min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="nightOvertimeRate">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                                    </svg>
+                                    Tarifa Hora Extra Nocturna
+                                    <span class="label-description">Pago por hora extra en horario nocturno</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="nightOvertimeRate" class="form-input" step="0.01" required min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Horarios</h2>
+                        <p class="card-description">Configuración de horarios de trabajo</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="config-section">
+                        <div class="config-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="nightStartHour">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                                    </svg>
+                                    Inicio Horario Nocturno
+                                    <span class="label-description">Hora de inicio del recargo nocturno</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" id="nightStartHour" class="form-input" required min="0" max="23">
+                                    <span class="input-prefix">:00 hrs</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="nightEndHour">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="5"/>
+                                        <line x1="12" y1="1" x2="12" y2="3"/>
+                                        <line x1="12" y1="21" x2="12" y2="23"/>
+                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                        <line x1="1" y1="12" x2="3" y2="12"/>
+                                        <line x1="21" y1="12" x2="23" y2="12"/>
+                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                    </svg>
+                                    Fin Horario Nocturno
+                                    <span class="label-description">Hora de finalización del recargo nocturno</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" id="nightEndHour" class="form-input" required min="0" max="23">
+                                    <span class="input-prefix">:00 hrs</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="timeZone">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    Zona Horaria
+                                    <span class="label-description">Zona horaria del sistema</span>
+                                </label>
+                                <select id="timeZone" class="form-select" required>
+                                    <option value="America/Bogota">América/Bogotá (Colombia)</option>
+                                    <option value="America/Mexico_City">América/Ciudad de México</option>
+                                    <option value="America/Lima">América/Lima (Perú)</option>
+                                    <option value="America/Santiago">América/Santiago (Chile)</option>
+                                    <option value="America/Buenos_Aires">América/Buenos Aires (Argentina)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="1 4 1 10 7 10"/>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                    </svg>
+                    Restablecer
+                </button>
+                <button type="submit" class="btn btn-primary" id="saveButton">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api/config';
+    let originalConfig = {};
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('open');
+        } else {
+            sidebar.classList.toggle('closed');
+            mainContent.classList.toggle('expanded');
+        }
+    }
+
+    window.addEventListener('resize', function() {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('open');
+        }
+    });
+
+    function showAlert(message, type = 'success') {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertClass = type === 'success' ? 'alert-success' : (type === 'warning' ? 'alert-warning' : 'alert-error');
+        const icon = type === 'success'
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+            : type === 'warning'
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+        alertContainer.innerHTML = `
+            <div class="alert ${alertClass}">
+                ${icon}
+                <span>${message}</span>
+            </div>
+        `;
+
+        setTimeout(() => {
+            alertContainer.innerHTML = '';
+        }, 5000);
+
+        // Scroll to top to show alert
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function loadConfiguration() {
+        try {
+            const response = await fetch(API_BASE);
+            if (!response.ok) throw new Error('Error al cargar configuración');
+
+            const configs = await response.json();
+
+            // Convertir array a objeto por key
+            configs.forEach(config => {
+                originalConfig[config.key] = config.value;
+            });
+
+            // Llenar formulario
+            document.getElementById('regularHourRate').value = originalConfig['REGULAR_HOUR_RATE'] || '7959';
+            document.getElementById('dayOvertimeRate').value = originalConfig['DAY_OVERTIME_RATE'] || '9948';
+            document.getElementById('nightSurchargeRate').value = originalConfig['NIGHT_SURCHARGE_RATE'] || '2786';
+            document.getElementById('nightOvertimeRate').value = originalConfig['NIGHT_OVERTIME_RATE'] || '13928.25';
+            document.getElementById('nightStartHour').value = originalConfig['NIGHT_START_HOUR'] || '19';
+            document.getElementById('nightEndHour').value = originalConfig['NIGHT_END_HOUR'] || '6';
+            document.getElementById('timeZone').value = originalConfig['TIME_ZONE'] || 'America/Bogota';
+
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('configContent').style.display = 'block';
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingIndicator').innerHTML =
+                '<p style="color: var(--error);">Error al cargar la configuración. Por favor, recarga la página.</p>';
+        }
+    }
+
+    function resetForm() {
+        if (!confirm('¿Deseas restablecer todos los cambios a los valores actuales?')) {
+            return;
+        }
+
+        document.getElementById('regularHourRate').value = originalConfig['REGULAR_HOUR_RATE'] || '7959';
+        document.getElementById('dayOvertimeRate').value = originalConfig['DAY_OVERTIME_RATE'] || '9948';
+        document.getElementById('nightSurchargeRate').value = originalConfig['NIGHT_SURCHARGE_RATE'] || '2786';
+        document.getElementById('nightOvertimeRate').value = originalConfig['NIGHT_OVERTIME_RATE'] || '13928.25';
+        document.getElementById('nightStartHour').value = originalConfig['NIGHT_START_HOUR'] || '19';
+        document.getElementById('nightEndHour').value = originalConfig['NIGHT_END_HOUR'] || '6';
+        document.getElementById('timeZone').value = originalConfig['TIME_ZONE'] || 'America/Bogota';
+
+        showAlert('Formulario restablecido a los valores actuales', 'success');
+    }
+
+    async function saveConfiguration(event) {
+        event.preventDefault();
+
+        const saveButton = document.getElementById('saveButton');
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<div class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div> Guardando...';
+
+        const configUpdates = [
+            { key: 'REGULAR_HOUR_RATE', value: document.getElementById('regularHourRate').value },
+            { key: 'DAY_OVERTIME_RATE', value: document.getElementById('dayOvertimeRate').value },
+            { key: 'NIGHT_SURCHARGE_RATE', value: document.getElementById('nightSurchargeRate').value },
+            { key: 'NIGHT_OVERTIME_RATE', value: document.getElementById('nightOvertimeRate').value },
+            { key: 'NIGHT_START_HOUR', value: document.getElementById('nightStartHour').value },
+            { key: 'NIGHT_END_HOUR', value: document.getElementById('nightEndHour').value },
+            { key: 'TIME_ZONE', value: document.getElementById('timeZone').value }
+        ];
+
+        try {
+            const promises = configUpdates.map(config =>
+                fetch(`${API_BASE}/${config.key}?value=${encodeURIComponent(config.value)}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+            );
+
+            const responses = await Promise.all(promises);
+
+            const allSuccessful = responses.every(response => response.ok);
+
+            if (!allSuccessful) {
+                throw new Error('Error al guardar algunas configuraciones');
+            }
+
+            configUpdates.forEach(config => {
+                originalConfig[config.key] = config.value;
+            });
+
+            showAlert('Configuración guardada exitosamente. Reinicia la aplicación para aplicar los cambios.', 'warning');
+
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Error al guardar la configuración. Intenta nuevamente.', 'error');
+        } finally {
+            saveButton.disabled = false;
+            saveButton.innerHTML = `
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Guardar Cambios
+            `;
+        }
+    }
+
+    document.getElementById('nightStartHour')?.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value < 0 || value > 23) {
+            this.setCustomValidity('La hora debe estar entre 0 y 23');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    document.getElementById('nightEndHour')?.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value < 0 || value > 23) {
+            this.setCustomValidity('La hora debe estar entre 0 y 23');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    window.onload = function() {
+        loadConfiguration();
+    };
+</script>
+</body>
+</html>

@@ -16,6 +16,7 @@ public class ConfigurationController {
 
     @PostMapping
     public ConfigurationDomain create(@RequestBody ConfigurationDomain config) {
+
         return service.save(config);
     }
 
