@@ -27,6 +27,10 @@ public class MainController {
     public String payroll(){
         return "payroll";
     }
+    @GetMapping("admin")
+    public String admin(){
+        return "admin";
+    }
     @GetMapping("config")
     public String config(){
         return "configuration";

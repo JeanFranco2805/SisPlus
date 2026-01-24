@@ -31,8 +31,8 @@ public class AdminController {
         return adminResponseMapper.fromDomains(adminService.findAllAdmins());
     }
     @GetMapping("/{username}")
-    public List<AdminResponse> findByUsername(@PathVariable String username) {
-        return adminResponseMapper.fromDomains(adminService.findAllAdmins());
+    public AdminResponse findByUsername(@PathVariable String username) {
+        return adminResponseMapper.fromDomain(adminService.findByUsername(username));
     }
     @DeleteMapping("/{username}")
     public ResponseEntity<String> remove(@PathVariable String username) {

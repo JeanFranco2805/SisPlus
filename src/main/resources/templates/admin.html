@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empleados - SisPlus</title>
+    <title>Administradores - SisPlus</title>
     <style>
         * {
             margin: 0;
@@ -385,7 +385,7 @@
         .modal-content {
             background: white;
             border-radius: 12px;
-            max-width: 600px;
+            max-width: 500px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -416,16 +416,11 @@
             padding: 24px;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-        }
-
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            margin-bottom: 20px;
         }
 
         .form-label {
@@ -473,29 +468,9 @@
             color: #991b1b;
         }
 
-        .detail-grid {
-            display: grid;
-            gap: 16px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: var(--text-gray);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .detail-value {
-            font-size: 16px;
-            color: var(--text-dark);
-            font-weight: 500;
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
         }
 
         .hidden {
@@ -506,6 +481,35 @@
             text-align: center;
             padding: 40px;
             color: var(--text-gray);
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-gray);
+            padding: 4px;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box-content {
+            font-size: 13px;
+            color: var(--text-dark);
         }
 
         svg {
@@ -597,7 +601,7 @@
             </svg>
             <span>Dashboard</span>
         </a>
-        <a href="/employee" class="nav-item active">
+        <a href="/employee" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -631,39 +635,33 @@
         </a>
         <a href="/config" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                <path d="M2 12a10 10 0 0 1 18-6"/>
-                <path d="M2 16h.01"/>
-                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
+                <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24m0-16.97-4.24 4.24m-5.66 5.66L4.93 19.07"/>
             </svg>
-            <span>Configuracion</span>
+            <span>Configuración</span>
         </a>
     </nav>
 </div>
 
 <div class="main-content" id="mainContent">
     <div class="page-header">
-        <h1 class="page-title">Gestión de Empleados</h1>
-        <p class="page-subtitle">Administra la información de los empleados del sistema</p>
+        <h1 class="page-title">Gestión de Administradores</h1>
+        <p class="page-subtitle">Administra los usuarios con acceso al sistema</p>
     </div>
 
     <div id="alertContainer"></div>
 
     <div class="content-card">
         <div class="card-header">
-            <h2 class="card-title">Lista de Empleados</h2>
+            <h2 class="card-title">Lista de Administradores</h2>
             <div class="card-actions">
                 <button class="btn btn-primary" onclick="openCreateModal()">
                     <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                    Nuevo Empleado
+                    Nuevo Administrador
                 </button>
             </div>
         </div>
@@ -674,36 +672,35 @@
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.35-4.35"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Buscar empleado por ID, nombre o CC..." onkeyup="filterEmployees()">
+                <input type="text" id="searchInput" placeholder="Buscar administrador por nombre de usuario..." onkeyup="filterAdmins()">
             </div>
         </div>
 
         <div class="table-container">
             <div id="loadingIndicator" class="loading">
-                <p>Cargando empleados...</p>
+                <p>Cargando administradores...</p>
             </div>
-            <table id="employeesTable" class="hidden">
+            <table id="adminsTable" class="hidden">
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Cédula</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
-                <tbody id="employeesTableBody">
+                <tbody id="adminsTableBody">
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
+<!-- Modal Crear Administrador -->
 <div class="modal" id="createModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Registrar Nuevo Empleado</h3>
+            <h3 class="modal-title">Registrar Nuevo Administrador</h3>
             <button class="btn-close" onclick="closeCreateModal()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
@@ -711,120 +708,82 @@
                 </svg>
             </button>
         </div>
-        <form id="createForm" onsubmit="createEmployee(event)">
+        <form id="createForm" onsubmit="createAdmin(event)">
             <div class="modal-body">
                 <div id="createAlert"></div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="createName">Nombre *</label>
-                        <input type="text" id="createName" name="name" class="form-input" required placeholder="Ingrese el nombre">
+
+                <div class="info-box">
+                    <div class="info-box-content">
+                        <strong>Nota:</strong> El nombre de usuario debe ser único y la contraseña debe tener al menos 6 caracteres.
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="createLastName">Apellido *</label>
-                        <input type="text" id="createLastName" name="lastName" class="form-input" required placeholder="Ingrese el apellido">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="createUsername">Nombre de Usuario *</label>
+                    <input
+                            type="text"
+                            id="createUsername"
+                            name="username"
+                            class="form-input"
+                            required
+                            placeholder="Ingrese el nombre de usuario"
+                            minlength="3"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="createPassword">Contraseña *</label>
+                    <div class="password-toggle">
+                        <input
+                                type="password"
+                                id="createPassword"
+                                name="password"
+                                class="form-input"
+                                required
+                                placeholder="Ingrese la contraseña"
+                                minlength="6"
+                        >
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('createPassword')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
                     </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label" for="createCc">Cédula *</label>
-                        <input type="text" id="createCc" name="cc" class="form-input" required placeholder="Ingrese la cédula">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Confirmar Contraseña *</label>
+                    <div class="password-toggle">
+                        <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                class="form-input"
+                                required
+                                placeholder="Confirme la contraseña"
+                                minlength="6"
+                        >
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('confirmPassword')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar Empleado</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal Ver Detalles -->
-<div class="modal" id="viewModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Detalles del Empleado</h3>
-            <button class="btn-close" onclick="closeViewModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="detail-grid">
-                <div class="detail-item">
-                    <span class="detail-label">ID del Empleado</span>
-                    <span class="detail-value" id="viewId">-</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Nombre Completo</span>
-                    <span class="detail-value" id="viewFullName">-</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Nombre</span>
-                    <span class="detail-value" id="viewName">-</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Apellido</span>
-                    <span class="detail-value" id="viewLastName">-</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cédula</span>
-                    <span class="detail-value" id="viewCc">-</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado</span>
-                    <span class="badge badge-success">Activo</span>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeViewModal()">Cerrar</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Editar Empleado -->
-<div class="modal" id="editModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Editar Empleado</h3>
-            <button class="btn-close" onclick="closeEditModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
-        </div>
-        <form id="editForm" onsubmit="updateEmployee(event)">
-            <div class="modal-body">
-                <div id="editAlert"></div>
-                <input type="hidden" id="editId">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="editName">Nombre *</label>
-                        <input type="text" id="editName" name="name" class="form-input" required placeholder="Ingrese el nombre">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="editLastName">Apellido *</label>
-                        <input type="text" id="editLastName" name="lastName" class="form-input" required placeholder="Ingrese el apellido">
-                    </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label" for="editCc">Cédula *</label>
-                        <input type="text" id="editCc" name="cc" class="form-input" required placeholder="Ingrese la cédula">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <button type="submit" class="btn btn-primary">Crear Administrador</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    const API_BASE = '/api/';
-    let allEmployees = [];
+    const API_BASE = '/api/admin';
+    let allAdmins = [];
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -847,10 +806,12 @@
 
     function showAlert(message, type = 'success', container = 'alertContainer') {
         const alertContainer = document.getElementById(container);
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        const alertClass = type === 'success' ? 'alert-success' : (type === 'warning' ? 'alert-warning' : 'alert-error');
         const icon = type === 'success'
             ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
-            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+            : type === 'warning'
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
 
         alertContainer.innerHTML = `
             <div class="alert ${alertClass}">
@@ -864,66 +825,55 @@
         }, 5000);
     }
 
-    async function loadEmployees() {
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function loadAdmins() {
         try {
-            const response = await fetch(`${API_BASE}users`);
+            const response = await fetch(`${API_BASE}/`);
 
             if (!response.ok) {
-                throw new Error('Error al cargar empleados');
+                throw new Error('Error al cargar administradores');
             }
 
-            allEmployees = await response.json();
-            displayEmployees(allEmployees);
+            allAdmins = await response.json();
+            displayAdmins(allAdmins);
 
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('employeesTable').classList.remove('hidden');
+            document.getElementById('adminsTable').classList.remove('hidden');
         } catch (error) {
             console.error('Error:', error);
-            showAlert('Error al cargar los empleados. Por favor, recarga la página.', 'error');
-            document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar empleados</p>';
+            showAlert('Error al cargar los administradores. Por favor, recarga la página.', 'error');
+            document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar administradores</p>';
         }
     }
 
-    function displayEmployees(employees) {
-        const tbody = document.getElementById('employeesTableBody');
+    function displayAdmins(admins) {
+        const tbody = document.getElementById('adminsTableBody');
 
-        if (employees.length === 0) {
+        if (admins.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-gray);">
-                        No se encontraron empleados
+                    <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                        No se encontraron administradores
                     </td>
                 </tr>
             `;
             return;
         }
 
-        tbody.innerHTML = employees.map(emp => {
-            const employeeId = emp.id || 'N/A';
+        tbody.innerHTML = admins.map(admin => {
+            const username = admin.username || 'N/A';
             return `
                 <tr>
-                    <td><strong>#${employeeId}</strong></td>
-                    <td>${emp.name}</td>
-                    <td>${emp.lastName}</td>
-                    <td>${emp.cc}</td>
+                    <td><strong>${username}</strong></td>
+                    <td><span class="badge badge-success">ADMIN</span></td>
                     <td><span class="badge badge-success">Activo</span></td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn btn-secondary btn-sm" onclick="viewEmployee(${employeeId})" title="Ver Detalles">
-                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                                Ver
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="openEditModal(${employeeId})" title="Editar">
-                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                                Editar
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteEmployee(${employeeId})" title="Eliminar">
+                            <button class="btn btn-danger btn-sm" onclick="deleteAdmin('${username}')" title="Eliminar">
                                 <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -937,15 +887,13 @@
         }).join('');
     }
 
-    function filterEmployees() {
+    function filterAdmins() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allEmployees.filter(emp => {
-            const employeeId = (emp.id || '').toString().toLowerCase();
-            const fullName = `${emp.name} ${emp.lastName}`.toLowerCase();
-            const cc = emp.cc.toLowerCase();
-            return employeeId.includes(searchTerm) || fullName.includes(searchTerm) || cc.includes(searchTerm);
+        const filtered = allAdmins.filter(admin => {
+            const username = (admin.username || '').toLowerCase();
+            return username.includes(searchTerm);
         });
-        displayEmployees(filtered);
+        displayAdmins(filtered);
     }
 
     function openCreateModal() {
@@ -958,17 +906,30 @@
         document.getElementById('createModal').classList.remove('active');
     }
 
-    async function createEmployee(event) {
+    async function createAdmin(event) {
         event.preventDefault();
 
+        const username = document.getElementById('createUsername').value;
+        const password = document.getElementById('createPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            showAlert('Las contraseñas no coinciden', 'error', 'createAlert');
+            return;
+        }
+
+        if (password.length < 6) {
+            showAlert('La contraseña debe tener al menos 6 caracteres', 'error', 'createAlert');
+            return;
+        }
+
         const formData = {
-            name: document.getElementById('createName').value,
-            lastName: document.getElementById('createLastName').value,
-            cc: document.getElementById('createCc').value
+            username: username,
+            password: password
         };
 
         try {
-            const response = await fetch(`${API_BASE}users`, {
+            const response = await fetch(`${API_BASE}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -977,135 +938,53 @@
             });
 
             if (!response.ok) {
-                throw new Error('Error al guardar empleado');
+                const errorText = await response.text();
+                throw new Error(errorText || 'Error al guardar administrador');
             }
 
             closeCreateModal();
-            showAlert('Empleado registrado exitosamente', 'success');
-            loadEmployees();
+            showAlert('Administrador registrado exitosamente', 'success');
+            loadAdmins();
 
         } catch (error) {
             console.error('Error:', error);
-            showAlert('Error al guardar el empleado. Intenta nuevamente.', 'error', 'createAlert');
+            showAlert('Error al guardar el administrador. El nombre de usuario puede estar en uso.', 'error', 'createAlert');
         }
     }
 
-    function viewEmployee(id) {
-        const employee = allEmployees.find(emp => emp.id === id);
-
-        if (!employee) {
-            showAlert('Empleado no encontrado', 'error');
-            return;
-        }
-
-        document.getElementById('viewId').textContent = employee.id;
-        document.getElementById('viewFullName').textContent = `${employee.name} ${employee.lastName}`;
-        document.getElementById('viewName').textContent = employee.name;
-        document.getElementById('viewLastName').textContent = employee.lastName;
-        document.getElementById('viewCc').textContent = employee.cc;
-
-        document.getElementById('viewModal').classList.add('active');
-    }
-
-    function closeViewModal() {
-        document.getElementById('viewModal').classList.remove('active');
-    }
-
-    function openEditModal(id) {
-        const employee = allEmployees.find(emp => emp.id === id);
-
-        if (!employee) {
-            showAlert('Empleado no encontrado', 'error');
-            return;
-        }
-
-        document.getElementById('editId').value = employee.id;
-        document.getElementById('editName').value = employee.name;
-        document.getElementById('editLastName').value = employee.lastName;
-        document.getElementById('editCc').value = employee.cc;
-
-        document.getElementById('editModal').classList.add('active');
-        document.getElementById('editAlert').innerHTML = '';
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.remove('active');
-    }
-
-    async function updateEmployee(event) {
-        event.preventDefault();
-
-        const employeeId = document.getElementById('editId').value;
-        const formData = {
-            name: document.getElementById('editName').value,
-            lastName: document.getElementById('editLastName').value,
-            cc: document.getElementById('editCc').value
-        };
-
-        try {
-            const response = await fetch(`${API_BASE}users/${employeeId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al actualizar empleado');
-            }
-
-            closeEditModal();
-            showAlert('Empleado actualizado exitosamente', 'success');
-            loadEmployees();
-
-        } catch (error) {
-            console.error('Error:', error);
-            showAlert('Error al actualizar el empleado. Intenta nuevamente.', 'error', 'editAlert');
-        }
-    }
-
-    async function deleteEmployee(id) {
-        if (!confirm('¿Está seguro de que desea eliminar este empleado? Esta acción no se puede deshacer.')) {
+    async function deleteAdmin(username) {
+        if (!confirm(`¿Está seguro de que desea eliminar al administrador "${username}"? Esta acción no se puede deshacer.`)) {
             return;
         }
 
         try {
-            const response = await fetch(`${API_BASE}users/${id}`, {
+            const response = await fetch(`${API_BASE}/${encodeURIComponent(username)}`, {
                 method: 'DELETE'
             });
 
             if (!response.ok) {
-                throw new Error('Error al eliminar empleado');
+                throw new Error('Error al eliminar administrador');
             }
 
-            showAlert('Empleado eliminado exitosamente', 'success');
-            loadEmployees();
+            showAlert('Administrador eliminado exitosamente', 'success');
+            loadAdmins();
 
         } catch (error) {
             console.error('Error:', error);
-            showAlert('Error al eliminar el empleado. Intenta nuevamente.', 'error');
+            showAlert('Error al eliminar el administrador. Intenta nuevamente.', 'error');
         }
     }
 
     window.onclick = function(event) {
         const createModal = document.getElementById('createModal');
-        const viewModal = document.getElementById('viewModal');
-        const editModal = document.getElementById('editModal');
 
         if (event.target === createModal) {
             closeCreateModal();
         }
-        if (event.target === viewModal) {
-            closeViewModal();
-        }
-        if (event.target === editModal) {
-            closeEditModal();
-        }
     }
 
     window.onload = function() {
-        loadEmployees();
+        loadAdmins();
     }
 </script>
 </body>
