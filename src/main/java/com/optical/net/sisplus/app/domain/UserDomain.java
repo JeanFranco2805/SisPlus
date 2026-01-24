@@ -12,19 +12,19 @@ import java.util.List;
 @Getter
 @Setter
 public class UserDomain {
-    private static final double MINIMUM_SALARY = 1750905.0;
-    private static final int WEEKLY_HOURS = 44;
-    private static final double DAILY_HOURS = 7.33333333;
-    private static final int MONTHLY_HOURS = 220;
+    private static double MINIMUM_SALARY = 1750905.0;
+    private static int WEEKLY_HOURS = 44;
+    private static double DAILY_HOURS = 7.33333333;
+    private static int MONTHLY_HOURS = 220;
 
-    private static final double REGULAR_HOUR_RATE = 7959.0;
-    private static final double DAY_OVERTIME_RATE = 9948.0;
-    private static final double NIGHT_SURCHARGE_RATE = 2786.0;
-    private static final double NIGHT_OVERTIME_RATE = 13928.25;
+    public static double REGULAR_HOUR_RATE = 7959.0;
+    public static double DAY_OVERTIME_RATE = 9948.0;
+    public static double NIGHT_SURCHARGE_RATE = 2786.0;
+    public static double NIGHT_OVERTIME_RATE = 13928.25;
 
-    private static final int REGULAR_WORK_HOURS = 8;
-    private static final int NIGHT_START_HOUR = 19;
-    private static final int NIGHT_END_HOUR = 6;
+    private static int REGULAR_WORK_HOURS = 8;
+    public static int NIGHT_START_HOUR = 19;
+    public static int NIGHT_END_HOUR = 6;
 
     private Long id;
     private String name;
@@ -109,8 +109,7 @@ public class UserDomain {
         double totalDayOvertimePay = 0;
         double totalNightOvertimePay = 0;
 
-        // Calcular directamente desde las asistencias pasadas como parámetro
-        // sin volver a buscar en la lista global para evitar duplicaciones
+
         for (AttendanceDomain att : attendances) {
             if (att == null || !att.isComplete()) {
                 continue;
@@ -120,17 +119,14 @@ public class UserDomain {
             double regularHours = Math.min(workedHours, REGULAR_WORK_HOURS);
             double nightHours = att.getNightHours();
 
-            // Calcular horas extras directamente de esta asistencia
             double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att);
             double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att);
 
-            // Acumular horas
             totalRegularHours += regularHours;
             totalDayOvertimeHours += dayOvertimeHours;
             totalNightOvertimeHours += nightOvertimeHours;
             totalNightHours += nightHours;
 
-            // Calcular pagos
             totalRegularPay += regularHours * REGULAR_HOUR_RATE;
             totalNightSurchargePay += nightHours * NIGHT_SURCHARGE_RATE;
             totalDayOvertimePay += dayOvertimeHours * DAY_OVERTIME_RATE;

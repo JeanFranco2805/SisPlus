@@ -17,6 +17,7 @@ public class UserResponseMapper {
             Integer year,
             String period
     ) {
+
         PayrollCalculation payroll = calculatePayrollByPeriod(user, date, month, year, period);
 
         return UserResponse.builder()
