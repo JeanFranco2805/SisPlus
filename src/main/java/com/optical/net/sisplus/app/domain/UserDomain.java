@@ -99,13 +99,6 @@ public class UserDomain {
         return calculatePayrollForPeriod(monthlyAttendances);
     }
 
-    /**
-     * MÉTODO CORREGIDO: Calcula la nómina para un período sin duplicar asistencias
-     * El problema anterior era que llamaba a calculateDailyPayroll() que volvía a buscar
-     * la asistencia en la lista global, causando duplicaciones.
-     *
-     * Ahora calcula directamente desde las asistencias pasadas como parámetro.
-     */
     private PayrollCalculation calculatePayrollForPeriod(List<AttendanceDomain> attendances) {
         double totalRegularHours = 0;
         double totalDayOvertimeHours = 0;

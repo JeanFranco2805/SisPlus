@@ -37,10 +37,4 @@ public class User {
     )
     private List<Attendance> attendances;
 
-    @OneToMany(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY
-    )
-    private List<FootPrints> footPrints;
 }

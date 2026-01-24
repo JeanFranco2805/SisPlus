@@ -215,6 +215,7 @@
             border-radius: 12px;
             border: 1px solid var(--border-color);
             transition: box-shadow 0.2s;
+            cursor: pointer;
         }
 
         .stat-card:hover {
@@ -263,6 +264,7 @@
 
         .stat-change.positive { color: var(--success); }
         .stat-change.negative { color: var(--error); }
+        .stat-change.neutral { color: var(--text-gray); }
 
         .content-card {
             background: white;
@@ -359,6 +361,37 @@
         .badge-warning {
             background: #fef3c7;
             color: #92400e;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-gray);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-gray);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
 
         svg {
@@ -470,7 +503,7 @@
                 <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
                 <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
             </svg>
-            <span>Huellas</span>
+            <span>Configuracion</span>
         </a>
     </nav>
 </div>
@@ -478,11 +511,11 @@
 <div class="main-content" id="mainContent">
     <div class="page-header">
         <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Resumen general del sistema - 22 de Enero, 2026</p>
+        <p class="page-subtitle" id="currentDate">Cargando fecha...</p>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" onclick="window.location.href='/employee'">
             <div class="stat-header">
                 <span class="stat-label">Empleados Activos</span>
                 <div class="stat-icon blue">
@@ -492,16 +525,13 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-value">24</div>
-            <div class="stat-change positive">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M6 10V2M6 2L2 6M6 2l4 4" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
-                <span>2 más que ayer</span>
+            <div class="stat-value" id="totalEmployees">0</div>
+            <div class="stat-change neutral">
+                <span id="employeesChange">Cargando...</span>
             </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card" onclick="window.location.href='/assistance'">
             <div class="stat-header">
                 <span class="stat-label">Asistencias Hoy</span>
                 <div class="stat-icon green">
@@ -510,13 +540,13 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-value">21</div>
-            <div class="stat-change positive">
-                <span>87.5% tasa de asistencia</span>
+            <div class="stat-value" id="todayAttendances">0</div>
+            <div class="stat-change neutral">
+                <span id="attendanceRate">Cargando...</span>
             </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card" onclick="window.location.href='/assistance'">
             <div class="stat-header">
                 <span class="stat-label">Horas Extras Hoy</span>
                 <div class="stat-icon orange">
@@ -526,13 +556,13 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-value">18.5</div>
-            <div class="stat-change">
-                <span>En 12 empleados</span>
+            <div class="stat-value" id="totalOvertimeHours">0</div>
+            <div class="stat-change neutral">
+                <span id="overtimeEmployees">Cargando...</span>
             </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card" onclick="window.location.href='/assistance'">
             <div class="stat-header">
                 <span class="stat-label">Alertas Pendientes</span>
                 <div class="stat-icon red">
@@ -543,9 +573,9 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-value">3</div>
+            <div class="stat-value" id="pendingAlerts">0</div>
             <div class="stat-change negative">
-                <span>Salidas no registradas</span>
+                <span id="alertsDescription">Cargando...</span>
             </div>
         </div>
     </div>
@@ -553,10 +583,13 @@
     <div class="content-card">
         <div class="card-header">
             <h2 class="card-title">Asistencias Recientes</h2>
-            <a href="asistencias.html" class="btn btn-secondary">Ver todas</a>
+            <a href="/assistance" class="btn btn-secondary">Ver todas</a>
         </div>
         <div class="table-container">
-            <table>
+            <div id="loadingTable" class="loading">
+                <p>Cargando asistencias...</p>
+            </div>
+            <table id="recentAttendancesTable" style="display: none;">
                 <thead>
                 <tr>
                     <th>Empleado</th>
@@ -566,49 +599,25 @@
                     <th>Estado</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr>
-                    <td><strong>Juan Pérez</strong></td>
-                    <td>08:00 AM</td>
-                    <td>05:30 PM</td>
-                    <td>9.5h</td>
-                    <td><span class="badge badge-success">Completo</span></td>
-                </tr>
-                <tr>
-                    <td><strong>María González</strong></td>
-                    <td>08:15 AM</td>
-                    <td>06:00 PM</td>
-                    <td>9.75h</td>
-                    <td><span class="badge badge-success">Completo</span></td>
-                </tr>
-                <tr>
-                    <td><strong>Carlos Rodríguez</strong></td>
-                    <td>07:45 AM</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><span class="badge badge-warning">Pendiente</span></td>
-                </tr>
-                <tr>
-                    <td><strong>Ana Martínez</strong></td>
-                    <td>08:05 AM</td>
-                    <td>05:15 PM</td>
-                    <td>9.17h</td>
-                    <td><span class="badge badge-success">Completo</span></td>
-                </tr>
-                <tr>
-                    <td><strong>Luis Fernández</strong></td>
-                    <td>09:00 AM</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><span class="badge badge-warning">Pendiente</span></td>
-                </tr>
+                <tbody id="recentAttendancesBody">
                 </tbody>
             </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <p>No hay asistencias registradas hoy</p>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    const API_BASE = '/api';
+
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
@@ -623,11 +632,153 @@
 
     window.addEventListener('resize', function() {
         const sidebar = document.getElementById('sidebar');
-
         if (window.innerWidth > 768) {
             sidebar.classList.remove('open');
         }
     });
+
+    function formatTime(dateTimeString) {
+        if (!dateTimeString) return '-';
+        const date = new Date(dateTimeString);
+        return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate() {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const date = new Date().toLocaleDateString('es-ES', options);
+        return date.charAt(0).toUpperCase() + date.slice(1);
+    }
+
+    async function loadDashboardData() {
+        try {
+            const [employeesRes, attendancesRes] = await Promise.all([
+                fetch(`${API_BASE}/users`),
+                fetch(`${API_BASE}/attendances?filter=today`)
+            ]);
+
+            if (!employeesRes.ok || !attendancesRes.ok) {
+                throw new Error('Error al cargar datos del dashboard');
+            }
+
+            const employees = await employeesRes.json();
+            const attendances = await attendancesRes.json();
+
+            updateStatistics(employees, attendances);
+            displayRecentAttendances(attendances);
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loadingTable').innerHTML =
+                '<p style="color: var(--error);">Error al cargar datos del dashboard</p>';
+        }
+    }
+
+    function updateStatistics(employees, attendances) {
+        const totalEmployees = employees.length;
+        document.getElementById('totalEmployees').textContent = totalEmployees;
+        document.getElementById('employeesChange').textContent =
+            `${totalEmployees} empleado${totalEmployees !== 1 ? 's' : ''} registrado${totalEmployees !== 1 ? 's' : ''}`;
+
+        const todayAttendances = attendances.length;
+        document.getElementById('todayAttendances').textContent = todayAttendances;
+
+        const attendanceRate = totalEmployees > 0
+            ? ((todayAttendances / totalEmployees) * 100).toFixed(1)
+            : 0;
+        document.getElementById('attendanceRate').textContent =
+            `${attendanceRate}% tasa de asistencia`;
+
+        let totalOvertimeHours = 0;
+        let employeesWithOvertime = 0;
+        let pendingExits = 0;
+
+        attendances.forEach(att => {
+            if (att.extraHours && att.extraHours > 0) {
+                totalOvertimeHours += att.extraHours;
+                employeesWithOvertime++;
+            }
+            if (!att.departureTime) {
+                pendingExits++;
+            }
+        });
+
+        document.getElementById('totalOvertimeHours').textContent = totalOvertimeHours.toFixed(1);
+        document.getElementById('overtimeEmployees').textContent =
+            employeesWithOvertime > 0
+                ? `En ${employeesWithOvertime} empleado${employeesWithOvertime !== 1 ? 's' : ''}`
+                : 'Sin horas extras registradas';
+
+        document.getElementById('pendingAlerts').textContent = pendingExits;
+        document.getElementById('alertsDescription').textContent =
+            pendingExits > 0
+                ? `Salida${pendingExits !== 1 ? 's' : ''} no registrada${pendingExits !== 1 ? 's' : ''}`
+                : 'Sin alertas pendientes';
+
+        const alertChangeElem = document.querySelector('#pendingAlerts').parentElement.querySelector('.stat-change');
+        if (pendingExits === 0) {
+            alertChangeElem.classList.remove('negative');
+            alertChangeElem.classList.add('positive');
+        }
+    }
+
+    function displayRecentAttendances(attendances) {
+        const tbody = document.getElementById('recentAttendancesBody');
+        const loadingDiv = document.getElementById('loadingTable');
+        const table = document.getElementById('recentAttendancesTable');
+        const emptyState = document.getElementById('emptyState');
+
+        loadingDiv.style.display = 'none';
+
+        if (attendances.length === 0) {
+            emptyState.style.display = 'block';
+            table.style.display = 'none';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        table.style.display = 'table';
+
+        const recentAttendances = attendances
+            .sort((a, b) => {
+                const dateA = new Date(a.entryTime || 0);
+                const dateB = new Date(b.entryTime || 0);
+                return dateB - dateA;
+            })
+            .slice(0, 10);
+
+        tbody.innerHTML = recentAttendances.map(att => {
+            const status = att.departureTime ? 'complete' : 'pending';
+            const statusBadge = status === 'complete'
+                ? '<span class="badge badge-success">Completo</span>'
+                : '<span class="badge badge-warning">Pendiente</span>';
+
+            const workedHours = att.workedHours && att.departureTime
+                ? att.workedHours.toFixed(2) + 'h'
+                : '-';
+
+            const userName = att.user
+                ? `${att.user.name} ${att.user.lastName}`
+                : 'Usuario desconocido';
+
+            return `
+                <tr>
+                    <td><strong>${userName}</strong></td>
+                    <td>${formatTime(att.entryTime)}</td>
+                    <td>${formatTime(att.departureTime)}</td>
+                    <td>${workedHours}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    window.onload = function() {
+        document.getElementById('currentDate').textContent =
+            'Resumen general del sistema - ' + formatDate();
+        loadDashboardData();
+
+        setInterval(loadDashboardData, 30000);
+    }
 </script>
 </body>
 </html>

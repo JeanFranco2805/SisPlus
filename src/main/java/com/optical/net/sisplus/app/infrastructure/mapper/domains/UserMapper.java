@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {FootPrintsMapper.class, AttendanceMapper.class})
+@Mapper(componentModel = "spring", uses = {AttendanceMapper.class})
 public abstract class UserMapper {
 
     @Autowired

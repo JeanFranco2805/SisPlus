@@ -2,14 +2,14 @@ package com.optical.net.sisplus.app.infrastructure.adapter;
 
 import com.optical.net.sisplus.app.application.PortAdapter;
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
-import com.optical.net.sisplus.app.domain.FootPrintsDomain;
+import com.optical.net.sisplus.app.domain.ConfigurationDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Attendance;
+import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.mapper.domains.AttendanceMapper;
-import com.optical.net.sisplus.app.infrastructure.mapper.domains.FootPrintsMapper;
 import com.optical.net.sisplus.app.infrastructure.mapper.domains.UserMapper;
 import com.optical.net.sisplus.app.infrastructure.repository.AttendanceRepository;
-import com.optical.net.sisplus.app.infrastructure.repository.FootPrintsRepository;
+import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,20 +26,17 @@ public class PortCaseAdapter implements PortAdapter {
     private final UserMapper userMapper;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
-    private final FootPrintsRepository footPrintsRepository;
-    private final FootPrintsMapper footPrintsMapper;
 
     private static final ZoneId COLOMBIA_ZONE = ZoneId.of("America/Bogota");
+    private final ConfigurationRepository configurationRepository;
 
     public PortCaseAdapter(UserRepository userRepository, UserMapper userMapper,
-                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper,
-                           FootPrintsRepository footPrintsRepository, FootPrintsMapper footPrintsMapper) {
+                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper, ConfigurationRepository configurationRepository) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.attendanceRepository = attendanceRepository;
         this.attendanceMapper = attendanceMapper;
-        this.footPrintsRepository = footPrintsRepository;
-        this.footPrintsMapper = footPrintsMapper;
+        this.configurationRepository = configurationRepository;
     }
 
     @Override
@@ -81,19 +78,6 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     public void deleteUser(Long id) {
         userRepository.removeById(id);
-    }
-
-    @Override
-    public void saveFingerprint(FootPrintsDomain footPrintsDomain) {
-        footPrintsRepository.save(footPrintsMapper.toEntity(footPrintsDomain));
-    }
-
-    @Override
-    public UserDomain identifyUserByFingerprint(byte[] templateHuella) {
-        var fps = footPrintsRepository.findByTemplate(templateHuella).getLast();
-        var userDomain = userMapper.toDomain(fps.getUser());
-        userDomain.setAttendance(new ArrayList<>());
-        return userDomain;
     }
 
     @Override
@@ -231,5 +215,50 @@ public class PortCaseAdapter implements PortAdapter {
             throw new RuntimeException("Asistencia no encontrada con ID: " + attendanceId);
         }
         attendanceRepository.deleteById(attendanceId);
+    }
+
+    @Override
+    public ConfigurationDomain saveConfig(ConfigurationDomain config) {
+        var configuration = configurationRepository.save(Configuration.builder()
+                .value(config.getValue())
+                .key(config.getKey())
+                .build());
+        return ConfigurationDomain.builder()
+                .key(configuration.getKey())
+                .id(configuration.getId())
+                .value(configuration.getValue())
+                .build();
+    }
+
+    @Override
+    public ConfigurationDomain getConfig(String key) {
+        var config = configurationRepository.findByKey(key).orElseThrow();
+        return ConfigurationDomain.builder()
+                .value(config.getValue())
+                .id(config.getId())
+                .key(config.getKey())
+                .build();
+    }
+
+    @Override
+    public List<ConfigurationDomain> getAllConfig() {
+        var entities = configurationRepository.findAll();
+        return entities.stream().map(e -> ConfigurationDomain.builder()
+                .id(e.getId())
+                .value(e.getValue())
+                .key(e.getKey())
+                .build()).toList();
+    }
+
+    @Override
+    public ConfigurationDomain updateConfig(String key, String value) {
+        var config = getConfig(key);
+        config.setValue(value);
+        configurationRepository.save(Configuration.builder()
+                .id(config.getId())
+                .key(config.getKey())
+                .value(config.getValue())
+                .build());
+        return config;
     }
 }
