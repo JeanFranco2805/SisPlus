@@ -29,12 +29,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas
-                        .requestMatchers("/login", "/api/auth/login", "/api/auth/logout", "/css/**", "/js/**", "/images/**").permitAll()
-                        // Rutas protegidas - requieren autenticación
-                        .requestMatchers("/dashboard", "/employee", "/assistance", "/payroll", "/admin", "/config").authenticated()
-                        .requestMatchers("/api/**").authenticated()
-                        // Cualquier otra ruta requiere autenticación
+                        .requestMatchers("/login", "/api/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
@@ -43,10 +38,6 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)
                 )
                 .authenticationProvider(authenticationProvider());
 
