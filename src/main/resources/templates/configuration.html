@@ -274,7 +274,7 @@
 
         .config-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
 
@@ -289,18 +289,18 @@
             font-weight: 500;
             color: var(--text-dark);
             display: flex;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .label-description {
             font-size: 12px;
             color: var(--text-gray);
             font-weight: 400;
-            margin-top: 2px;
         }
 
         .form-input, .form-select {
+            width: 100%;
             padding: 12px 16px;
             border: 2px solid var(--border-color);
             border-radius: 8px;
@@ -331,6 +331,11 @@
             font-size: 14px;
             color: var(--text-gray);
             font-weight: 500;
+            min-width: 20px;
+        }
+
+        .input-group .form-input {
+            flex: 1;
         }
 
         .btn {
@@ -529,7 +534,7 @@
             </svg>
             <span>Nómina</span>
         </a>
-        <a href="/admin" class="nav-item active">
+        <a href="/admin" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -588,10 +593,6 @@
                         <div class="config-grid">
                             <div class="form-group">
                                 <label class="form-label" for="regularHourRate">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12 6 12 12 16 14"/>
-                                    </svg>
                                     Tarifa Hora Regular
                                     <span class="label-description">Pago por hora normal de trabajo</span>
                                 </label>
@@ -603,10 +604,6 @@
 
                             <div class="form-group">
                                 <label class="form-label" for="dayOvertimeRate">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12 6 12 12 16 14"/>
-                                    </svg>
                                     Tarifa Hora Extra Diurna
                                     <span class="label-description">Pago por hora extra durante el día</span>
                                 </label>
@@ -618,9 +615,6 @@
 
                             <div class="form-group">
                                 <label class="form-label" for="nightSurchargeRate">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                                    </svg>
                                     Tarifa Recargo Nocturno
                                     <span class="label-description">Recargo por trabajo en horario nocturno</span>
                                 </label>
@@ -632,9 +626,6 @@
 
                             <div class="form-group">
                                 <label class="form-label" for="nightOvertimeRate">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                                    </svg>
                                     Tarifa Hora Extra Nocturna
                                     <span class="label-description">Pago por hora extra en horario nocturno</span>
                                 </label>
@@ -660,9 +651,6 @@
                         <div class="config-grid">
                             <div class="form-group">
                                 <label class="form-label" for="nightStartHour">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                                    </svg>
                                     Inicio Horario Nocturno
                                     <span class="label-description">Hora de inicio del recargo nocturno</span>
                                 </label>
@@ -674,17 +662,6 @@
 
                             <div class="form-group">
                                 <label class="form-label" for="nightEndHour">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="5"/>
-                                        <line x1="12" y1="1" x2="12" y2="3"/>
-                                        <line x1="12" y1="21" x2="12" y2="23"/>
-                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                                        <line x1="1" y1="12" x2="3" y2="12"/>
-                                        <line x1="21" y1="12" x2="23" y2="12"/>
-                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                                    </svg>
                                     Fin Horario Nocturno
                                     <span class="label-description">Hora de finalización del recargo nocturno</span>
                                 </label>
@@ -694,12 +671,8 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" style="grid-column: 1 / -1;">
                                 <label class="form-label" for="timeZone">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12 6 12 12 16 14"/>
-                                    </svg>
                                     Zona Horaria
                                     <span class="label-description">Zona horaria del sistema</span>
                                 </label>
@@ -780,7 +753,6 @@
             alertContainer.innerHTML = '';
         }, 5000);
 
-        // Scroll to top to show alert
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -791,12 +763,10 @@
 
             const configs = await response.json();
 
-            // Convertir array a objeto por key
             configs.forEach(config => {
                 originalConfig[config.key] = config.value;
             });
 
-            // Llenar formulario
             document.getElementById('regularHourRate').value = originalConfig['REGULAR_HOUR_RATE'] || '7959';
             document.getElementById('dayOvertimeRate').value = originalConfig['DAY_OVERTIME_RATE'] || '9948';
             document.getElementById('nightSurchargeRate').value = originalConfig['NIGHT_SURCHARGE_RATE'] || '2786';

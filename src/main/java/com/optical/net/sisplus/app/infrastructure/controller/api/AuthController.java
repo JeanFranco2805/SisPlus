@@ -38,15 +38,12 @@ public class AuthController {
                     )
             );
 
-            // Establecer en SecurityContext
             SecurityContext securityContext = SecurityContextHolder.getContext();
             securityContext.setAuthentication(authentication);
 
-            // Crear sesión y guardar el contexto
             HttpSession session = httpRequest.getSession(true);
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
-            // Actualizar último login
             authService.updateLastLogin(request.getUsername());
             Admin admin = authService.findByUsername(request.getUsername());
 

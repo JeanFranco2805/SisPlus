@@ -52,7 +52,6 @@ public class SisPlusApplication implements CommandLineRunner {
         UserDomain.NIGHT_END_HOUR =
                 Integer.parseInt(getOrCreate("NIGHT_END_HOUR", "6"));
 
-        adminService.initializeDefaultAdmin();
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
     }
 

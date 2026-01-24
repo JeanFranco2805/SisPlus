@@ -955,6 +955,7 @@
     async function deleteAdmin(username) {
         if (!confirm(`¿Está seguro de que desea eliminar al administrador "${username}"? Esta acción no se puede deshacer.`)) {
             return;
+            return;
         }
 
         try {
