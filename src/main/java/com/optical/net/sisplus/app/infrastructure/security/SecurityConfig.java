@@ -12,8 +12,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -31,19 +29,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/api/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
+                        // Rutas públicas
+                        .requestMatchers("/login", "/api/auth/login", "/api/auth/logout", "/css/**", "/js/**", "/images/**").permitAll()
+                        // Rutas protegidas - requieren autenticación
+                        .requestMatchers("/dashboard", "/employee", "/assistance", "/payroll", "/admin", "/config").authenticated()
                         .requestMatchers("/api/**").authenticated()
+                        // Cualquier otra ruta requiere autenticación
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/api/auth/login")
-                        .successHandler(authenticationSuccessHandler())
-                        .failureHandler(authenticationFailureHandler())
-                        .permitAll()
-                )
                 .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
+                        .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
@@ -73,23 +68,5 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return (request, response, authentication) -> {
-            response.setStatus(200);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"success\": true, \"message\": \"Login exitoso\", \"redirectUrl\": \"/dashboard\"}");
-        };
-    }
-
-    @Bean
-    public AuthenticationFailureHandler authenticationFailureHandler() {
-        return (request, response, exception) -> {
-            response.setStatus(401);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"success\": false, \"message\": \"Credenciales incorrectas\"}");
-        };
     }
 }
