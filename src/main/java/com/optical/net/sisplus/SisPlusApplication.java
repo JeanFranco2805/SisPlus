@@ -3,6 +3,7 @@ package com.optical.net.sisplus;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
+import com.optical.net.sisplus.app.infrastructure.service.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,13 +17,16 @@ import java.util.TimeZone;
 public class SisPlusApplication implements CommandLineRunner {
 
     private final ConfigurationRepository configurationRepository;
+    private final AdminService adminService;
 
-    public SisPlusApplication(ConfigurationRepository configurationRepository) {
+    public SisPlusApplication(ConfigurationRepository configurationRepository, AdminService adminService) {
         this.configurationRepository = configurationRepository;
+        this.adminService = adminService;
     }
 
     public static void main(String[] args) {
         SpringApplication.run(SisPlusApplication.class, args);
+
     }
 
     @Override
@@ -48,6 +52,7 @@ public class SisPlusApplication implements CommandLineRunner {
         UserDomain.NIGHT_END_HOUR =
                 Integer.parseInt(getOrCreate("NIGHT_END_HOUR", "6"));
 
+        adminService.initializeDefaultAdmin();
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
     }
 
