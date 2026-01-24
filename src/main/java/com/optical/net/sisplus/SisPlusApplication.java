@@ -1,13 +1,17 @@
 package com.optical.net.sisplus;
+
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.TimeZone;
 
+@Slf4j
 @SpringBootApplication
 public class SisPlusApplication implements CommandLineRunner {
 

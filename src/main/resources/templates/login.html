@@ -27,7 +27,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-light);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -38,79 +38,61 @@
         .login-container {
             background: white;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
             overflow: hidden;
-            max-width: 1000px;
+            max-width: 900px;
             width: 100%;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            min-height: 600px;
+            min-height: 550px;
         }
 
         .login-left {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            padding: 50px 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-left::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 15s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
         }
 
         .logo-section {
             text-align: center;
-            z-index: 1;
+            margin-bottom: 40px;
         }
 
         .logo-icon {
-            width: 80px;
-            height: 80px;
+            width: 72px;
+            height: 72px;
             background: white;
-            border-radius: 20px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
             color: var(--primary-color);
-            margin: 0 auto 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
         .logo-section h1 {
-            font-size: 42px;
+            font-size: 36px;
             font-weight: 700;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .logo-section p {
-            font-size: 18px;
-            opacity: 0.9;
-            line-height: 1.6;
+            font-size: 16px;
+            opacity: 0.95;
+            line-height: 1.5;
         }
 
         .features-list {
-            margin-top: 40px;
-            text-align: left;
-            z-index: 1;
+            width: 100%;
+            max-width: 300px;
         }
 
         .feature-item {
@@ -118,33 +100,29 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 16px;
-            font-size: 15px;
+            font-size: 14px;
+            opacity: 0.95;
         }
 
         .feature-icon {
-            width: 24px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 20px;
+            height: 20px;
             flex-shrink: 0;
         }
 
         .login-right {
-            padding: 60px 50px;
+            padding: 50px 45px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
         .login-header {
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
 
         .login-header h2 {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--text-dark);
             margin-bottom: 8px;
@@ -152,13 +130,13 @@
 
         .login-header p {
             color: var(--text-gray);
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .login-form {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
         }
 
         .form-group {
@@ -179,19 +157,24 @@
 
         .input-icon {
             position: absolute;
-            left: 16px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-gray);
             pointer-events: none;
         }
 
+        .input-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
         .form-input {
             width: 100%;
-            padding: 14px 16px 14px 48px;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 15px;
+            padding: 12px 14px 12px 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
             transition: all 0.3s;
             background: var(--bg-light);
         }
@@ -200,12 +183,14 @@
             outline: none;
             border-color: var(--primary-color);
             background: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .form-options {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-top: -8px;
         }
 
         .checkbox-wrapper {
@@ -215,15 +200,17 @@
         }
 
         .checkbox-wrapper input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
+            accent-color: var(--primary-color);
         }
 
         .checkbox-wrapper label {
             font-size: 14px;
             color: var(--text-gray);
             cursor: pointer;
+            user-select: none;
         }
 
         .forgot-password {
@@ -231,7 +218,7 @@
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: color 0.2s;
         }
 
         .forgot-password:hover {
@@ -240,26 +227,58 @@
 
         .btn-login {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             margin-top: 8px;
         }
 
         .btn-login:hover {
             background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
         }
 
         .btn-login:active {
-            transform: translateY(0);
+            transform: scale(0.98);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-login.loading .spinner {
+            display: block;
+        }
+
+        .btn-login.loading .btn-text {
+            display: none;
         }
 
         .alert {
@@ -269,6 +288,19 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .alert-error {
@@ -283,34 +315,29 @@
             border: 1px solid #a7f3d0;
         }
 
+        .alert svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
         .hidden {
             display: none;
         }
 
-        /* SVG Icons */
-        svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .login-container {
                 grid-template-columns: 1fr;
-                max-width: 450px;
+                max-width: 420px;
             }
 
             .login-left {
                 padding: 40px 30px;
-                min-height: 300px;
+                min-height: 280px;
             }
 
             .logo-section h1 {
-                font-size: 32px;
-            }
-
-            .logo-section p {
-                font-size: 16px;
+                font-size: 30px;
             }
 
             .features-list {
@@ -320,10 +347,6 @@
             .login-right {
                 padding: 40px 30px;
             }
-
-            .login-header h2 {
-                font-size: 26px;
-            }
         }
 
         @media (max-width: 480px) {
@@ -332,20 +355,23 @@
             }
 
             .login-right {
-                padding: 30px 20px;
+                padding: 30px 24px;
             }
 
             .logo-icon {
-                width: 60px;
-                height: 60px;
-                font-size: 28px;
+                width: 56px;
+                height: 56px;
+                font-size: 26px;
+            }
+
+            .login-header h2 {
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
 <div class="login-container">
-    <!-- Left Side - Branding -->
     <div class="login-left">
         <div class="logo-section">
             <div class="logo-icon">S+</div>
@@ -355,36 +381,28 @@
 
         <div class="features-list">
             <div class="feature-item">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
                 <span>Control biométrico de asistencia</span>
             </div>
             <div class="feature-item">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
                 <span>Cálculo automático de nómina</span>
             </div>
             <div class="feature-item">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
-                <span>Gestión de horas extras y recargos</span>
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Gestión de horas extras</span>
             </div>
             <div class="feature-item">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
-                <span>Reportes detallados en tiempo real</span>
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Reportes en tiempo real</span>
             </div>
         </div>
     </div>
@@ -413,12 +431,14 @@
 
         <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label class="form-label" for="username">Usuario o Correo</label>
+                <label class="form-label" for="username">Usuario</label>
                 <div class="input-wrapper">
-                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
+                    <span class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </span>
                     <input
                             type="text"
                             id="username"
@@ -434,10 +454,12 @@
             <div class="form-group">
                 <label class="form-label" for="password">Contraseña</label>
                 <div class="input-wrapper">
-                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
+                    <span class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </span>
                     <input
                             type="password"
                             id="password"
@@ -455,45 +477,111 @@
                     <input type="checkbox" id="remember" name="remember">
                     <label for="remember">Recordarme</label>
                 </div>
-                <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
             </div>
 
-            <button type="submit" class="btn-login">Iniciar Sesión</button>
+            <button type="submit" class="btn-login" id="loginButton">
+                <div class="btn-content">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Iniciar Sesión</span>
+                </div>
+            </button>
         </form>
     </div>
 </div>
 
 <script>
-    function handleLogin(event) {
-        event.preventDefault();
+    let isLoading = false;
 
-        document.getElementById('alertError').classList.add('hidden');
-        document.getElementById('alertSuccess').classList.add('hidden');
+    function showAlert(type, message) {
+        const alertError = document.getElementById('alertError');
+        const alertSuccess = document.getElementById('alertSuccess');
 
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        alertError.classList.remove('hidden');
+        alertSuccess.classList.remove('hidden');
 
-        if (username && password) {
-            document.getElementById('alertSuccess').classList.remove('hidden');
+        setTimeout(() => {
+            alertError.classList.add('hidden');
+            alertSuccess.classList.add('hidden');
+        }, 100);
 
-            setTimeout(() => {
-                alert('Redirigiendo al dashboard...\n\nEn producción, aquí se redirigirá a la página del dashboard.');
-            }, 1500);
-        } else {
-            document.getElementById('alertError').classList.remove('hidden');
+        if (type === 'error') {
+            document.getElementById('errorMessage').textContent = message;
+            setTimeout(() => alertError.classList.remove('hidden'), 100);
+        } else if (type === 'success') {
+            setTimeout(() => alertSuccess.classList.remove('hidden'), 100);
         }
     }
 
-    document.getElementById('loginForm').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            handleLogin(e);
+    function hideAlerts() {
+        document.getElementById('alertError').classList.add('hidden');
+        document.getElementById('alertSuccess').classList.add('hidden');
+    }
+
+    async function handleLogin(event) {
+        event.preventDefault();
+
+        if (isLoading) return;
+
+        hideAlerts();
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('remember').checked;
+
+        if (!username || !password) {
+            showAlert('error', 'Por favor completa todos los campos');
+            return;
         }
-    });
+
+        const loginButton = document.getElementById('loginButton');
+        loginButton.classList.add('loading');
+        loginButton.disabled = true;
+        isLoading = true;
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    rememberMe: rememberMe
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showAlert('success', 'Inicio de sesión exitoso');
+
+                setTimeout(() => {
+                    window.location.href = data.redirectUrl || '/dashboard';
+                }, 800);
+            } else {
+                showAlert('error', data.message || 'Credenciales incorrectas');
+                loginButton.classList.remove('loading');
+                loginButton.disabled = false;
+                isLoading = false;
+            }
+        } catch (error) {
+            console.error('Error en login:', error);
+            showAlert('error', 'Error de conexión. Por favor intenta nuevamente.');
+            loginButton.classList.remove('loading');
+            loginButton.disabled = false;
+            isLoading = false;
+        }
+    }
 
     document.querySelectorAll('.form-input').forEach(input => {
-        input.addEventListener('input', () => {
-            document.getElementById('alertError').classList.add('hidden');
-        });
+        input.addEventListener('input', hideAlerts);
+    });
+
+    document.getElementById('loginForm').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !isLoading) {
+            handleLogin(e);
+        }
     });
 </script>
 </body>
