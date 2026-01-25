@@ -10,7 +10,6 @@ import java.util.List;
 
 /**
  * Dominio de Usuario con cálculo de nómina.
- * Ya NO usa variables estáticas - recibe PayrollConfiguration como parámetro.
  */
 @Builder
 @Getter
