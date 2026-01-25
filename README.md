@@ -488,7 +488,7 @@ src/test/java/
 
 ### ✅ Versión 1.0 (Actual)
 - [x] Control de asistencias
-- [x] Cálculo de nómina básico
+- [x] Cálculo de horas extrás para la nomina
 - [x] Exportación a Excel
 - [x] Autenticación JWT
 - [x] Caché Redis
