@@ -14,7 +14,12 @@ import com.optical.net.sisplus.app.infrastructure.repository.AdminRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.AttendanceRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Repository
 public class PortCaseAdapter implements PortAdapter {
     private final UserRepository userRepository;
@@ -36,7 +42,9 @@ public class PortCaseAdapter implements PortAdapter {
     private final AdminMapper adminMapper;
 
     public PortCaseAdapter(UserRepository userRepository, UserMapper userMapper,
-                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper, ConfigurationRepository configurationRepository, AdminRepository adminRepository, AdminMapper adminMapper) {
+                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper,
+                           ConfigurationRepository configurationRepository, AdminRepository adminRepository,
+                           AdminMapper adminMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.attendanceRepository = attendanceRepository;
@@ -47,32 +55,44 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public UserDomain saveUser(UserDomain userDomain) {
+        log.debug("Guardando usuario: {}", userDomain.getCc());
         var savedUser = userRepository.save(userMapper.toEntity(userDomain));
         return userMapper.toDomain(savedUser);
     }
 
     @Override
+    @Cacheable(value = "userById", key = "#usuarioId")
+    @Transactional(readOnly = true)
     public UserDomain findUserById(Long usuarioId) {
-        var user = userRepository.findById(usuarioId).orElseThrow(
-                () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
-        );
+        log.debug("Buscando usuario por ID: {} (con caché)", usuarioId);
+
+        var user = userRepository.findByIdWithAttendances(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId));
 
         var userDomain = userMapper.toDomain(user);
 
-        var attendanceEntities = attendanceRepository.findByUser(user);
-        List<AttendanceDomain> attendanceDomains = attendanceEntities.stream()
+        List<AttendanceDomain> attendanceDomains = user.getAttendances() != null
+                ? user.getAttendances().stream()
                 .map(attendanceMapper::toDomain)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())
+                : new ArrayList<>();
 
-        userDomain.setAttendance(attendanceDomains != null ? attendanceDomains : new ArrayList<>());
+        userDomain.setAttendance(attendanceDomains);
 
         return userDomain;
     }
 
     @Override
+    @Cacheable(value = "users")
+    @Transactional(readOnly = true)
     public List<UserDomain> getAllUsers() {
-        return userRepository.findAll()
+        log.debug("Obteniendo todos los usuarios (con caché)");
+
+        // OPTIMIZACIÓN: No cargar asistencias para listados
+        return userRepository.findAllWithoutAttendances()
                 .stream()
                 .map(user -> {
                     var userDomain = userMapper.toDomain(user);
@@ -83,12 +103,22 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userById", key = "#id")
+    })
     public void deleteUser(Long id) {
+        log.info("Eliminando usuario con ID: {}", id);
         userRepository.removeById(id);
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "todayAttendances", allEntries = true)
     public void registerAttendance(Long usuarioId) {
+        log.info("Registrando asistencia para usuario: {}", usuarioId);
+
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
@@ -114,7 +144,11 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "todayAttendances", allEntries = true)
     public void registerDeparture(Long usuarioId) {
+        log.info("Registrando salida para usuario: {}", usuarioId);
+
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
         );
@@ -137,6 +171,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AttendanceDomain getAttendanceForDay(Long usuarioId, LocalDate fecha) {
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado")
@@ -153,6 +188,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AttendanceDomain getAttendanceById(Long attendanceId) {
         var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
                 () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
@@ -161,7 +197,11 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Cacheable(value = "todayAttendances", key = "#fecha")
+    @Transactional(readOnly = true)
     public List<AttendanceDomain> getAttendancesForDay(LocalDate fecha) {
+        log.debug("Obteniendo asistencias del día: {} (con caché)", fecha);
+
         List<Attendance> allAttendances = attendanceRepository.findAll();
 
         return allAttendances.stream()
@@ -172,6 +212,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AttendanceDomain> getAllAttendances() {
         return attendanceRepository.findAll()
                 .stream()
@@ -180,6 +221,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AttendanceDomain> getAttendancesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         return attendanceRepository.findByDateRange(startDate, endDate)
                 .stream()
@@ -188,6 +230,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AttendanceDomain> getAttendancesByUserAndDateRange(Long usuarioId, LocalDateTime startDate, LocalDateTime endDate) {
         return attendanceRepository.findByUserAndDateRange(usuarioId, startDate, endDate)
                 .stream()
@@ -196,6 +239,8 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "todayAttendances", allEntries = true)
     public AttendanceDomain updateAttendance(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
         var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
                 () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
@@ -217,6 +262,8 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "todayAttendances", allEntries = true)
     public void deleteAttendance(Long attendanceId) {
         if (!attendanceRepository.existsById(attendanceId)) {
             throw new RuntimeException("Asistencia no encontrada con ID: " + attendanceId);
@@ -225,7 +272,11 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Cacheable(value = "payrollConfig", key = "#config.key")
+    @Transactional
     public ConfigurationDomain saveConfig(ConfigurationDomain config) {
+        log.debug("Guardando configuración: {}", config.getKey());
+
         var existing = configurationRepository.findByKey(config.getKey());
         Configuration configuration;
         if (existing.isPresent()) {
@@ -244,8 +295,9 @@ public class PortCaseAdapter implements PortAdapter {
                 .build();
     }
 
-
     @Override
+    @Cacheable(value = "payrollConfig", key = "#key")
+    @Transactional(readOnly = true)
     public ConfigurationDomain getConfig(String key) {
         var config = configurationRepository.findByKey(key).orElseThrow();
         return ConfigurationDomain.builder()
@@ -256,6 +308,7 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ConfigurationDomain> getAllConfig() {
         var entities = configurationRepository.findAll();
         return entities.stream().map(e -> ConfigurationDomain.builder()
@@ -266,6 +319,8 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "payrollConfig", key = "#key")
     public ConfigurationDomain updateConfig(String key, String value) {
         var config = getConfig(key);
         config.setValue(value);
@@ -278,22 +333,26 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    @Transactional
     public AdminDomain save(AdminDomain adminDomain) {
         return adminMapper.toDomain(adminRepository.save(adminMapper.toEntity(adminDomain)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdminDomain findByUsername(String username) {
         return adminMapper.toDomain(adminRepository.findByUsername(username));
     }
 
     @Override
+    @Transactional
     public boolean removeAdmin(String username) {
         adminRepository.deleteByUsername(username);
         return true;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AdminDomain> findAllAdmins() {
         return adminMapper.toDomainsList(adminRepository.findAll());
     }

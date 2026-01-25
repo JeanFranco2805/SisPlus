@@ -4,6 +4,7 @@ import com.optical.net.sisplus.app.domain.exception.DomainException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,13 +17,18 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * Manejador global de excepciones para toda la aplicación
+ * Manejador global de excepciones con seguridad mejorada
+ * NO expone stack traces ni información sensible en producción
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
 
     /**
      * Maneja excepciones de dominio personalizadas
@@ -32,7 +38,8 @@ public class GlobalExceptionHandler {
             DomainException ex,
             WebRequest request) {
 
-        log.error("Domain exception: {} - {}", ex.getErrorCode(), ex.getMessage());
+        String errorId = UUID.randomUUID().toString();
+        log.error("Domain exception [{}]: {} - {}", errorId, ex.getErrorCode(), ex.getMessage());
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -41,6 +48,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .errorCode(ex.getErrorCode())
                 .path(getPath(request))
+                .errorId(errorId)
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -61,7 +69,8 @@ public class GlobalExceptionHandler {
             fieldErrors.put(fieldName, errorMessage);
         });
 
-        log.error("Validation error: {}", fieldErrors);
+        String errorId = UUID.randomUUID().toString();
+        log.warn("Validation error [{}]: {}", errorId, fieldErrors);
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -71,6 +80,7 @@ public class GlobalExceptionHandler {
                 .errorCode("VALIDATION_ERROR")
                 .path(getPath(request))
                 .fieldErrors(fieldErrors)
+                .errorId(errorId)
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -84,7 +94,9 @@ public class GlobalExceptionHandler {
             BadCredentialsException ex,
             WebRequest request) {
 
-        log.error("Authentication failed: {}", ex.getMessage());
+        String errorId = UUID.randomUUID().toString();
+        // NO loguear detalles de credenciales por seguridad
+        log.warn("Authentication failed [{}] from IP: {}", errorId, getClientIP(request));
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -93,28 +105,39 @@ public class GlobalExceptionHandler {
                 .message("Credenciales incorrectas")
                 .errorCode("INVALID_CREDENTIALS")
                 .path(getPath(request))
+                .errorId(errorId)
                 .build();
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     /**
-     * Maneja excepciones genéricas no contempladas
+     * Maneja excepciones genéricas NO contempladas
+     * CRÍTICO: NO exponer stack trace en producción
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,
             WebRequest request) {
 
-        log.error("Unexpected error: ", ex);
+        String errorId = UUID.randomUUID().toString();
+
+        // Loguear el error completo solo en servidor
+        log.error("Unexpected error [{}]: ", errorId, ex);
+
+        // Mensaje genérico para el cliente (NO exponer detalles)
+        String clientMessage = isDevelopment()
+                ? ex.getMessage()
+                : "Ha ocurrido un error interno. Por favor, contacta al administrador con el código: " + errorId;
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message("Ha ocurrido un error interno. Por favor, contacta al administrador.")
+                .message(clientMessage)
                 .errorCode("INTERNAL_ERROR")
                 .path(getPath(request))
+                .errorId(errorId)
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -128,7 +151,8 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex,
             WebRequest request) {
 
-        log.error("Illegal argument: {}", ex.getMessage());
+        String errorId = UUID.randomUUID().toString();
+        log.error("Illegal argument [{}]: {}", errorId, ex.getMessage());
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -137,6 +161,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .errorCode("ILLEGAL_ARGUMENT")
                 .path(getPath(request))
+                .errorId(errorId)
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -146,8 +171,18 @@ public class GlobalExceptionHandler {
         return request.getDescription(false).replace("uri=", "");
     }
 
+    private String getClientIP(WebRequest request) {
+        return request.getHeader("X-Forwarded-For") != null
+                ? request.getHeader("X-Forwarded-For")
+                : "unknown";
+    }
+
+    private boolean isDevelopment() {
+        return "dev".equalsIgnoreCase(activeProfile) || "local".equalsIgnoreCase(activeProfile);
+    }
+
     /**
-     * Clase para respuestas de error estandarizadas
+     * Clase para respuestas de error estandarizadas y seguras
      */
     @Getter
     @Builder
@@ -158,6 +193,7 @@ public class GlobalExceptionHandler {
         private String message;
         private String errorCode;
         private String path;
+        private String errorId; // Para rastrear en logs sin exponer info
         private Map<String, String> fieldErrors;
     }
 }

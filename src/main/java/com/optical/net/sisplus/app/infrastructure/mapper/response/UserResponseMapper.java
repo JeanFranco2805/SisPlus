@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 
 public class UserResponseMapper {
 
+    /**
+     * MÉTODO ORIGINAL: Calcula nómina desde el domain
+     */
     public static UserResponse fromDomainWithPayroll(
             UserDomain user,
             LocalDate date,
@@ -20,6 +23,26 @@ public class UserResponseMapper {
 
         PayrollCalculation payroll = calculatePayrollByPeriod(user, date, month, year, period);
 
+        return buildUserResponseWithPayroll(user, payroll);
+    }
+
+    /**
+     * NUEVO MÉTODO: Usa PayrollCalculation ya calculado (con caché)
+     */
+    public static UserResponse fromDomainWithPayroll(
+            UserDomain user,
+            PayrollCalculation payroll
+    ) {
+        return buildUserResponseWithPayroll(user, payroll);
+    }
+
+    /**
+     * Helper para construir UserResponse con datos de nómina
+     */
+    private static UserResponse buildUserResponseWithPayroll(
+            UserDomain user,
+            PayrollCalculation payroll
+    ) {
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getName())
