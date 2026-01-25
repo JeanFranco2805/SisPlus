@@ -586,7 +586,7 @@ Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
 **Desarrollador Principal**: Jean Franco Boom Bolaño
 
 - 📧 Email: jeanf2805@gmail.com
-- 💼 LinkedIn: [linkedin.com/in/tu-perfil]([https://linkedin.com/in/tu-perfil](https://www.linkedin.com/in/jean-franco-boom-bola%C3%B1o-a53773268/))
+- 💼 LinkedIn: [linkedin.com/in/tu-perfil](https://www.linkedin.com/in/jean-franco-boom-bola%C3%B1o-a53773268))
 
 **Link del Proyecto**: [https://github.com/tu-usuario/sisplus](https://github.com/tu-usuario/sisplus)
 
