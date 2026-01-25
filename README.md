@@ -498,7 +498,7 @@ src/test/java/
 - [ ] Workflow de aprobación de horas extras
 - [ ] Cálculo de deducciones (seguridad social, salud, pensión)
 - [ ] Sistema de notificaciones
-- [ ] Dashboard con métricas en tiempo real
+- [ ] Integración con sistema biometrico de huellas para ingreso de asistencia
 
 ### 📅 Versión 2.0 (Planificado)
 - [ ] Módulo de recursos humanos
