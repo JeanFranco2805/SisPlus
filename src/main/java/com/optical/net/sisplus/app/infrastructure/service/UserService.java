@@ -2,6 +2,7 @@ package com.optical.net.sisplus.app.infrastructure.service;
 
 import com.optical.net.sisplus.app.application.PortAdapter;
 import com.optical.net.sisplus.app.domain.PayrollCalculation;
+import com.optical.net.sisplus.app.domain.PayrollConfiguration;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.mapper.response.UserResponseMapper;
 import com.optical.net.sisplus.app.infrastructure.web.UserRequest;
@@ -19,10 +20,14 @@ public class UserService {
 
     private final PortAdapter portAdapter;
     private final PayrollService payrollService;
+    private final PayrollConfigurationService configurationService;
 
-    public UserService(PortAdapter portAdapter, PayrollService payrollService) {
+    public UserService(PortAdapter portAdapter,
+                       PayrollService payrollService,
+                       PayrollConfigurationService configurationService) {
         this.portAdapter = portAdapter;
         this.payrollService = payrollService;
+        this.configurationService = configurationService;
     }
 
     @Transactional(readOnly = true)
@@ -68,7 +73,8 @@ public class UserService {
     }
 
     /**
-     * MEJORADO: Ahora usa PayrollService con caché
+     * Calcula la nómina inyectando la configuración desde el servicio
+     * Ya NO usa variables estáticas
      */
     @Transactional(readOnly = true)
     public UserResponse calculatePayroll(
@@ -82,8 +88,10 @@ public class UserService {
 
         UserDomain user = portAdapter.findUserById(id);
 
+        PayrollConfiguration config = configurationService.getPayrollConfig();
+
         PayrollCalculation payroll = payrollService.calculatePayroll(
-                id, period, month, year, date
+                id, period, month, year, date, config
         );
 
         return UserResponseMapper.fromDomainWithPayroll(user, payroll);

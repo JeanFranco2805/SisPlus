@@ -1,6 +1,5 @@
 package com.optical.net.sisplus;
 
-import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.service.AdminService;
@@ -8,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.TimeZone;
 
@@ -26,33 +24,24 @@ public class SisPlusApplication implements CommandLineRunner {
 
     public static void main(String[] args) {
         SpringApplication.run(SisPlusApplication.class, args);
-
     }
 
     @Override
     public void run(String... args) {
+        log.info("Inicializando configuraciones del sistema...");
+
+        // Crear configuraciones por defecto si no existen
+        getOrCreate("TIME_ZONE", "America/Bogota");
+        getOrCreate("REGULAR_HOUR_RATE", "7959");
+        getOrCreate("DAY_OVERTIME_RATE", "9948");
+        getOrCreate("NIGHT_SURCHARGE_RATE", "2786");
+        getOrCreate("NIGHT_OVERTIME_RATE", "13928.25");
+        getOrCreate("NIGHT_START_HOUR", "19");
+        getOrCreate("NIGHT_END_HOUR", "6");
 
         String timeZone = getOrCreate("TIME_ZONE", "America/Bogota");
-
-        UserDomain.REGULAR_HOUR_RATE =
-                Double.parseDouble(getOrCreate("REGULAR_HOUR_RATE", "7959"));
-
-        UserDomain.DAY_OVERTIME_RATE =
-                Double.parseDouble(getOrCreate("DAY_OVERTIME_RATE", "9948"));
-
-        UserDomain.NIGHT_SURCHARGE_RATE =
-                Double.parseDouble(getOrCreate("NIGHT_SURCHARGE_RATE", "2786"));
-
-        UserDomain.NIGHT_OVERTIME_RATE =
-                Double.parseDouble(getOrCreate("NIGHT_OVERTIME_RATE", "13928.25"));
-
-        UserDomain.NIGHT_START_HOUR =
-                Integer.parseInt(getOrCreate("NIGHT_START_HOUR", "19"));
-
-        UserDomain.NIGHT_END_HOUR =
-                Integer.parseInt(getOrCreate("NIGHT_END_HOUR", "6"));
-
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
+
     }
 
     private String getOrCreate(String key, String defaultValue) {
@@ -64,8 +53,8 @@ public class SisPlusApplication implements CommandLineRunner {
                             .value(defaultValue)
                             .build();
                     configurationRepository.save(config);
+                    log.debug("Configuración creada: {} = {}", key, defaultValue);
                     return defaultValue;
                 });
     }
 }
-

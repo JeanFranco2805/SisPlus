@@ -1,9 +1,8 @@
 package com.optical.net.sisplus.app.infrastructure.service;
 
 import com.optical.net.sisplus.app.domain.ConfigurationDomain;
+import com.optical.net.sisplus.app.domain.PayrollConfiguration;
 import com.optical.net.sisplus.app.infrastructure.adapter.PortCaseAdapter;
-import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Servicio mejorado de configuración con caché
- * Reemplaza las variables estáticas en UserDomain
+ * Ahora retorna PayrollConfiguration del dominio en lugar de su propio DTO
  */
 @Slf4j
 @Service
@@ -23,20 +22,20 @@ public class PayrollConfigurationService {
 
     /**
      * Obtiene la configuración de nómina (con caché)
+     * @return Configuración inmutable del dominio
      */
     @Cacheable(value = "payrollConfig", key = "'default'")
-    public PayrollConfig getPayrollConfig() {
+    public PayrollConfiguration getPayrollConfig() {
         log.debug("Cargando configuración de nómina desde base de datos");
 
-        return PayrollConfig.builder()
+        return PayrollConfiguration.builder()
                 .regularHourRate(getConfigDouble("REGULAR_HOUR_RATE", 7959.0))
                 .dayOvertimeRate(getConfigDouble("DAY_OVERTIME_RATE", 9948.0))
                 .nightSurchargeRate(getConfigDouble("NIGHT_SURCHARGE_RATE", 2786.0))
                 .nightOvertimeRate(getConfigDouble("NIGHT_OVERTIME_RATE", 13928.25))
                 .nightStartHour(getConfigInt("NIGHT_START_HOUR", 19))
                 .nightEndHour(getConfigInt("NIGHT_END_HOUR", 6))
-                .regularWorkHours(8)
-                .timeZone(getConfigString("TIME_ZONE", "America/Bogota"))
+                .regularWorkHours(8) // Constante por ahora
                 .build();
     }
 
@@ -77,32 +76,5 @@ public class PayrollConfigurationService {
                     key, defaultValue);
             return defaultValue;
         }
-    }
-
-    private String getConfigString(String key, String defaultValue) {
-        try {
-            ConfigurationDomain config = portCaseAdapter.getConfig(key);
-            return config.getValue();
-        } catch (Exception e) {
-            log.warn("No se pudo cargar configuración {}, usando valor por defecto: {}",
-                    key, defaultValue);
-            return defaultValue;
-        }
-    }
-
-    /**
-     * Objeto inmutable con la configuración de nómina
-     */
-    @Getter
-    @Builder
-    public static class PayrollConfig {
-        private final double regularHourRate;
-        private final double dayOvertimeRate;
-        private final double nightSurchargeRate;
-        private final double nightOvertimeRate;
-        private final int nightStartHour;
-        private final int nightEndHour;
-        private final int regularWorkHours;
-        private final String timeZone;
     }
 }

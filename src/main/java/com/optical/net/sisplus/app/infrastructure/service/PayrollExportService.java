@@ -1,6 +1,7 @@
 package com.optical.net.sisplus.app.infrastructure.service;
 
 import com.optical.net.sisplus.app.domain.PayrollCalculation;
+import com.optical.net.sisplus.app.domain.PayrollConfiguration;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import com.optical.net.sisplus.app.infrastructure.adapter.PortCaseAdapter;
 import org.apache.poi.ss.usermodel.*;
@@ -19,13 +20,17 @@ import java.util.List;
 public class PayrollExportService {
 
     private final PortCaseAdapter portCaseAdapter;
+    private final PayrollConfigurationService configurationService;
 
-    public PayrollExportService(PortCaseAdapter portCaseAdapter) {
+    public PayrollExportService(PortCaseAdapter portCaseAdapter,
+                                PayrollConfigurationService configurationService) {
         this.portCaseAdapter = portCaseAdapter;
+        this.configurationService = configurationService;
     }
 
     public Resource generatePayrollExcel(int month, int year) throws IOException {
         List<UserDomain> users = portCaseAdapter.getAllUsers();
+        PayrollConfiguration config = configurationService.getPayrollConfig();
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Nómina " + getMonthName(month) + " " + year);
@@ -44,7 +49,7 @@ public class PayrollExportService {
 
             for (UserDomain user : users) {
                 UserDomain userWithAttendances = portCaseAdapter.findUserById(user.getId());
-                PayrollCalculation payroll = userWithAttendances.calculateMonthlyPayroll(month, year);
+                PayrollCalculation payroll = userWithAttendances.calculateMonthlyPayroll(month, year, config);
                 rowNum = createEmployeeRow(sheet, rowNum, userWithAttendances, payroll, dataStyle, hoursStyle, currencyStyle);
             }
 

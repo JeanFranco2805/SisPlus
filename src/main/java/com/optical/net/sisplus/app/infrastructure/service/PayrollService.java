@@ -2,6 +2,7 @@ package com.optical.net.sisplus.app.infrastructure.service;
 
 import com.optical.net.sisplus.app.application.PortAdapter;
 import com.optical.net.sisplus.app.domain.PayrollCalculation;
+import com.optical.net.sisplus.app.domain.PayrollConfiguration;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,37 +17,48 @@ import java.util.stream.Collectors;
 /**
  * Servicio especializado para cálculos de nómina
  * Implementa procesamiento asíncrono para operaciones pesadas
+ * Ahora inyecta PayrollConfiguration en lugar de usar variables estáticas
  */
 @Slf4j
 @Service
 public class PayrollService {
 
     private final PortAdapter portAdapter;
+    private final PayrollConfigurationService configurationService;
 
-    public PayrollService(PortAdapter portAdapter) {
+    public PayrollService(PortAdapter portAdapter, PayrollConfigurationService configurationService) {
         this.portAdapter = portAdapter;
+        this.configurationService = configurationService;
     }
 
     /**
      * Calcula nómina de forma síncrona con caché
+     * Ahora recibe la configuración como parámetro
      */
     @Cacheable(value = "payrollCalculations",
             key = "#userId + '-' + #period + '-' + #month + '-' + #year")
     public PayrollCalculation calculatePayroll(Long userId, String period,
                                                Integer month, Integer year,
-                                               LocalDate date) {
+                                               LocalDate date,
+                                               PayrollConfiguration config) {
         log.debug("Calculando nómina para usuario {} - periodo: {}", userId, period);
 
         UserDomain user = portAdapter.findUserById(userId);
 
         return switch (period.toLowerCase()) {
-            case "weekly" -> user.calculateWeeklyPayroll(date != null ? date : LocalDate.now());
+            case "weekly" -> user.calculateWeeklyPayroll(
+                    date != null ? date : LocalDate.now(),
+                    config
+            );
             case "monthly" -> {
                 int m = month != null ? month : LocalDate.now().getMonthValue();
                 int y = year != null ? year : LocalDate.now().getYear();
-                yield user.calculateMonthlyPayroll(m, y);
+                yield user.calculateMonthlyPayroll(m, y, config);
             }
-            default -> user.calculateDailyPayroll(date != null ? date : LocalDate.now());
+            default -> user.calculateDailyPayroll(
+                    date != null ? date : LocalDate.now(),
+                    config
+            );
         };
     }
 
@@ -62,7 +74,9 @@ public class PayrollService {
 
         try {
             UserDomain user = portAdapter.findUserById(userId);
-            PayrollCalculation result = user.calculateMonthlyPayroll(month, year);
+            PayrollConfiguration config = configurationService.getPayrollConfig();
+
+            PayrollCalculation result = user.calculateMonthlyPayroll(month, year, config);
 
             log.info("Cálculo asíncrono completado para usuario: {}", userId);
             return CompletableFuture.completedFuture(result);
@@ -86,13 +100,14 @@ public class PayrollService {
 
         try {
             List<UserDomain> users = portAdapter.getAllUsers();
+            PayrollConfiguration config = configurationService.getPayrollConfig();
 
             // Procesar en paralelo
             List<EmployeePayroll> payrolls = users.parallelStream()
                     .map(user -> {
                         try {
                             UserDomain fullUser = portAdapter.findUserById(user.getId());
-                            PayrollCalculation calc = fullUser.calculateMonthlyPayroll(month, year);
+                            PayrollCalculation calc = fullUser.calculateMonthlyPayroll(month, year, config);
                             return new EmployeePayroll(user.getId(), user.getName(),
                                     user.getLastName(), calc);
                         } catch (Exception e) {

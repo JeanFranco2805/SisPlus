@@ -8,31 +8,27 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Dominio de Usuario con cálculo de nómina.
+ * Ya NO usa variables estáticas - recibe PayrollConfiguration como parámetro.
+ */
 @Builder
 @Getter
 @Setter
 public class UserDomain {
-    private static double MINIMUM_SALARY = 1750905.0;
-    private static int WEEKLY_HOURS = 44;
-    private static double DAILY_HOURS = 7.33333333;
-    private static int MONTHLY_HOURS = 220;
-
-    public static double REGULAR_HOUR_RATE = 7959.0;
-    public static double DAY_OVERTIME_RATE = 9948.0;
-    public static double NIGHT_SURCHARGE_RATE = 2786.0;
-    public static double NIGHT_OVERTIME_RATE = 13928.25;
-
-    private static int REGULAR_WORK_HOURS = 8;
-    public static int NIGHT_START_HOUR = 19;
-    public static int NIGHT_END_HOUR = 6;
-
     private Long id;
     private String name;
     private String lastName;
     private String cc;
     private List<AttendanceDomain> attendance;
 
-    public PayrollCalculation calculateDailyPayroll(LocalDate date) {
+    /**
+     * Calcula la nómina diaria con configuración específica
+     * @param date Fecha para calcular
+     * @param config Configuración de tarifas y horarios
+     * @return Cálculo de nómina
+     */
+    public PayrollCalculation calculateDailyPayroll(LocalDate date, PayrollConfiguration config) {
         if (attendance == null || attendance.isEmpty()) {
             return PayrollCalculation.builder().build();
         }
@@ -43,17 +39,17 @@ public class UserDomain {
         }
 
         double workedHours = todayAttendance.getWorkedHours();
-        double regularHours = Math.min(workedHours, REGULAR_WORK_HOURS);
-        double totalOvertimeHours = Math.max(0, workedHours - REGULAR_WORK_HOURS);
+        double regularHours = Math.min(workedHours, config.getRegularWorkHours());
+        double totalOvertimeHours = Math.max(0, workedHours - config.getRegularWorkHours());
 
-        double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(todayAttendance);
-        double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(todayAttendance);
-        double nightHours = todayAttendance.getNightHours();
+        double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(todayAttendance, config);
+        double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(todayAttendance, config);
+        double nightHours = todayAttendance.getNightHours(config);
 
-        double regularPay = regularHours * REGULAR_HOUR_RATE;
-        double nightSurchargePay = nightHours * NIGHT_SURCHARGE_RATE;
-        double dayOvertimePay = dayOvertimeHours * DAY_OVERTIME_RATE;
-        double nightOvertimePay = nightOvertimeHours * NIGHT_OVERTIME_RATE;
+        double regularPay = regularHours * config.getRegularHourRate();
+        double nightSurchargePay = nightHours * config.getNightSurchargeRate();
+        double dayOvertimePay = dayOvertimeHours * config.getDayOvertimeRate();
+        double nightOvertimePay = nightOvertimeHours * config.getNightOvertimeRate();
         double totalOvertimePay = dayOvertimePay + nightOvertimePay;
         double totalPay = regularPay + nightSurchargePay + totalOvertimePay;
 
@@ -71,7 +67,13 @@ public class UserDomain {
                 .build();
     }
 
-    public PayrollCalculation calculateWeeklyPayroll(LocalDate date) {
+    /**
+     * Calcula la nómina semanal con configuración específica
+     * @param date Fecha final de la semana
+     * @param config Configuración de tarifas y horarios
+     * @return Cálculo de nómina
+     */
+    public PayrollCalculation calculateWeeklyPayroll(LocalDate date, PayrollConfiguration config) {
         if (attendance == null || attendance.isEmpty()) {
             return PayrollCalculation.builder().build();
         }
@@ -82,10 +84,17 @@ public class UserDomain {
                 .filter(AttendanceDomain::isComplete)
                 .toList();
 
-        return calculatePayrollForPeriod(weeklyAttendances);
+        return calculatePayrollForPeriod(weeklyAttendances, config);
     }
 
-    public PayrollCalculation calculateMonthlyPayroll(int month, int year) {
+    /**
+     * Calcula la nómina mensual con configuración específica
+     * @param month Mes a calcular
+     * @param year Año a calcular
+     * @param config Configuración de tarifas y horarios
+     * @return Cálculo de nómina
+     */
+    public PayrollCalculation calculateMonthlyPayroll(int month, int year, PayrollConfiguration config) {
         if (attendance == null || attendance.isEmpty()) {
             return PayrollCalculation.builder().build();
         }
@@ -96,10 +105,16 @@ public class UserDomain {
                 .filter(AttendanceDomain::isComplete)
                 .toList();
 
-        return calculatePayrollForPeriod(monthlyAttendances);
+        return calculatePayrollForPeriod(monthlyAttendances, config);
     }
 
-    private PayrollCalculation calculatePayrollForPeriod(List<AttendanceDomain> attendances) {
+    /**
+     * Calcula la nómina para un período de asistencias
+     * @param attendances Lista de asistencias
+     * @param config Configuración de tarifas y horarios
+     * @return Cálculo de nómina acumulado
+     */
+    private PayrollCalculation calculatePayrollForPeriod(List<AttendanceDomain> attendances, PayrollConfiguration config) {
         double totalRegularHours = 0;
         double totalDayOvertimeHours = 0;
         double totalNightOvertimeHours = 0;
@@ -109,28 +124,27 @@ public class UserDomain {
         double totalDayOvertimePay = 0;
         double totalNightOvertimePay = 0;
 
-
         for (AttendanceDomain att : attendances) {
             if (att == null || !att.isComplete()) {
                 continue;
             }
 
             double workedHours = att.getWorkedHours();
-            double regularHours = Math.min(workedHours, REGULAR_WORK_HOURS);
-            double nightHours = att.getNightHours();
+            double regularHours = Math.min(workedHours, config.getRegularWorkHours());
+            double nightHours = att.getNightHours(config);
 
-            double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att);
-            double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att);
+            double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att, config);
+            double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att, config);
 
             totalRegularHours += regularHours;
             totalDayOvertimeHours += dayOvertimeHours;
             totalNightOvertimeHours += nightOvertimeHours;
             totalNightHours += nightHours;
 
-            totalRegularPay += regularHours * REGULAR_HOUR_RATE;
-            totalNightSurchargePay += nightHours * NIGHT_SURCHARGE_RATE;
-            totalDayOvertimePay += dayOvertimeHours * DAY_OVERTIME_RATE;
-            totalNightOvertimePay += nightOvertimeHours * NIGHT_OVERTIME_RATE;
+            totalRegularPay += regularHours * config.getRegularHourRate();
+            totalNightSurchargePay += nightHours * config.getNightSurchargeRate();
+            totalDayOvertimePay += dayOvertimeHours * config.getDayOvertimeRate();
+            totalNightOvertimePay += nightOvertimeHours * config.getNightOvertimeRate();
         }
 
         double totalOvertimePay = totalDayOvertimePay + totalNightOvertimePay;
@@ -151,16 +165,18 @@ public class UserDomain {
     }
 
     /**
-     * MÉTODO RENOMBRADO Y MODIFICADO: Calcula horas extras diurnas desde una asistencia específica
-     * Antes se llamaba calculateDayOvertimeHours y buscaba la asistencia por fecha
+     * Calcula horas extras diurnas desde una asistencia específica
+     * @param attendance Asistencia a analizar
+     * @param config Configuración de horarios
+     * @return Horas extras diurnas
      */
-    private double calculateDayOvertimeHoursFromAttendance(AttendanceDomain attendance) {
+    private double calculateDayOvertimeHoursFromAttendance(AttendanceDomain attendance, PayrollConfiguration config) {
         if (attendance == null || !attendance.isComplete()) {
             return 0.0;
         }
 
         double workedHours = attendance.getWorkedHours();
-        double overtimeHours = Math.max(0, workedHours - REGULAR_WORK_HOURS);
+        double overtimeHours = Math.max(0, workedHours - config.getRegularWorkHours());
 
         if (overtimeHours == 0) {
             return 0.0;
@@ -168,7 +184,7 @@ public class UserDomain {
 
         LocalDateTime entryTime = attendance.getEntryTime();
         LocalDateTime departureTime = attendance.getDepartureTime();
-        LocalDateTime regularWorkEnd = entryTime.plusHours(REGULAR_WORK_HOURS);
+        LocalDateTime regularWorkEnd = entryTime.plusHours(config.getRegularWorkHours());
 
         if (regularWorkEnd.isAfter(departureTime)) {
             return 0.0;
@@ -179,7 +195,7 @@ public class UserDomain {
 
         while (current.isBefore(departureTime)) {
             int hour = current.getHour();
-            if (hour >= NIGHT_END_HOUR && hour < NIGHT_START_HOUR) {
+            if (hour >= config.getNightEndHour() && hour < config.getNightStartHour()) {
                 dayMinutes++;
             }
             current = current.plusMinutes(1);
@@ -189,16 +205,18 @@ public class UserDomain {
     }
 
     /**
-     * MÉTODO RENOMBRADO Y MODIFICADO: Calcula horas extras nocturnas desde una asistencia específica
-     * Antes se llamaba calculateNightOvertimeHours y buscaba la asistencia por fecha
+     * Calcula horas extras nocturnas desde una asistencia específica
+     * @param attendance Asistencia a analizar
+     * @param config Configuración de horarios
+     * @return Horas extras nocturnas
      */
-    private double calculateNightOvertimeHoursFromAttendance(AttendanceDomain attendance) {
+    private double calculateNightOvertimeHoursFromAttendance(AttendanceDomain attendance, PayrollConfiguration config) {
         if (attendance == null || !attendance.isComplete()) {
             return 0.0;
         }
 
         double workedHours = attendance.getWorkedHours();
-        double overtimeHours = Math.max(0, workedHours - REGULAR_WORK_HOURS);
+        double overtimeHours = Math.max(0, workedHours - config.getRegularWorkHours());
 
         if (overtimeHours == 0) {
             return 0.0;
@@ -206,7 +224,7 @@ public class UserDomain {
 
         LocalDateTime entryTime = attendance.getEntryTime();
         LocalDateTime departureTime = attendance.getDepartureTime();
-        LocalDateTime regularWorkEnd = entryTime.plusHours(REGULAR_WORK_HOURS);
+        LocalDateTime regularWorkEnd = entryTime.plusHours(config.getRegularWorkHours());
 
         if (regularWorkEnd.isAfter(departureTime)) {
             return 0.0;
@@ -217,7 +235,7 @@ public class UserDomain {
 
         while (current.isBefore(departureTime)) {
             int hour = current.getHour();
-            if (hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR) {
+            if (hour >= config.getNightStartHour() || hour < config.getNightEndHour()) {
                 nightMinutes++;
             }
             current = current.plusMinutes(1);
@@ -227,20 +245,10 @@ public class UserDomain {
     }
 
     /**
-     * MÉTODOS DEPRECADOS MANTENIDOS PARA COMPATIBILIDAD
-     * Estos métodos ya no se usan en calculatePayrollForPeriod pero se mantienen
-     * para uso en calculateDailyPayroll
+     * Obtiene la asistencia de una fecha específica
+     * @param date Fecha a buscar
+     * @return Asistencia encontrada o null
      */
-    private double calculateDayOvertimeHours(LocalDate date) {
-        AttendanceDomain attendance = getAttendanceByDate(date);
-        return calculateDayOvertimeHoursFromAttendance(attendance);
-    }
-
-    private double calculateNightOvertimeHours(LocalDate date) {
-        AttendanceDomain attendance = getAttendanceByDate(date);
-        return calculateNightOvertimeHoursFromAttendance(attendance);
-    }
-
     private AttendanceDomain getAttendanceByDate(LocalDate date) {
         if (attendance == null || attendance.isEmpty()) {
             return null;
@@ -249,5 +257,34 @@ public class UserDomain {
                 .filter(a -> date.equals(a.getDate()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    // ========================================
+    // MÉTODOS DEPRECATED - Mantener por compatibilidad temporalmente
+    // Se eliminarán en versión 2.0
+    // ========================================
+
+    /**
+     * @deprecated Usar {@link #calculateDailyPayroll(LocalDate, PayrollConfiguration)}
+     */
+    @Deprecated(since = "1.1", forRemoval = true)
+    public PayrollCalculation calculateDailyPayroll(LocalDate date) {
+        return calculateDailyPayroll(date, PayrollConfiguration.defaults());
+    }
+
+    /**
+     * @deprecated Usar {@link #calculateWeeklyPayroll(LocalDate, PayrollConfiguration)}
+     */
+    @Deprecated(since = "1.1", forRemoval = true)
+    public PayrollCalculation calculateWeeklyPayroll(LocalDate date) {
+        return calculateWeeklyPayroll(date, PayrollConfiguration.defaults());
+    }
+
+    /**
+     * @deprecated Usar {@link #calculateMonthlyPayroll(int, int, PayrollConfiguration)}
+     */
+    @Deprecated(since = "1.1", forRemoval = true)
+    public PayrollCalculation calculateMonthlyPayroll(int month, int year) {
+        return calculateMonthlyPayroll(month, year, PayrollConfiguration.defaults());
     }
 }
