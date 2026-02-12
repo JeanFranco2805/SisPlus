@@ -1,5 +1,10 @@
 const API_BASE = '/api/';
 let allEmployees = [];
+let filteredEmployees = [];
+
+const ITEMS_PER_PAGE = 15;
+let currentPage = 1;
+let totalPages = 1;
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -48,15 +53,108 @@ async function loadEmployees() {
         }
 
         allEmployees = await response.json();
-        displayEmployees(allEmployees);
+        filterEmployees();
 
         document.getElementById('loadingIndicator').classList.add('hidden');
         document.getElementById('employeesTable').classList.remove('hidden');
+        document.getElementById('paginationContainer').classList.remove('hidden');
     } catch (error) {
         console.error('Error:', error);
         showAlert('Error al cargar los empleados. Por favor, recarga la página.', 'error');
         document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar empleados</p>';
     }
+}
+
+function filterEmployees() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+    filteredEmployees = allEmployees.filter(emp => {
+        const employeeId = (emp.id || '').toString().toLowerCase();
+        const fullName = `${emp.name} ${emp.lastName}`.toLowerCase();
+        const cc = emp.cc.toLowerCase();
+        return employeeId.includes(searchTerm) || fullName.includes(searchTerm) || cc.includes(searchTerm);
+    });
+
+    currentPage = 1;
+    updatePagination();
+    displayCurrentPage();
+}
+
+function updatePagination() {
+    totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
+
+    const totalRecords = filteredEmployees.length;
+    const start = totalRecords > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0;
+    const end = Math.min(currentPage * ITEMS_PER_PAGE, totalRecords);
+
+    document.getElementById('totalRecords').textContent = totalRecords;
+    document.getElementById('showingStart').textContent = start;
+    document.getElementById('showingEnd').textContent = end;
+
+    document.getElementById('firstPageBtn').disabled = currentPage === 1;
+    document.getElementById('prevPageBtn').disabled = currentPage === 1;
+    document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+    document.getElementById('lastPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+
+    renderPageNumbers();
+}
+
+function renderPageNumbers() {
+    const pageNumbersContainer = document.getElementById('pageNumbers');
+    let pages = [];
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            pages.push(i);
+        } else if (pages[pages.length - 1] !== '...') {
+            pages.push('...');
+        }
+    }
+
+    pageNumbersContainer.innerHTML = pages.map(page => {
+        if (page === '...') {
+            return '<span style="padding: 8px;">...</span>';
+        }
+        return `<button class="pagination-btn ${page === currentPage ? 'active' : ''}" onclick="goToPage(${page})">${page}</button>`;
+    }).join('');
+}
+
+function displayCurrentPage() {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const pageEmployees = filteredEmployees.slice(start, end);
+
+    displayEmployees(pageEmployees);
+    updatePagination();
+}
+
+function goToPage(page) {
+    currentPage = page;
+    displayCurrentPage();
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayCurrentPage();
+    }
+}
+
+function nextPage() {
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayCurrentPage();
+    }
+}
+
+function goToFirstPage() {
+    currentPage = 1;
+    displayCurrentPage();
+}
+
+function goToLastPage() {
+    currentPage = totalPages;
+    displayCurrentPage();
 }
 
 function displayEmployees(employees) {
@@ -110,17 +208,6 @@ function displayEmployees(employees) {
                 </tr>
             `;
     }).join('');
-}
-
-function filterEmployees() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = allEmployees.filter(emp => {
-        const employeeId = (emp.id || '').toString().toLowerCase();
-        const fullName = `${emp.name} ${emp.lastName}`.toLowerCase();
-        const cc = emp.cc.toLowerCase();
-        return employeeId.includes(searchTerm) || fullName.includes(searchTerm) || cc.includes(searchTerm);
-    });
-    displayEmployees(filtered);
 }
 
 function openCreateModal() {

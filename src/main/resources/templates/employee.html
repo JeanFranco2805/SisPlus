@@ -143,6 +143,37 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="paginationContainer" class="pagination hidden">
+            <div class="pagination-info">
+                Mostrando <span id="showingStart">0</span> - <span id="showingEnd">0</span> de <span id="totalRecords">0</span> registros
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" onclick="goToFirstPage()" id="firstPageBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="11 17 6 12 11 7"/>
+                        <polyline points="18 17 13 12 18 7"/>
+                    </svg>
+                </button>
+                <button class="pagination-btn" onclick="previousPage()" id="prevPageBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+                <span id="pageNumbers"></span>
+                <button class="pagination-btn" onclick="nextPage()" id="nextPageBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+                <button class="pagination-btn" onclick="goToLastPage()" id="lastPageBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="13 17 18 12 13 7"/>
+                        <polyline points="6 17 11 12 6 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
