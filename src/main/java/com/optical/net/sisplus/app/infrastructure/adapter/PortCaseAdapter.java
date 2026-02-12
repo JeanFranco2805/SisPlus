@@ -32,15 +32,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @Repository
 public class PortCaseAdapter implements PortAdapter {
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
-
-    private static final ZoneId COLOMBIA_ZONE = ZoneId.of("America/Bogota");
     private final ConfigurationRepository configurationRepository;
     private final AdminRepository adminRepository;
     private final AdminMapper adminMapper;
+
+    private static final ZoneId COLOMBIA_ZONE = ZoneId.of("America/Bogota");
 
     public PortCaseAdapter(UserRepository userRepository, UserMapper userMapper,
                            AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper,
@@ -55,9 +56,14 @@ public class PortCaseAdapter implements PortAdapter {
         this.adminMapper = adminMapper;
     }
 
+
     @Override
     @Transactional
-    @CacheEvict(value = "users", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "users",               allEntries = true),
+            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "payrollCalculations", allEntries = true)
+    })
     public UserDomain saveUser(UserDomain userDomain) {
         log.debug("Guardando usuario: {}", userDomain.getCc());
         var savedUser = userRepository.save(userMapper.toEntity(userDomain));
@@ -82,7 +88,6 @@ public class PortCaseAdapter implements PortAdapter {
                 : new ArrayList<>();
 
         userDomain.setAttendance(attendanceDomains);
-
         return userDomain;
     }
 
@@ -91,8 +96,6 @@ public class PortCaseAdapter implements PortAdapter {
     @Transactional(readOnly = true)
     public List<UserDomain> getAllUsers() {
         log.debug("Obteniendo todos los usuarios (con caché)");
-
-        // OPTIMIZACIÓN: No cargar asistencias para listados
         return userRepository.findAllWithoutAttendances()
                 .stream()
                 .map(user -> {
@@ -106,17 +109,23 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "users", allEntries = true),
-            @CacheEvict(value = "userById", key = "#id")
+            @CacheEvict(value = "users",               allEntries = true),
+            @CacheEvict(value = "userById",            key = "#id"),
+            @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public void deleteUser(Long id) {
         log.info("Eliminando usuario con ID: {}", id);
         userRepository.removeById(id);
     }
 
+
     @Override
     @Transactional
-    @CacheEvict(value = "todayAttendances", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "todayAttendances",    allEntries = true),
+            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "payrollCalculations", allEntries = true)
+    })
     public void registerAttendance(Long usuarioId) {
         log.info("Registrando asistencia para usuario: {}", usuarioId);
 
@@ -144,9 +153,14 @@ public class PortCaseAdapter implements PortAdapter {
         attendanceRepository.save(attendance);
     }
 
+
     @Override
     @Transactional
-    @CacheEvict(value = "todayAttendances", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "todayAttendances",    allEntries = true),
+            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "payrollCalculations", allEntries = true)
+    })
     public void registerDeparture(Long usuarioId) {
         log.info("Registrando salida para usuario: {}", usuarioId);
 
@@ -203,11 +217,11 @@ public class PortCaseAdapter implements PortAdapter {
     public List<AttendanceDomain> getAttendancesForDay(LocalDate fecha) {
         log.debug("Obteniendo asistencias del día: {} (con caché)", fecha);
 
-        List<Attendance> allAttendances = attendanceRepository.findAll();
+        LocalDateTime start = fecha.atStartOfDay();
+        LocalDateTime end   = fecha.plusDays(1).atStartOfDay();
 
-        return allAttendances.stream()
-                .filter(att -> att.getEntryTime() != null &&
-                        att.getEntryTime().toLocalDate().equals(fecha))
+        return attendanceRepository.findByDateRange(start, end)
+                .stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -241,7 +255,11 @@ public class PortCaseAdapter implements PortAdapter {
 
     @Override
     @Transactional
-    @CacheEvict(value = "todayAttendances", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "todayAttendances",    allEntries = true),
+            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "payrollCalculations", allEntries = true)
+    })
     public AttendanceDomain updateAttendance(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
         var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
                 () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
@@ -262,9 +280,14 @@ public class PortCaseAdapter implements PortAdapter {
         return attendanceMapper.toDomain(updatedAttendance);
     }
 
+
     @Override
     @Transactional
-    @CacheEvict(value = "todayAttendances", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "todayAttendances",    allEntries = true),
+            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "payrollCalculations", allEntries = true)
+    })
     public void deleteAttendance(Long attendanceId) {
         if (!attendanceRepository.existsById(attendanceId)) {
             throw new RuntimeException("Asistencia no encontrada con ID: " + attendanceId);
@@ -272,7 +295,9 @@ public class PortCaseAdapter implements PortAdapter {
         attendanceRepository.deleteById(attendanceId);
     }
 
+
     @Override
+    @Transactional
     @Caching(
             evict = {
                     @CacheEvict(value = "payrollConfig", key = "'default'"),
@@ -282,7 +307,6 @@ public class PortCaseAdapter implements PortAdapter {
                     @CachePut(value = "payrollConfig", key = "#config.key")
             }
     )
-    @Transactional
     public ConfigurationDomain saveConfig(ConfigurationDomain config) {
         log.debug("Guardando configuración: {}", config.getKey());
 
@@ -321,13 +345,12 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional(readOnly = true)
     public List<ConfigurationDomain> getAllConfig() {
-        return configurationRepository.findAll().stream()
-                .map(e -> ConfigurationDomain.builder()
-                        .id(e.getId())
-                        .value(e.getValue())
-                        .key(e.getKey())
-                        .build())
-                .toList();
+        var entities = configurationRepository.findAll();
+        return entities.stream().map(e -> ConfigurationDomain.builder()
+                .id(e.getId())
+                .value(e.getValue())
+                .key(e.getKey())
+                .build()).toList();
     }
 
     @Override
