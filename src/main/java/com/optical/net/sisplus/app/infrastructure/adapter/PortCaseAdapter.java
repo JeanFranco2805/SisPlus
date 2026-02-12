@@ -5,6 +5,7 @@ import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.domain.ConfigurationDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
+import com.optical.net.sisplus.app.domain.exception.DomainExceptions;
 import com.optical.net.sisplus.app.infrastructure.entity.Attendance;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.mapper.domains.AdminMapper;
@@ -31,19 +32,23 @@ import java.util.stream.Collectors;
 @Slf4j
 @Repository
 public class PortCaseAdapter implements PortAdapter {
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceMapper attendanceMapper;
-
-    private static final ZoneId COLOMBIA_ZONE = ZoneId.of("America/Bogota");
     private final ConfigurationRepository configurationRepository;
     private final AdminRepository adminRepository;
     private final AdminMapper adminMapper;
 
-    public PortCaseAdapter(UserRepository userRepository, UserMapper userMapper,
-                           AttendanceRepository attendanceRepository, AttendanceMapper attendanceMapper,
-                           ConfigurationRepository configurationRepository, AdminRepository adminRepository,
+    private static final ZoneId COLOMBIA_ZONE = ZoneId.of("America/Bogota");
+
+    public PortCaseAdapter(UserRepository userRepository,
+                           UserMapper userMapper,
+                           AttendanceRepository attendanceRepository,
+                           AttendanceMapper attendanceMapper,
+                           ConfigurationRepository configurationRepository,
+                           AdminRepository adminRepository,
                            AdminMapper adminMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -58,7 +63,6 @@ public class PortCaseAdapter implements PortAdapter {
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public UserDomain saveUser(UserDomain userDomain) {
-        log.debug("Guardando usuario: {}", userDomain.getCc());
         var savedUser = userRepository.save(userMapper.toEntity(userDomain));
         return userMapper.toDomain(savedUser);
     }
@@ -67,21 +71,16 @@ public class PortCaseAdapter implements PortAdapter {
     @Cacheable(value = "userById", key = "#usuarioId")
     @Transactional(readOnly = true)
     public UserDomain findUserById(Long usuarioId) {
-        log.debug("Buscando usuario por ID: {} (con caché)", usuarioId);
-
         var user = userRepository.findByIdWithAttendances(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId));
+                .orElseThrow(() -> new DomainExceptions(usuarioId));
 
         var userDomain = userMapper.toDomain(user);
-
         List<AttendanceDomain> attendanceDomains = user.getAttendances() != null
                 ? user.getAttendances().stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList())
                 : new ArrayList<>();
-
         userDomain.setAttendance(attendanceDomains);
-
         return userDomain;
     }
 
@@ -89,9 +88,6 @@ public class PortCaseAdapter implements PortAdapter {
     @Cacheable(value = "users")
     @Transactional(readOnly = true)
     public List<UserDomain> getAllUsers() {
-        log.debug("Obteniendo todos los usuarios (con caché)");
-
-        // OPTIMIZACIÓN: No cargar asistencias para listados
         return userRepository.findAllWithoutAttendances()
                 .stream()
                 .map(user -> {
@@ -109,7 +105,9 @@ public class PortCaseAdapter implements PortAdapter {
             @CacheEvict(value = "userById", key = "#id")
     })
     public void deleteUser(Long id) {
-        log.info("Eliminando usuario con ID: {}", id);
+        if (!userRepository.existsById(id)) {
+            throw new DomainExceptions(id);
+        }
         userRepository.removeById(id);
     }
 
@@ -117,27 +115,23 @@ public class PortCaseAdapter implements PortAdapter {
     @Transactional
     @CacheEvict(value = "todayAttendances", allEntries = true)
     public void registerAttendance(Long usuarioId) {
-        log.info("Registrando asistencia para usuario: {}", usuarioId);
+        var user = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new DomainExceptions(usuarioId));
 
-        var user = userRepository.findById(usuarioId).orElseThrow(
-                () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
-        );
+        LocalDateTime now = LocalDateTime.now(COLOMBIA_ZONE);
+        LocalDate today = now.toLocalDate();
 
-        LocalDateTime ahora = LocalDateTime.now(COLOMBIA_ZONE);
+        boolean alreadyCheckedInToday = attendanceRepository
+                .existsByUserAndEntryTimeDate(user, today);
 
-        var attendances = attendanceRepository.findByUser(user);
-        boolean yaRegistroHoy = attendances.stream()
-                .anyMatch(att -> att.getEntryTime() != null &&
-                        att.getEntryTime().toLocalDate().equals(ahora.toLocalDate()));
-
-        if (yaRegistroHoy) {
+        if (alreadyCheckedInToday) {
             registerDeparture(usuarioId);
             return;
         }
 
         Attendance attendance = Attendance.builder()
                 .user(user)
-                .entryTime(ahora)
+                .entryTime(now)
                 .build();
 
         attendanceRepository.save(attendance);
@@ -147,42 +141,28 @@ public class PortCaseAdapter implements PortAdapter {
     @Transactional
     @CacheEvict(value = "todayAttendances", allEntries = true)
     public void registerDeparture(Long usuarioId) {
-        log.info("Registrando salida para usuario: {}", usuarioId);
+        var user = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new DomainExceptions(usuarioId));
 
-        var user = userRepository.findById(usuarioId).orElseThrow(
-                () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
-        );
+        LocalDateTime now = LocalDateTime.now(COLOMBIA_ZONE);
 
-        LocalDateTime ahora = LocalDateTime.now(COLOMBIA_ZONE);
-
-        var attendances = attendanceRepository.findByUser(user);
-
-        var attendance = attendances.stream()
-                .filter(e -> e.getEntryTime() != null &&
-                        e.getEntryTime().toLocalDate().equals(ahora.toLocalDate()) &&
-                        e.getDepartureTime() == null)
-                .findFirst()
+        var attendance = attendanceRepository
+                .findPendingDepartureByUserAndDate(user, now.toLocalDate())
                 .orElseThrow(() -> new RuntimeException(
-                        "No se encontró un registro de entrada sin salida para hoy"
+                        "No pending check-in found for today"
                 ));
 
-        attendance.setDepartureTime(ahora);
+        attendance.setDepartureTime(now);
         attendanceRepository.save(attendance);
     }
 
     @Override
     @Transactional(readOnly = true)
     public AttendanceDomain getAttendanceForDay(Long usuarioId, LocalDate fecha) {
-        var user = userRepository.findById(usuarioId).orElseThrow(
-                () -> new RuntimeException("Usuario no encontrado")
-        );
+        var user = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new DomainExceptions(usuarioId));
 
-        var attendances = attendanceRepository.findByUser(user);
-
-        return attendances.stream()
-                .filter(att -> att.getEntryTime() != null &&
-                        att.getEntryTime().toLocalDate().equals(fecha))
-                .findFirst()
+        return attendanceRepository.findByUserAndDate(user, fecha)
                 .map(attendanceMapper::toDomain)
                 .orElse(null);
     }
@@ -190,23 +170,19 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional(readOnly = true)
     public AttendanceDomain getAttendanceById(Long attendanceId) {
-        var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
-                () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
-        );
-        return attendanceMapper.toDomain(attendance);
+        return attendanceRepository.findById(attendanceId)
+                .map(attendanceMapper::toDomain)
+                .orElseThrow(() -> new RuntimeException(
+                        "Attendance not found with id: " + attendanceId
+                ));
     }
 
     @Override
     @Cacheable(value = "todayAttendances", key = "#fecha")
     @Transactional(readOnly = true)
     public List<AttendanceDomain> getAttendancesForDay(LocalDate fecha) {
-        log.debug("Obteniendo asistencias del día: {} (con caché)", fecha);
-
-        List<Attendance> allAttendances = attendanceRepository.findAll();
-
-        return allAttendances.stream()
-                .filter(att -> att.getEntryTime() != null &&
-                        att.getEntryTime().toLocalDate().equals(fecha))
+        return attendanceRepository.findByDate(fecha)
+                .stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -242,23 +218,22 @@ public class PortCaseAdapter implements PortAdapter {
     @Transactional
     @CacheEvict(value = "todayAttendances", allEntries = true)
     public AttendanceDomain updateAttendance(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
-        var attendance = attendanceRepository.findById(attendanceId).orElseThrow(
-                () -> new RuntimeException("Asistencia no encontrada con ID: " + attendanceId)
-        );
+        var attendance = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Attendance not found with id: " + attendanceId
+                ));
 
         if (entryTime != null) {
             attendance.setEntryTime(entryTime);
         }
-
         if (departureTime != null) {
             if (attendance.getEntryTime() != null && departureTime.isBefore(attendance.getEntryTime())) {
-                throw new RuntimeException("La hora de salida no puede ser anterior a la hora de entrada");
+                throw new RuntimeException("Departure time cannot be before entry time");
             }
             attendance.setDepartureTime(departureTime);
         }
 
-        var updatedAttendance = attendanceRepository.save(attendance);
-        return attendanceMapper.toDomain(updatedAttendance);
+        return attendanceMapper.toDomain(attendanceRepository.save(attendance));
     }
 
     @Override
@@ -266,32 +241,32 @@ public class PortCaseAdapter implements PortAdapter {
     @CacheEvict(value = "todayAttendances", allEntries = true)
     public void deleteAttendance(Long attendanceId) {
         if (!attendanceRepository.existsById(attendanceId)) {
-            throw new RuntimeException("Asistencia no encontrada con ID: " + attendanceId);
+            throw new RuntimeException("Attendance not found with id: " + attendanceId);
         }
         attendanceRepository.deleteById(attendanceId);
     }
 
     @Override
-    @Cacheable(value = "payrollConfig", key = "#config.key")
     @Transactional
+    @CacheEvict(value = "payrollConfig", key = "#config.key")
     public ConfigurationDomain saveConfig(ConfigurationDomain config) {
-        log.debug("Guardando configuración: {}", config.getKey());
-
         var existing = configurationRepository.findByKey(config.getKey());
-        Configuration configuration;
+        Configuration entity;
         if (existing.isPresent()) {
             existing.get().setValue(config.getValue());
-            configuration = configurationRepository.save(existing.get());
+            entity = configurationRepository.save(existing.get());
         } else {
-            configuration = configurationRepository.save(Configuration.builder()
-                    .key(config.getKey())
-                    .value(config.getValue())
-                    .build());
+            entity = configurationRepository.save(
+                    Configuration.builder()
+                            .key(config.getKey())
+                            .value(config.getValue())
+                            .build()
+            );
         }
         return ConfigurationDomain.builder()
-                .id(configuration.getId())
-                .key(configuration.getKey())
-                .value(configuration.getValue())
+                .id(entity.getId())
+                .key(entity.getKey())
+                .value(entity.getValue())
                 .build();
     }
 
@@ -299,23 +274,27 @@ public class PortCaseAdapter implements PortAdapter {
     @Cacheable(value = "payrollConfig", key = "#key")
     @Transactional(readOnly = true)
     public ConfigurationDomain getConfig(String key) {
-        var config = configurationRepository.findByKey(key).orElseThrow();
+        var config = configurationRepository.findByKey(key)
+                .orElseThrow(() -> new RuntimeException(
+                        "Configuration not found for key: " + key
+                ));
         return ConfigurationDomain.builder()
-                .value(config.getValue())
                 .id(config.getId())
                 .key(config.getKey())
+                .value(config.getValue())
                 .build();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ConfigurationDomain> getAllConfig() {
-        var entities = configurationRepository.findAll();
-        return entities.stream().map(e -> ConfigurationDomain.builder()
-                .id(e.getId())
-                .value(e.getValue())
-                .key(e.getKey())
-                .build()).toList();
+        return configurationRepository.findAll().stream()
+                .map(e -> ConfigurationDomain.builder()
+                        .id(e.getId())
+                        .key(e.getKey())
+                        .value(e.getValue())
+                        .build())
+                .toList();
     }
 
     @Override
@@ -324,11 +303,13 @@ public class PortCaseAdapter implements PortAdapter {
     public ConfigurationDomain updateConfig(String key, String value) {
         var config = getConfig(key);
         config.setValue(value);
-        configurationRepository.save(Configuration.builder()
-                .id(config.getId())
-                .key(config.getKey())
-                .value(config.getValue())
-                .build());
+        configurationRepository.save(
+                Configuration.builder()
+                        .id(config.getId())
+                        .key(config.getKey())
+                        .value(config.getValue())
+                        .build()
+        );
         return config;
     }
 
@@ -347,6 +328,9 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     public boolean removeAdmin(String username) {
+        if (!adminRepository.existsByUsername(username)) {
+            return false;
+        }
         adminRepository.deleteByUsername(username);
         return true;
     }

@@ -1,5 +1,6 @@
 package com.optical.net.sisplus;
 
+import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.service.AdminService;
@@ -29,8 +30,6 @@ public class SisPlusApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("Inicializando configuraciones del sistema...");
-
-        // Crear configuraciones por defecto si no existen
         getOrCreate("TIME_ZONE", "America/Bogota");
         getOrCreate("REGULAR_HOUR_RATE", "7959");
         getOrCreate("DAY_OVERTIME_RATE", "9948");

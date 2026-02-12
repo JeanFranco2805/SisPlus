@@ -7,36 +7,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Configuración de Rate Limiting usando Bucket4j
- * Protege contra ataques de fuerza bruta y abuso de API
- *
- * DEPENDENCIA REQUERIDA (pom.xml):
- * <dependency>
- *     <groupId>com.github.vladimir-bukhtoyarov</groupId>
- *     <artifactId>bucket4j-core</artifactId>
- *     <version>8.1.0</version>
- * </dependency>
- */
 @Configuration
 public class RateLimitingConfig {
 
-    /**
-     * Cache de buckets por IP
-     * En producción, usar Redis para distribuido
-     */
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    private static final long BUCKET_EXPIRY_SECONDS = 3600;
 
-    /**
-     * Configuración de límites por endpoint
-     */
+    private final Map<String, BucketEntry> cache = new ConcurrentHashMap<>();
+
     public enum RateLimit {
-        LOGIN(5, Duration.ofMinutes(1)),        // 5 intentos por minuto
-        API_DEFAULT(100, Duration.ofMinutes(1)), // 100 requests por minuto
-        PAYROLL(10, Duration.ofMinutes(1));      // 10 cálculos por minuto
+        LOGIN(5, Duration.ofMinutes(15)),
+        API_DEFAULT(100, Duration.ofMinutes(1)),
+        PAYROLL(10, Duration.ofMinutes(1));
 
         private final long capacity;
         private final Duration refillDuration;
@@ -47,23 +32,44 @@ public class RateLimitingConfig {
         }
 
         public Bucket createBucket() {
-            Bandwidth limit = Bandwidth.classic(capacity,
-                    Refill.intervally(capacity, refillDuration));
+            Bandwidth limit = Bandwidth.classic(capacity, Refill.intervally(capacity, refillDuration));
             return Bucket.builder()
                     .addLimit(limit)
                     .build();
         }
     }
 
-    /**
-     * Obtiene o crea un bucket para una clave específica
-     */
     public Bucket resolveBucket(String key, RateLimit rateLimit) {
-        return cache.computeIfAbsent(key, k -> rateLimit.createBucket());
+        BucketEntry entry = cache.computeIfAbsent(key, k -> new BucketEntry(rateLimit.createBucket()));
+        entry.updateLastAccess();
+        return entry.getBucket();
     }
 
-    @Scheduled(fixedDelay = 60_000) // cada 1 minuto
-    public void cleanupOldBuckets() {
-        cache.clear();
+    @Scheduled(fixedDelay = 300_000)
+    public void cleanupExpiredBuckets() {
+        Instant threshold = Instant.now().minusSeconds(BUCKET_EXPIRY_SECONDS);
+        cache.entrySet().removeIf(e -> e.getValue().getLastAccess().isBefore(threshold));
+    }
+
+    private static class BucketEntry {
+        private final Bucket bucket;
+        private volatile Instant lastAccess;
+
+        BucketEntry(Bucket bucket) {
+            this.bucket = bucket;
+            this.lastAccess = Instant.now();
+        }
+
+        Bucket getBucket() {
+            return bucket;
+        }
+
+        Instant getLastAccess() {
+            return lastAccess;
+        }
+
+        void updateLastAccess() {
+            this.lastAccess = Instant.now();
+        }
     }
 }

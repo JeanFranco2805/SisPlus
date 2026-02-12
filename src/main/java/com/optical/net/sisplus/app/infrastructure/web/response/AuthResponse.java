@@ -1,4 +1,4 @@
-package com.optical.net.sisplus.app.infrastructure.web;
+package com.optical.net.sisplus.app.infrastructure.web.response;
 
 import lombok.Builder;
 import lombok.Getter;

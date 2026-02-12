@@ -2,8 +2,8 @@ package com.optical.net.sisplus.app.infrastructure.controller.api;
 
 import com.optical.net.sisplus.app.infrastructure.mapper.response.AdminResponseMapper;
 import com.optical.net.sisplus.app.infrastructure.service.AdminService;
-import com.optical.net.sisplus.app.infrastructure.web.AdminRequest;
-import com.optical.net.sisplus.app.infrastructure.web.AdminResponse;
+import com.optical.net.sisplus.app.infrastructure.web.request.AdminRequest;
+import com.optical.net.sisplus.app.infrastructure.web.response.AdminResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

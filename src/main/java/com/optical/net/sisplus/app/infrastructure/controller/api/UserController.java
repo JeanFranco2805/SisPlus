@@ -1,8 +1,8 @@
 package com.optical.net.sisplus.app.infrastructure.controller.api;
 
 import com.optical.net.sisplus.app.infrastructure.service.UserService;
-import com.optical.net.sisplus.app.infrastructure.web.UserRequest;
-import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
+import com.optical.net.sisplus.app.infrastructure.web.request.UserRequest;
+import com.optical.net.sisplus.app.infrastructure.web.response.UserResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

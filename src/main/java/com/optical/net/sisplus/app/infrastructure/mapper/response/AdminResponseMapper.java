@@ -1,8 +1,8 @@
 package com.optical.net.sisplus.app.infrastructure.mapper.response;
 
 import com.optical.net.sisplus.app.domain.AdminDomain;
-import com.optical.net.sisplus.app.infrastructure.web.AdminRequest;
-import com.optical.net.sisplus.app.infrastructure.web.AdminResponse;
+import com.optical.net.sisplus.app.infrastructure.web.request.AdminRequest;
+import com.optical.net.sisplus.app.infrastructure.web.response.AdminResponse;
 import org.mapstruct.Mapper;
 
 import java.util.List;
