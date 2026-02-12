@@ -1,8 +1,8 @@
 package com.optical.net.sisplus.app.infrastructure.mapper.response;
 
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
-import com.optical.net.sisplus.app.infrastructure.web.response.AttendanceResponse;
-import com.optical.net.sisplus.app.infrastructure.web.response.UserResponse;
+import com.optical.net.sisplus.app.infrastructure.web.AttendanceResponse;
+import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 
 import java.util.List;
 import java.util.stream.Collectors;

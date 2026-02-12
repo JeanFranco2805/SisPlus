@@ -3,8 +3,8 @@ package com.optical.net.sisplus.app.infrastructure.service;
 import com.optical.net.sisplus.app.application.PortAdapter;
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.infrastructure.mapper.response.AttendanceResponseMapper;
-import com.optical.net.sisplus.app.infrastructure.web.request.AttendanceRequest;
-import com.optical.net.sisplus.app.infrastructure.web.response.AttendanceResponse;
+import com.optical.net.sisplus.app.infrastructure.web.AttendanceRequest;
+import com.optical.net.sisplus.app.infrastructure.web.AttendanceResponse;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

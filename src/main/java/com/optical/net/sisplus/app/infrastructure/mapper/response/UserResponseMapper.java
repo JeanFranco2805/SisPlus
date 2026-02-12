@@ -2,7 +2,7 @@ package com.optical.net.sisplus.app.infrastructure.mapper.response;
 
 import com.optical.net.sisplus.app.domain.PayrollCalculation;
 import com.optical.net.sisplus.app.domain.UserDomain;
-import com.optical.net.sisplus.app.infrastructure.web.response.UserResponse;
+import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 
 import java.time.LocalDate;
 import java.util.List;

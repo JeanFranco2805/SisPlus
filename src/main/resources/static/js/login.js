@@ -1,24 +1,22 @@
 let isLoading = false;
 
-function getCsrfToken() {
-    const match = document.cookie.split(';')
-        .map(c => c.trim())
-        .find(c => c.startsWith('XSRF-TOKEN='));
-    return match ? decodeURIComponent(match.split('=')[1]) : null;
-}
-
 function showAlert(type, message) {
     const alertError = document.getElementById('alertError');
     const alertSuccess = document.getElementById('alertSuccess');
 
-    alertError.classList.add('hidden');
-    alertSuccess.classList.add('hidden');
+    alertError.classList.remove('hidden');
+    alertSuccess.classList.remove('hidden');
+
+    setTimeout(() => {
+        alertError.classList.add('hidden');
+        alertSuccess.classList.add('hidden');
+    }, 100);
 
     if (type === 'error') {
         document.getElementById('errorMessage').textContent = message;
-        alertError.classList.remove('hidden');
+        setTimeout(() => alertError.classList.remove('hidden'), 100);
     } else if (type === 'success') {
-        alertSuccess.classList.remove('hidden');
+        setTimeout(() => alertSuccess.classList.remove('hidden'), 100);
     }
 }
 
@@ -49,23 +47,23 @@ async function handleLogin(event) {
     isLoading = true;
 
     try {
-        const csrfToken = getCsrfToken();
-        const headers = { 'Content-Type': 'application/json' };
-        if (csrfToken) {
-            headers['X-XSRF-TOKEN'] = csrfToken;
-        }
-
         const response = await fetch('/api/auth/login', {
             method: 'POST',
-            headers: headers,
-            credentials: 'same-origin',
-            body: JSON.stringify({ username, password, rememberMe })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                rememberMe: rememberMe
+            })
         });
 
         const data = await response.json();
 
         if (response.ok && data.success) {
             showAlert('success', 'Inicio de sesión exitoso');
+
             setTimeout(() => {
                 window.location.href = data.redirectUrl || '/dashboard';
             }, 800);
@@ -84,12 +82,12 @@ async function handleLogin(event) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('loginForm');
+document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('input', hideAlerts);
+});
 
-    form.addEventListener('submit', handleLogin);
-
-    form.querySelectorAll('.form-input').forEach(input => {
-        input.addEventListener('input', hideAlerts);
-    });
+document.getElementById('loginForm').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !isLoading) {
+        handleLogin(e);
+    }
 });

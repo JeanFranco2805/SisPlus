@@ -1,8 +1,8 @@
 package com.optical.net.sisplus.app.infrastructure.controller.api;
 
 import com.optical.net.sisplus.app.infrastructure.service.AttendanceService;
-import com.optical.net.sisplus.app.infrastructure.web.request.AttendanceRequest;
-import com.optical.net.sisplus.app.infrastructure.web.response.AttendanceResponse;
+import com.optical.net.sisplus.app.infrastructure.web.AttendanceRequest;
+import com.optical.net.sisplus.app.infrastructure.web.AttendanceResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

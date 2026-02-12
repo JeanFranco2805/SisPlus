@@ -32,9 +32,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
 
         if (probe.isConsumed()) {
+            // Request permitido
             response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
             return true;
         } else {
+            // Rate limit excedido
             long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.addHeader("X-Rate-Limit-Retry-After-Seconds", String.valueOf(waitForRefill));
@@ -44,14 +46,18 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
     }
 
-
+    /**
+     * Obtiene una clave única por cliente (IP + Usuario)
+     */
     private String getClientKey(HttpServletRequest request) {
         String ip = getClientIP(request);
         String user = request.getRemoteUser();
         return user != null ? user : ip;
     }
 
-
+    /**
+     * Obtiene la IP real del cliente (considera proxies)
+     */
     private String getClientIP(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null) {

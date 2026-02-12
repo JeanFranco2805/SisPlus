@@ -4,40 +4,28 @@ import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.infrastructure.adapter.PortCaseAdapter;
 import com.optical.net.sisplus.app.infrastructure.entity.Admin;
 import com.optical.net.sisplus.app.infrastructure.repository.AdminRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Slf4j
 @Service
 public class AdminService {
     private final PortCaseAdapter portCaseAdapter;
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
 
-    @Value("${app.admin.default-username:#{null}}")
-    private String defaultAdminUsername;
-
-    @Value("${app.admin.default-password:#{null}}")
-    private String defaultAdminPassword;
-
-    public AdminService(PortCaseAdapter portCaseAdapter,
-                        PasswordEncoder passwordEncoder,
-                        AdminRepository adminRepository) {
+    public AdminService(PortCaseAdapter portCaseAdapter, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
         this.portCaseAdapter = portCaseAdapter;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
     }
 
     public AdminDomain save(AdminDomain adminDomain) {
-        if (StringUtils.hasText(adminDomain.getPassword())) {
+        if (adminDomain.getPassword() != null && !adminDomain.getPassword().isEmpty()) {
             adminDomain.setPassword(passwordEncoder.encode(adminDomain.getPassword()));
         }
         return portCaseAdapter.save(adminDomain);
@@ -45,15 +33,10 @@ public class AdminService {
 
     @Transactional
     public void initializeDefaultAdmin() {
-        if (!StringUtils.hasText(defaultAdminUsername) || !StringUtils.hasText(defaultAdminPassword)) {
-            log.warn("Default admin credentials not configured. Skipping initialization.");
-            return;
-        }
-
-        if (!adminRepository.existsByUsername(defaultAdminUsername)) {
+        if (!adminRepository.existsByUsername("admin")) {
             Admin defaultAdmin = new Admin();
-            defaultAdmin.setUsername(defaultAdminUsername);
-            defaultAdmin.setPassword(passwordEncoder.encode(defaultAdminPassword));
+            defaultAdmin.setUsername("admin");
+            defaultAdmin.setPassword(passwordEncoder.encode("admin123"));
             defaultAdmin.setEnabled(true);
             defaultAdmin.setAccountNonExpired(true);
             defaultAdmin.setAccountNonLocked(true);
@@ -64,10 +47,11 @@ public class AdminService {
             defaultAdmin.setRoles(roles);
 
             adminRepository.save(defaultAdmin);
-            log.info("Default admin user created.");
+            System.out.println("✅ Administrador por defecto creado - Username: admin, Password: admin123");
+        } else {
+            System.out.println("ℹ️  El administrador por defecto ya existe");
         }
     }
-
     public AdminDomain findByUsername(String username) {
         return portCaseAdapter.findByUsername(username);
     }

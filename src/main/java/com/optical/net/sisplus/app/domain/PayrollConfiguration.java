@@ -11,15 +11,18 @@ import lombok.Getter;
 @Builder
 public class PayrollConfiguration {
 
+    // Tarifas de pago
     private final double regularHourRate;
     private final double dayOvertimeRate;
     private final double nightSurchargeRate;
     private final double nightOvertimeRate;
 
+    // Horarios
     private final int nightStartHour;
     private final int nightEndHour;
     private final int regularWorkHours;
 
+    // Valores por defecto (Colombia 2026)
     private static final double DEFAULT_REGULAR_HOUR_RATE = 7959.0;
     private static final double DEFAULT_DAY_OVERTIME_RATE = 9948.0;
     private static final double DEFAULT_NIGHT_SURCHARGE_RATE = 2786.0;
