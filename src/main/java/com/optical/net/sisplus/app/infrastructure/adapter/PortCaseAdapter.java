@@ -16,6 +16,7 @@ import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationReposi
 import com.optical.net.sisplus.app.infrastructure.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Repository;
@@ -272,7 +273,15 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    @Cacheable(value = "payrollConfig", key = "#config.key")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "payrollConfig", key = "'default'"),
+                    @CacheEvict(value = "payrollConfig", key = "#config.key")
+            },
+            put = {
+                    @CachePut(value = "payrollConfig", key = "#config.key")
+            }
+    )
     @Transactional
     public ConfigurationDomain saveConfig(ConfigurationDomain config) {
         log.debug("Guardando configuración: {}", config.getKey());
@@ -299,7 +308,9 @@ public class PortCaseAdapter implements PortAdapter {
     @Cacheable(value = "payrollConfig", key = "#key")
     @Transactional(readOnly = true)
     public ConfigurationDomain getConfig(String key) {
-        var config = configurationRepository.findByKey(key).orElseThrow();
+        var config = configurationRepository.findByKey(key).orElseThrow(
+                () -> new RuntimeException("Configuración no encontrada: " + key)
+        );
         return ConfigurationDomain.builder()
                 .value(config.getValue())
                 .id(config.getId())
@@ -310,26 +321,30 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional(readOnly = true)
     public List<ConfigurationDomain> getAllConfig() {
-        var entities = configurationRepository.findAll();
-        return entities.stream().map(e -> ConfigurationDomain.builder()
-                .id(e.getId())
-                .value(e.getValue())
-                .key(e.getKey())
-                .build()).toList();
+        return configurationRepository.findAll().stream()
+                .map(e -> ConfigurationDomain.builder()
+                        .id(e.getId())
+                        .value(e.getValue())
+                        .key(e.getKey())
+                        .build())
+                .toList();
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = "payrollConfig", key = "#key")
+    @CacheEvict(value = "payrollConfig", allEntries = true)
     public ConfigurationDomain updateConfig(String key, String value) {
-        var config = getConfig(key);
-        config.setValue(value);
-        configurationRepository.save(Configuration.builder()
-                .id(config.getId())
-                .key(config.getKey())
-                .value(config.getValue())
-                .build());
-        return config;
+        var existing = configurationRepository.findByKey(key).orElseThrow(
+                () -> new RuntimeException("Configuración no encontrada: " + key)
+        );
+        existing.setValue(value);
+        configurationRepository.save(existing);
+
+        return ConfigurationDomain.builder()
+                .id(existing.getId())
+                .key(existing.getKey())
+                .value(value)
+                .build();
     }
 
     @Override

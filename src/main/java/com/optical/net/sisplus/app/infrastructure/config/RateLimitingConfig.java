@@ -3,40 +3,48 @@ package com.optical.net.sisplus.app.infrastructure.config;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Configuración de Rate Limiting usando Bucket4j
- * Protege contra ataques de fuerza bruta y abuso de API
- *
- * DEPENDENCIA REQUERIDA (pom.xml):
- * <dependency>
- *     <groupId>com.github.vladimir-bukhtoyarov</groupId>
- *     <artifactId>bucket4j-core</artifactId>
- *     <version>8.1.0</version>
- * </dependency>
- */
+@Slf4j
 @Configuration
 public class RateLimitingConfig {
 
-    /**
-     * Cache de buckets por IP
-     * En producción, usar Redis para distribuido
-     */
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    /** Intentos fallidos antes de bloquear la IP en login */
+    private static final int MAX_FAILURES = 5;
 
-    /**
-     * Configuración de límites por endpoint
-     */
+    /** Tiempo de bloqueo tras superar MAX_FAILURES */
+    private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
+
+    /** Tiempo sin actividad para considerar un bucket "abandonado" */
+    private static final Duration BUCKET_IDLE_TIMEOUT = Duration.ofMinutes(10);
+
+    private final Map<String, TimedBucket> buckets = new ConcurrentHashMap<>();
+
+    private final Map<String, FailureRecord> loginFailures = new ConcurrentHashMap<>();
+
+    // =========================================================
+    //  Definición de límites por endpoint
+    // =========================================================
+
     public enum RateLimit {
-        LOGIN(5, Duration.ofMinutes(1)),        // 5 intentos por minuto
-        API_DEFAULT(100, Duration.ofMinutes(1)), // 100 requests por minuto
-        PAYROLL(10, Duration.ofMinutes(1));      // 10 cálculos por minuto
+        /** 5 intentos de login cada 5 minutos (más realista que 1 min) */
+        LOGIN(5, Duration.ofMinutes(5)),
+
+        /** 100 requests por minuto para la API general */
+        API_DEFAULT(100, Duration.ofMinutes(1)),
+
+        /** 10 cálculos de nómina por minuto (operación pesada) */
+        PAYROLL(10, Duration.ofMinutes(1)),
+
+        /** 30 operaciones de usuarios por minuto */
+        USERS(30, Duration.ofMinutes(1));
 
         private final long capacity;
         private final Duration refillDuration;
@@ -47,23 +55,138 @@ public class RateLimitingConfig {
         }
 
         public Bucket createBucket() {
-            Bandwidth limit = Bandwidth.classic(capacity,
-                    Refill.intervally(capacity, refillDuration));
-            return Bucket.builder()
-                    .addLimit(limit)
-                    .build();
+            Bandwidth limit = Bandwidth.classic(
+                    capacity,
+                    Refill.intervally(capacity, refillDuration)
+            );
+            return Bucket.builder().addLimit(limit).build();
         }
     }
 
     /**
-     * Obtiene o crea un bucket para una clave específica
+     * Obtiene o crea el bucket de rate limit para una clave.
+     * Actualiza la marca de último acceso (para el cleanup inteligente).
      */
     public Bucket resolveBucket(String key, RateLimit rateLimit) {
-        return cache.computeIfAbsent(key, k -> rateLimit.createBucket());
+        TimedBucket timedBucket = buckets.compute(key, (k, existing) -> {
+            if (existing == null) {
+                return new TimedBucket(rateLimit.createBucket());
+            }
+            existing.touch();
+            return existing;
+        });
+        return timedBucket.bucket;
     }
 
-    @Scheduled(fixedDelay = 60_000) // cada 1 minuto
-    public void cleanupOldBuckets() {
-        cache.clear();
+    /**
+     * Verifica si una IP está actualmente bloqueada por demasiados fallos.
+     */
+    public boolean isIpBlocked(String ip) {
+        FailureRecord record = loginFailures.get(ip);
+        if (record == null) return false;
+
+        if (record.blockedUntil != null && Instant.now().isBefore(record.blockedUntil)) {
+            log.warn("[BRUTE-FORCE] IP bloqueada intenta acceder: {}", ip);
+            return true;
+        }
+
+        if (record.blockedUntil != null) {
+            loginFailures.remove(ip);
+        }
+        return false;
+    }
+
+    /**
+     * Registra un intento de login FALLIDO.
+     * Si supera MAX_FAILURES, bloquea la IP por LOCK_DURATION.
+     */
+    public void recordLoginFailure(String ip) {
+        loginFailures.merge(ip, new FailureRecord(), (existing, newRecord) -> {
+            existing.failures++;
+            existing.lastAttempt = Instant.now();
+
+            if (existing.failures >= MAX_FAILURES) {
+                existing.blockedUntil = Instant.now().plus(LOCK_DURATION);
+                log.warn("[BRUTE-FORCE] IP bloqueada por {} min tras {} fallos: {}",
+                        LOCK_DURATION.toMinutes(), existing.failures, ip);
+            }
+            return existing;
+        });
+    }
+
+    /**
+     * Limpia el contador de fallos de una IP (llamar tras login exitoso).
+     */
+    public void clearLoginFailures(String ip) {
+        loginFailures.remove(ip);
+    }
+
+    /**
+     * Devuelve cuántos segundos quedan de bloqueo para una IP.
+     */
+    public long getBlockedSecondsRemaining(String ip) {
+        FailureRecord record = loginFailures.get(ip);
+        if (record == null || record.blockedUntil == null) return 0;
+        long remaining = Instant.now().until(record.blockedUntil,
+                java.time.temporal.ChronoUnit.SECONDS);
+        return Math.max(0, remaining);
+    }
+
+    // =========================================================
+    //  Cleanup inteligente — solo elimina buckets inactivos
+    // =========================================================
+
+    /**
+     * Limpia solo los buckets que llevan más de BUCKET_IDLE_TIMEOUT sin usarse.
+     * Ejecutado cada 5 minutos (antes era cada 1 min y borraba TODO).
+     *
+     * ANTES: cache.clear() → atacante esperaba 61s para resetear su bucket
+     * AHORA: los buckets activos persisten, solo se borran los abandonados
+     */
+    @Scheduled(fixedDelay = 300_000) // cada 5 minutos
+    public void cleanupInactiveBuckets() {
+        Instant cutoff = Instant.now().minus(BUCKET_IDLE_TIMEOUT);
+        int removed = 0;
+
+        for (Map.Entry<String, TimedBucket> entry : buckets.entrySet()) {
+            if (entry.getValue().lastAccess.isBefore(cutoff)) {
+                buckets.remove(entry.getKey());
+                removed++;
+            }
+        }
+
+        // Limpiar bloqueos de login expirados
+        loginFailures.entrySet().removeIf(e ->
+                e.getValue().blockedUntil != null &&
+                        Instant.now().isAfter(e.getValue().blockedUntil));
+
+        if (removed > 0) {
+            log.debug("[RATE-LIMIT] Cleanup: {} buckets inactivos eliminados. Activos: {}",
+                    removed, buckets.size());
+        }
+    }
+
+    // =========================================================
+    //  Clases internas
+    // =========================================================
+
+    private static class TimedBucket {
+        final Bucket bucket;
+        volatile Instant lastAccess;
+
+        TimedBucket(Bucket bucket) {
+            this.bucket = bucket;
+            this.lastAccess = Instant.now();
+        }
+
+        void touch() {
+            this.lastAccess = Instant.now();
+        }
+    }
+
+    private static class FailureRecord {
+        int failures = 1;
+        Instant lastAttempt = Instant.now();
+        Instant blockedUntil = null;
     }
 }
