@@ -20,6 +20,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/auth/me"); // Excluir endpoints de health check
+                .excludePathPatterns(
+                        "/api/auth/me",
+                        "/iclock/**"
+                );
     }
 }

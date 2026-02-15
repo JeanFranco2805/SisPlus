@@ -62,8 +62,11 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/login",
-                                "/api/auth/login", "/api/auth/logout",
+                                "/",
+                                "/login",
+                                "/api/auth/login",
+                                "/api/auth/logout",
+                                "/iclock/**",
                                 "/css/**", "/js/**", "/images/**", "/favicon.ico"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

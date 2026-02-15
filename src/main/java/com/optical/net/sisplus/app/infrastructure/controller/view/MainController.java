@@ -24,11 +24,6 @@ public class MainController {
     public String login(){
         return "login";
     }
-    @PostMapping
-    public String si(){
-        System.out.println("Alguien entro");
-        return "";
-    }
     @GetMapping("payroll")
     public String payroll(){
         return "payroll";
