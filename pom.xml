@@ -160,6 +160,7 @@
 
 
     </dependencies>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>
@@ -185,7 +186,10 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
