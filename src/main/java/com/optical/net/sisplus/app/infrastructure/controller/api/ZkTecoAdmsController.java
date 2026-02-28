@@ -29,7 +29,6 @@ public class ZkTecoAdmsController {
 
     private final UserService userService;
 
-    // Formato de fecha que usa el F22: "2025-02-14 08:30:00"
     private static final DateTimeFormatter ZK_DATE_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -37,13 +36,7 @@ public class ZkTecoAdmsController {
         this.userService = userService;
     }
 
-    /**
-     * HANDSHAKE / CONFIGURACIÓN INICIAL
-     *
-     * El dispositivo hace GET /iclock/cdata?SN=<serial>
-     * Respondemos con parámetros de conexión en texto plano.
-     * Esta respuesta es CRÍTICA: le dice al F22 cómo conectarse.
-     */
+
     @GetMapping(value = "/cdata", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> handshake(
             @RequestParam(value = "SN", required = false) String serialNumber,
@@ -51,20 +44,18 @@ public class ZkTecoAdmsController {
 
         log.info("[ZKTeco] Handshake recibido - SN: {}", serialNumber);
 
-        // Respuesta de configuración que el dispositivo espera
-        // Cada línea es un parámetro clave=valor
         String response = "GET OPTION FROM: " + serialNumber + "\n" +
-                "ATTLOGStamp=None\n" +         // Sin marca de tiempo previa (sync completo)
+                "ATTLOGStamp=None\n" +
                 "OPERLOGStamp=9999\n" +
                 "ATTPHOTOStamp=None\n" +
-                "ErrorDelay=30\n" +             // Segundos de espera ante error
-                "Delay=10\n" +                  // Intervalo de heartbeat (segundos)
-                "TransTimes=00:00;14:00\n" +    // Ventanas de sincronización
-                "TransInterval=1\n" +           // Minutos entre sync
-                "TransFlag=1111000000\n" +       // Flags: usuarios, marcaciones, etc.
-                "TimeZone=5\n" +                // UTC-5 (Colombia)
-                "Realtime=1\n" +               // Envío en tiempo real
-                "Encrypt=None\n";              // Sin cifrado (desarrollo)
+                "ErrorDelay=30\n" +
+                "Delay=10\n" +
+                "TransTimes=00:00;14:00\n" +
+                "TransInterval=1\n" +
+                "TransFlag=1111000000\n" +
+                "TimeZone=5\n" +
+                "Realtime=1\n" +
+                "Encrypt=None\n";
 
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_PLAIN)
@@ -188,7 +179,6 @@ public class ZkTecoAdmsController {
                 String pin        = parts[0].trim();   // ID del usuario en el dispositivo
                 String timestamp  = parts[1].trim();   // "2025-02-14 08:30:00"
                 int status        = parts.length > 2 ? parseIntSafe(parts[2]) : 0;
-                // Status: 0=Check-In, 1=Check-Out
 
                 log.info("[ZKTeco] Marcación: PIN={}, Time={}, Status={}", pin, timestamp, status);
 
@@ -198,13 +188,10 @@ public class ZkTecoAdmsController {
                     continue;
                 }
 
-                // Delegar al servicio existente de asistencia
                 if (status == 0) {
-                    // Check-In → registrar entrada
                     userService.registerEntry(userId);
                     log.info("[ZKTeco] ✅ Entrada registrada para usuario ID: {}", userId);
                 } else if (status == 1) {
-                    // Check-Out → registrar salida
                     userService.registerExit(userId);
                     log.info("[ZKTeco] ✅ Salida registrada para usuario ID: {}", userId);
                 } else {

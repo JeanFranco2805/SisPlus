@@ -7,6 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import ps.purelogic.zkteco4j.command.events.EventCode;
+import ps.purelogic.zkteco4j.commands.GetTimeReply;
+import ps.purelogic.zkteco4j.commands.ZKCommandReply;
+import ps.purelogic.zkteco4j.terminal.ZKTerminal;
 
 import java.util.TimeZone;
 
@@ -41,7 +45,6 @@ public class SisPlusApplication implements CommandLineRunner {
 
         String timeZone = getOrCreate("TIME_ZONE", "America/Bogota");
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
-
     }
 
     private String getOrCreate(String key, String defaultValue) {
