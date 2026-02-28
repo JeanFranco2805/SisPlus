@@ -70,6 +70,8 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/favicon.ico"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/zk/**").hasRole("ADMIN")  // ← agrega esto
+
                         .anyRequest().authenticated()
                 )
 
@@ -102,7 +104,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // PRODUCCIÓN: cambiar a tu dominio real, e.g. "https://sisplus.tudominio.com"
         config.setAllowedOrigins(List.of(
                 "http://localhost:8080",
                 "http://localhost:3000"
@@ -113,7 +114,7 @@ public class SecurityConfig {
                 "Authorization", "Content-Type", "X-Requested-With", "Accept"
         ));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // 1 hora de caché de preflight
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
@@ -122,7 +123,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt strength=12 (más seguro que el default 10)
         return new BCryptPasswordEncoder(12);
     }
 
