@@ -7,11 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import ps.purelogic.zkteco4j.command.events.EventCode;
-import ps.purelogic.zkteco4j.commands.GetTimeReply;
-import ps.purelogic.zkteco4j.commands.ZKCommandReply;
-import ps.purelogic.zkteco4j.terminal.ZKTerminal;
-
 import java.util.TimeZone;
 
 @Slf4j
