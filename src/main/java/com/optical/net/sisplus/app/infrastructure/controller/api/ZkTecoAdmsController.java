@@ -1,8 +1,11 @@
-// src/main/java/com/optical/net/sisplus/app/infrastructure/controller/api/ZkTecoAdmsController.java
 package com.optical.net.sisplus.app.infrastructure.controller.api;
 
+import com.optical.net.sisplus.app.infrastructure.entity.ZkDevice;
+import com.optical.net.sisplus.app.infrastructure.service.ZkDeviceService;
 import com.optical.net.sisplus.app.infrastructure.service.UserService;
+import com.optical.net.sisplus.app.infrastructure.zkteco.ZkTecoConstants;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,160 +13,166 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
-/**
- * Implementa el protocolo ADMS/Push de ZKTeco.
- *
- * Flujo:
- *  1. El F22 hace GET /iclock/cdata?SN=XXX  → respondemos con config del servidor
- *  2. El F22 hace POST /iclock/cdata         → envía marcaciones (attendance logs)
- *  3. El F22 hace GET /iclock/getrequest     → consulta si hay comandos pendientes
- */
 @Slf4j
 @RestController
 @RequestMapping("/iclock")
+@RequiredArgsConstructor
 public class ZkTecoAdmsController {
 
     private final UserService userService;
-
-    private static final DateTimeFormatter ZK_DATE_FORMAT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    public ZkTecoAdmsController(UserService userService) {
-        this.userService = userService;
-    }
+    private final ZkDeviceService deviceService;
+    private static final java.util.Map<Integer, String> VERIFY_METHODS = java.util.Map.ofEntries(
+            java.util.Map.entry(0,  "Contraseña"),
+            java.util.Map.entry(1,  "Huella dactilar"),
+            java.util.Map.entry(2,  "Tarjeta"),
+            java.util.Map.entry(3,  "Contraseña + Huella"),
+            java.util.Map.entry(4,  "Contraseña + Tarjeta"),
+            java.util.Map.entry(5,  "Huella + Tarjeta"),
+            java.util.Map.entry(6,  "Contraseña + Huella + Tarjeta"),
+            java.util.Map.entry(10, "Rostro"),
+            java.util.Map.entry(11, "Rostro + Huella"),
+            java.util.Map.entry(12, "Rostro + Contraseña"),
+            java.util.Map.entry(13, "Rostro + Tarjeta"),
+            java.util.Map.entry(15, "Vena del dedo"),
+            java.util.Map.entry(20, "Palma"),
+            java.util.Map.entry(255,"Automático")
+    );
 
 
     @GetMapping(value = "/cdata", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> handshake(
-            @RequestParam(value = "SN", required = false) String serialNumber,
-            @RequestParam(value = "options", required = false) String options) {
-
-        log.info("[ZKTeco] Handshake recibido - SN: {}", serialNumber);
-
-        String response = "GET OPTION FROM: " + serialNumber + "\n" +
-                "ATTLOGStamp=None\n" +
-                "OPERLOGStamp=9999\n" +
-                "ATTPHOTOStamp=None\n" +
-                "ErrorDelay=30\n" +
-                "Delay=10\n" +
-                "TransTimes=00:00;14:00\n" +
-                "TransInterval=1\n" +
-                "TransFlag=1111000000\n" +
-                "TimeZone=5\n" +
-                "Realtime=1\n" +
-                "Encrypt=None\n";
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(response);
-    }
-
-    /**
-     * RECEPCIÓN DE DATOS (MARCACIONES Y USUARIOS)
-     *
-     * El F22 hace POST /iclock/cdata?SN=XXX&table=ATTLOG
-     * El body contiene líneas de texto con las marcaciones.
-     *
-     * Formato de una línea de ATTLOG:
-     *   PIN\tTimestamp\tStatus\tVerify\tWorkCode\tReserved
-     *   Ejemplo: "1234\t2025-02-14 08:30:00\t0\t1\t0\t0"
-     *
-     * PIN    = ID del usuario en el dispositivo (= tu campo cc o id)
-     * Status = 0=Check-In, 1=Check-Out, 4=Overtime-In, 5=Overtime-Out
-     */
-    @PostMapping(value = "/cdata", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> receiveData(
-            @RequestParam(value = "SN", required = false) String serialNumber,
-            @RequestParam(value = "table", required = false) String table,
-            @RequestParam(value = "Stamp", required = false) String stamp,
-            @RequestParam(value = "OpStamp", required = false) String opStamp,
-            @RequestParam(value = "PhotoStamp", required = false) String photoStamp,
+            @RequestParam(value = "SN", required = false) String sn,
+            @RequestParam(value = "options", required = false) String options,
+            @RequestParam(value = "pushver", required = false) String pushver,
+            @RequestParam(value = "language", required = false) String language,
             HttpServletRequest request) {
 
+        if (sn == null || sn.isBlank()) {
+            log.warn("[ZKTeco] Handshake sin SN desde IP: {}", request.getRemoteAddr());
+            return ResponseEntity.ok("error");
+        }
+
+        log.info("[ZKTeco] Handshake — SN={}, pushver={}, IP={}",
+                sn, pushver, request.getRemoteAddr());
+
+        if ("all".equals(options)) {
+            ZkDevice device = deviceService.registerOrUpdate(
+                    sn, request.getRemoteAddr(), pushver, language);
+            return ResponseEntity.ok(deviceService.buildHandshakeResponse(device));
+        }
+
+        return ResponseEntity.ok("error");
+    }
+
+    // =========================================================
+    //  2. RECEPCIÓN DE DATOS
+    //     POST /iclock/cdata?SN=xxx&table=ATTLOG
+    // =========================================================
+
+    @PostMapping(value = "/cdata", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> receiveData(
+            @RequestParam(value = "SN", required = false) String sn,
+            @RequestParam(value = "table", required = false) String table,
+            @RequestParam(value = "Stamp", required = false) String stamp,
+            HttpServletRequest request) {
+
+        if (sn == null || sn.isBlank()) {
+            return ResponseEntity.ok("OK");
+        }
+
         try {
-            String body = new BufferedReader(
-                    new InputStreamReader(request.getInputStream()))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
+            String body = new BufferedReader(new InputStreamReader(request.getInputStream()))
+                    .lines().collect(Collectors.joining("\n"));
 
-            log.info("[ZKTeco] POST /cdata - SN:{}, table:{}, body:\n{}", serialNumber, table, body);
+            log.debug("[ZKTeco] POST /cdata — SN={}, table={}", sn, table);
 
-            if ("ATTLOG".equalsIgnoreCase(table)) {
-                processAttendanceLogs(body, serialNumber);
-            } else if ("OPERLOG".equalsIgnoreCase(table)) {
-                log.debug("[ZKTeco] OPERLOG recibido (ignorado): {}", body);
+            if (ZkTecoConstants.TABLE_ATTLOG.equalsIgnoreCase(table)) {
+                int count = processAttendanceLogs(body, sn);
+                return ResponseEntity.ok("OK: " + count);
+
+            } else if (ZkTecoConstants.TABLE_OPERLOG.equalsIgnoreCase(table)) {
+                processOperLog(body, sn);
+
+            } else if (ZkTecoConstants.TABLE_OPTIONS.equalsIgnoreCase(table)) {
+                log.debug("[ZKTeco] Config push de SN={}: {}", sn, body);
+
             } else {
-                log.debug("[ZKTeco] Tabla desconocida: {} - body: {}", table, body);
+                log.debug("[ZKTeco] Tabla no manejada: table={}, SN={}", table, sn);
             }
 
-            // El dispositivo ESPERA exactamente "OK" para confirmar recepción
             return ResponseEntity.ok("OK");
 
         } catch (Exception e) {
-            log.error("[ZKTeco] Error procesando cdata", e);
-            return ResponseEntity.ok("OK"); // Siempre responder OK para no atascar el dispositivo
+            log.error("[ZKTeco] Error en POST /cdata de SN={}", sn, e);
+            return ResponseEntity.ok("OK");
         }
     }
 
-    /**
-     * HEARTBEAT / COLA DE COMANDOS
-     *
-     * El F22 hace GET /iclock/getrequest?SN=XXX periódicamente.
-     * Aquí puedes responder con comandos para el dispositivo.
-     * Si no hay comandos, responder "OK".
-     */
+    // =========================================================
+    //  3. HEARTBEAT / COLA DE COMANDOS
+    //     GET /iclock/getrequest?SN=xxx
+    // =========================================================
+
     @GetMapping(value = "/getrequest", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getRequest(
-            @RequestParam(value = "SN", required = false) String serialNumber,
+            @RequestParam(value = "SN", required = false) String sn,
             @RequestParam(value = "INFO", required = false) String info) {
 
-        log.debug("[ZKTeco] Heartbeat - SN: {}, INFO: {}", serialNumber, info);
+        if (sn == null || sn.isBlank()) {
+            return ResponseEntity.ok("OK");
+        }
 
-        // Sin comandos pendientes → responder OK
-        // Para enviar un comando al dispositivo, responder con el comando aquí.
-        // Ejemplo para sincronizar hora:
-        //   return ResponseEntity.ok("C:1:DATE TIME " + LocalDateTime.now().format(ZK_DATE_FORMAT));
-        return ResponseEntity.ok("OK");
+        log.debug("[ZKTeco] Heartbeat — SN={}", sn);
+
+        if (info != null && !info.isBlank()) {
+            deviceService.updateDeviceInfo(sn, info);
+        }
+
+        String response = deviceService.buildGetRequestResponse(sn);
+        if (!"OK".equals(response)) {
+            log.info("[ZKTeco] Enviando comandos a SN={}", sn);
+        }
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * RESPUESTA A COMANDOS
-     * El dispositivo responde aquí cuando ejecutó un comando enviado en /getrequest
-     */
+    // =========================================================
+    //  4. RESPUESTA A COMANDOS
+    //     POST /iclock/devicecmd
+    // =========================================================
+
     @PostMapping(value = "/devicecmd", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> deviceCommandResponse(HttpServletRequest request) {
+    public ResponseEntity<String> deviceCommandResponse(
+            @RequestParam(value = "SN", required = false) String sn,
+            HttpServletRequest request) {
         try {
-            String body = new BufferedReader(
-                    new InputStreamReader(request.getInputStream()))
-                    .lines().collect(Collectors.joining("\n"));
-            log.info("[ZKTeco] Respuesta a comando: {}", body);
+            String body = new BufferedReader(new InputStreamReader(request.getInputStream()))
+                    .lines().collect(Collectors.joining("&"));
+
+            String id         = extractParam(body, "ID");
+            String returnCode = extractParam(body, "Return");
+            String returnInfo = extractParam(body, "CMD");
+
+            if (sn != null && id != null && returnCode != null) {
+                deviceService.processCommandResponse(sn, id, returnCode, returnInfo);
+            }
         } catch (Exception e) {
-            log.error("[ZKTeco] Error en devicecmd", e);
+            log.error("[ZKTeco] Error en devicecmd de SN={}", sn, e);
         }
         return ResponseEntity.ok("OK");
     }
 
-    // ----------------------------------------------------------
-    //  Lógica de procesamiento de marcaciones
-    // ----------------------------------------------------------
+    // =========================================================
+    //  Procesamiento de ATTLOG
+    // =========================================================
 
-    /**
-     * Parsea y procesa cada línea de un ATTLOG.
-     *
-     * Formato: PIN\tFecha\tStatus\tVerify\tWorkCode\tReserved
-     *
-     * PIN en el dispositivo debe coincidir con el ID del usuario en tu BD.
-     * Si usas CC (cédula) como PIN en el dispositivo, ajusta la lógica abajo.
-     */
-    private void processAttendanceLogs(String body, String serialNumber) {
-        if (body == null || body.isBlank()) return;
+    private int processAttendanceLogs(String body, String sn) {
+        if (body == null || body.isBlank()) return 0;
 
         String[] lines = body.split("\n");
-        log.info("[ZKTeco] Procesando {} marcaciones del dispositivo {}", lines.length, serialNumber);
+        int processed = 0;
+        String lastTimestamp = null;
 
         for (String line : lines) {
             line = line.trim();
@@ -172,58 +181,158 @@ public class ZkTecoAdmsController {
             try {
                 String[] parts = line.split("\t");
                 if (parts.length < 2) {
-                    log.warn("[ZKTeco] Línea con formato inesperado: {}", line);
+                    log.warn("[ZKTeco] Línea ATTLOG con formato inesperado: {}", line);
                     continue;
                 }
 
-                String pin        = parts[0].trim();   // ID del usuario en el dispositivo
-                String timestamp  = parts[1].trim();   // "2025-02-14 08:30:00"
-                int status        = parts.length > 2 ? parseIntSafe(parts[2]) : 0;
+                String pin       = parts[0].trim();
+                String timestamp = parts[1].trim();
+                int status       = parts.length > 2 ? parseIntSafe(parts[2]) : 0;
+                int verify       = parts.length > 3 ? parseIntSafe(parts[3]) : -1;
 
-                log.info("[ZKTeco] Marcación: PIN={}, Time={}, Status={}", pin, timestamp, status);
+                // ─── LOG BONITO EN CONSOLA ───────────────────────
+                logAttendanceEvent(pin, timestamp, status, verify, sn);
+                // ─────────────────────────────────────────────────
 
                 Long userId = parsePinToUserId(pin);
                 if (userId == null) {
-                    log.warn("[ZKTeco] No se pudo mapear PIN {} a un usuario", pin);
+                    log.warn("[ZKTeco] PIN={} no encontrado en la base de datos", pin);
                     continue;
                 }
 
-                if (status == 0) {
-                    userService.registerEntry(userId);
-                    log.info("[ZKTeco] ✅ Entrada registrada para usuario ID: {}", userId);
-                } else if (status == 1) {
-                    userService.registerExit(userId);
-                    log.info("[ZKTeco] ✅ Salida registrada para usuario ID: {}", userId);
-                } else {
-                    log.info("[ZKTeco] Status {} no manejado para PIN {}", status, pin);
+                switch (status) {
+                    case ZkTecoConstants.ATT_STATUS_CHECK_IN  -> userService.registerEntry(userId);
+                    case ZkTecoConstants.ATT_STATUS_CHECK_OUT -> userService.registerExit(userId);
+                    case ZkTecoConstants.ATT_STATUS_AUTO      -> userService.registerEntry(userId);
+                    default -> log.debug("[ZKTeco] Status {} no manejado para PIN={}", status, pin);
                 }
 
+                lastTimestamp = timestamp;
+                processed++;
+
             } catch (Exception e) {
-                log.error("[ZKTeco] Error procesando línea '{}': {}", line, e.getMessage());
+                log.error("[ZKTeco] Error procesando línea ATTLOG '{}': {}", line, e.getMessage());
+            }
+        }
+
+        if (lastTimestamp != null) {
+            deviceService.updateAttLogStamp(sn, lastTimestamp);
+        }
+
+        return processed;
+    }
+
+    /**
+     * Imprime en consola un bloque visual por cada marcación.
+     *
+     * Ejemplo de salida:
+     *
+     * ┌─────────────────────────────────────────────────┐
+     * │  🖐  MARCACIÓN RECIBIDA                          │
+     * │  PIN        : 5                                  │
+     * │  Hora       : 2026-02-28 08:30:00                │
+     * │  Tipo       : ENTRADA                            │
+     * │  Método     : Huella dactilar                    │
+     * │  Dispositivo: ABC123456                          │
+     * └─────────────────────────────────────────────────┘
+     */
+    private void logAttendanceEvent(String pin, String timestamp,
+                                    int status, int verify, String deviceSn) {
+        String tipo   = resolveStatusLabel(status);
+        String metodo = VERIFY_METHODS.getOrDefault(verify, "Desconocido (código " + verify + ")");
+        String emoji  = resolveEmoji(status, verify);
+
+        log.info(String.format(
+                "%n┌─────────────────────────────────────────────────┐" +
+                        "%n│  %s  MARCACIÓN RECIBIDA" +
+                        "%n│  PIN        : %-34s│" +
+                        "%n│  Hora       : %-34s│" +
+                        "%n│  Tipo       : %-34s│" +
+                        "%n│  Método     : %-34s│" +
+                        "%n│  Dispositivo: %-34s│" +
+                        "%n└─────────────────────────────────────────────────┘",
+                emoji, pin, timestamp, tipo, metodo, deviceSn
+        ));
+    }
+
+    private String resolveStatusLabel(int status) {
+        return switch (status) {
+            case ZkTecoConstants.ATT_STATUS_CHECK_IN  -> "ENTRADA";
+            case ZkTecoConstants.ATT_STATUS_CHECK_OUT -> "SALIDA";
+            case ZkTecoConstants.ATT_STATUS_BREAK_OUT -> "SALIDA DESCANSO";
+            case ZkTecoConstants.ATT_STATUS_BREAK_IN  -> "REGRESO DESCANSO";
+            case ZkTecoConstants.ATT_STATUS_AUTO      -> "AUTOMÁTICO";
+            default                                    -> "OTRO (" + status + ")";
+        };
+    }
+
+    private String resolveEmoji(int status, int verify) {
+        String base = switch (verify) {
+            case 1  -> "🖐 ";
+            case 2  -> "💳";
+            case 10 -> "😊";
+            case 15 -> "🖐 ";
+            case 20 -> "✋";
+            default -> "🔐";
+        };
+        return status == ZkTecoConstants.ATT_STATUS_CHECK_OUT ? base + "↩" : base;
+    }
+
+    // =========================================================
+    //  Procesamiento de OPERLOG
+    // =========================================================
+
+    private void processOperLog(String body, String sn) {
+        if (body == null || body.isBlank()) return;
+
+        for (String line : body.split("\n")) {
+            line = line.trim();
+            if (line.isBlank()) continue;
+
+            if (line.startsWith(ZkTecoConstants.OPERLOG_PREFIX_USER)) {
+                log.info("[ZKTeco] USER data de SN={}: {}", sn, line);
+            } else if (line.startsWith(ZkTecoConstants.OPERLOG_PREFIX_FP)) {
+                log.info("[ZKTeco] 🖐  Huella recibida — SN={}, PIN={}",
+                        sn, extractTabParam(line, "PIN"));
+            } else if (line.startsWith(ZkTecoConstants.OPERLOG_PREFIX_FACE)) {
+                log.info("[ZKTeco] 😊 Rostro recibido — SN={}, PIN={}",
+                        sn, extractTabParam(line, "PIN"));
+            } else {
+                log.debug("[ZKTeco] OPERLOG — SN={}: {}", sn, line);
             }
         }
     }
 
-    /**
-     * Convierte el PIN del dispositivo al ID de usuario en tu base de datos.
-     *
-     * IMPORTANTE: El PIN que programas en el F22 para cada empleado
-     * debe coincidir con el ID (Long) del usuario en tu BD.
-     *
-     * Alternativa: si usas la CC como PIN, cambia este método para
-     * buscar por CC en el repositorio.
-     */
+    // =========================================================
+    //  Helpers
+    // =========================================================
+
     private Long parsePinToUserId(String pin) {
         try {
-            return Long.parseLong(pin);
+            return Long.parseLong(pin.trim());
         } catch (NumberFormatException e) {
             log.warn("[ZKTeco] PIN no numérico: {}", pin);
             return null;
         }
     }
 
+    private String extractParam(String body, String key) {
+        for (String part : body.split("&")) {
+            String[] kv = part.split("=", 2);
+            if (kv.length == 2 && key.equals(kv[0].trim())) return kv[1].trim();
+        }
+        return null;
+    }
+
+    private String extractTabParam(String line, String key) {
+        for (String part : line.split("\t")) {
+            String[] kv = part.split("=", 2);
+            if (kv.length == 2 && key.equals(kv[0].trim())) return kv[1].trim();
+        }
+        return null;
+    }
+
     private int parseIntSafe(String s) {
-        try { return Integer.parseInt(s.trim()); }
-        catch (Exception e) { return 0; }
+        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; }
     }
 }
