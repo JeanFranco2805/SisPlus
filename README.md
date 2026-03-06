@@ -1,611 +1,655 @@
-# 🕒 SisPlus - Sistema de Gestión de Asistencia y Nómina
+# SisPlus — Sistema de Gestión de Personal y Nómina
 
-<div align="center">
-
-![Java](https://img.shields.io/badge/Java-17+-orange?style=for-the-badge&logo=java)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2+-green?style=for-the-badge&logo=springboot)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
-
-**Sistema empresarial moderno para el control de asistencias, cálculo de nómina y generación de reportes**
-
-[Características](#-características) • [Instalación](#-instalación) • [Uso](#-uso) • [Arquitectura](#-arquitectura) • [API](#-api) • [Contribuir](#-contribuir)
-
-</div>
+> Sistema web empresarial para registro de asistencia, cálculo de nómina y gestión de empleados, con integración a lectores biométricos ZKTeco.
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
-- [Acerca del Proyecto](#-acerca-del-proyecto)
-- [Características](#-características)
-- [Tecnologías](#-tecnologías)
-- [Instalación](#-instalación)
-- [Configuración](#-configuración)
-- [Uso](#-uso)
-- [Arquitectura](#-arquitectura)
-- [API Documentation](#-api-documentation)
-- [Testing](#-testing)
-- [Roadmap](#-roadmap)
-- [Contribuir](#-contribuir)
-- [Licencia](#-licencia)
-- [Contacto](#-contacto)
-
----
-
-## 🎯 Acerca del Proyecto
-
-**SisPlus** es un sistema integral de gestión empresarial diseñado para automatizar el control de asistencias de empleados y el cálculo preciso de nóminas conforme a la legislación laboral colombiana.
-
-### Problema que Resuelve
-
-Las empresas enfrentan desafíos al:
-- 📝 Registrar asistencias manualmente (propenso a errores)
-- 💰 Calcular nóminas con horas extras, recargos nocturnos y múltiples tarifas
-- 📊 Generar reportes periódicos (diarios, semanales, mensuales)
-- 🔐 Mantener seguridad y auditoría de los datos
-- ⚡ Procesar grandes volúmenes de información
-
-### Solución
-
-SisPlus automatiza todo el proceso mediante:
-- ✅ Registro digital de entrada/salida con timestamp automático
-- ✅ Cálculo inteligente de nómina (horas regulares, extras diurnas/nocturnas, recargos)
-- ✅ Exportación a Excel con formato profesional
-- ✅ Caché de alto rendimiento (Redis + Caffeine)
-- ✅ Arquitectura escalable y mantenible
+- [Descripción General](#descripción-general)
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Módulos del Sistema](#módulos-del-sistema)
+- [API REST](#api-rest)
+- [Seguridad](#seguridad)
+- [Configuración de Nómina](#configuración-de-nómina)
+- [Caché](#caché)
+- [Procesamiento Asíncrono](#procesamiento-asíncrono)
+- [Integración Biométrica](#integración-biométrica)
+- [Instalación y Configuración](#instalación-y-configuración)
+- [Variables de Entorno](#variables-de-entorno)
+- [Estructura del Proyecto](#estructura-del-proyecto)
 
 ---
 
-## ⭐ Características
+## Descripción General
 
-### 🕐 Control de Asistencias
-- **Registro automático** de entrada y salida con timestamp
-- **Validaciones** para evitar registros duplicados
-- **Historial completo** de asistencias por empleado
-- **Cálculo automático** de horas trabajadas (diurnas y nocturnas)
+**SisPlus** es una aplicación Spring Boot diseñada para empresas colombianas que necesitan:
 
-### 💵 Cálculo de Nómina
-- **Horas regulares** (primeras 8 horas del día)
-- **Horas extras diurnas** (6:00 AM - 7:00 PM)
-- **Horas extras nocturnas** (7:00 PM - 6:00 AM)
-- **Recargo nocturno** (35% adicional)
-- **Períodos flexibles**: diario, semanal, mensual
-- **Configuración dinámica** de tarifas (sin recompilar)
-
-### 📊 Reportes y Exportación
-- **Exportación a Excel** con formato profesional
-- **Totales automáticos** por empleado y general
-- **Diseño personalizable** (colores, logos, encabezados)
-- **Múltiples períodos** en un solo reporte
-
-### 🔐 Seguridad
-- **Autenticación JWT** con tokens de acceso y refresh
-- **Encriptación BCrypt** para contraseñas
-- **Protección CSRF** habilitada
-- **Rate limiting** (Bucket4j) para prevenir abusos
-- **Validación de entrada** en todos los endpoints
-
-### ⚡ Rendimiento
-- **Caché dual**: Redis (distribuido) + Caffeine (local)
-- **Procesamiento asíncrono** para cálculos pesados
-- **Paginación** en consultas grandes
-- **Optimización de queries** con JPA
+- Registrar entrada y salida de empleados (manual o mediante lector biométrico)
+- Calcular automáticamente la nómina diaria, semanal y mensual según la legislación colombiana vigente
+- Exportar reportes de nómina en formato Excel (`.xlsx`)
+- Gestionar usuarios, administradores y configuraciones del sistema
+- Proteger el acceso con autenticación basada en sesiones y múltiples capas de seguridad
 
 ---
 
-## 🛠 Tecnologías
+## Arquitectura
 
-### Backend
-- **Java 17** - Lenguaje de programación
-- **Spring Boot 3.2** - Framework principal
-  - Spring Web (API REST)
-  - Spring Data JPA (ORM)
-  - Spring Security (Autenticación/Autorización)
-  - Spring Cache (Caché)
-- **PostgreSQL** - Base de datos relacional
-- **Redis** - Caché distribuido
-- **Caffeine** - Caché local en memoria
+El proyecto sigue una **arquitectura hexagonal (Ports & Adapters)**, separando claramente las responsabilidades:
 
-### Librerías Adicionales
-- **Lombok** - Reducción de boilerplate
-- **Apache POI** - Generación de archivos Excel
-- **Bucket4j** - Rate limiting
-- **JWT (jjwt)** - Tokens de autenticación
-- **MapStruct** - Mapeo de objetos
+```
+Presentación (Controllers)
+        ↓
+Servicios de Aplicación (Services)
+        ↓
+Puerto de Aplicación (PortAdapter - interfaz)
+        ↓
+Adaptador de Infraestructura (PortCaseAdapter)
+        ↓
+Repositorios JPA / Base de Datos
+```
 
-### Herramientas de Desarrollo
-- **Maven** - Gestión de dependencias
-- **JUnit 5** - Testing unitario
-- **Mockito** - Mocking para tests
-- **Docker** - Contenedorización (opcional)
+### Capas
+
+| Capa | Paquete | Responsabilidad |
+|------|---------|-----------------|
+| **Domain** | `app.domain` | Entidades de dominio, lógica de negocio pura, cálculos de nómina |
+| **Application** | `app.application` | Interfaz `PortAdapter` que define los casos de uso |
+| **Infrastructure - Adapter** | `app.infrastructure.adapter` | Implementación del puerto con JPA y caché |
+| **Infrastructure - Controller** | `app.infrastructure.controller` | Endpoints REST y vistas Thymeleaf |
+| **Infrastructure - Service** | `app.infrastructure.service` | Orquestación de casos de uso |
+| **Infrastructure - Security** | `app.infrastructure.security` | Configuración Spring Security, sanitización XSS |
+| **Infrastructure - Config** | `app.infrastructure.config` | Caché, rate limiting, async |
 
 ---
 
-## 🚀 Instalación
+## Tecnologías
 
-### Prerrequisitos
-
-```bash
-# Java 17 o superior
-java --version
-
-# Maven 3.8+
-mvn --version
-
-# PostgreSQL 14+
-psql --version
-
-# Redis 7+ (opcional pero recomendado)
-redis-server --version
-```
-
-### Clonar el Repositorio
-
-```bash
-git clone https://github.com/tu-usuario/sisplus.git
-cd sisplus
-```
-
-### Configurar Base de Datos
-
-```sql
--- Crear base de datos
-CREATE DATABASE sisplus_db;
-
--- Crear usuario (opcional)
-CREATE USER sisplus_user WITH PASSWORD 'tu_password_segura';
-GRANT ALL PRIVILEGES ON DATABASE sisplus_db TO sisplus_user;
-```
-
-### Instalar Dependencias
-
-```bash
-mvn clean install
-```
+| Tecnología | Versión | Uso |
+|------------|---------|-----|
+| **Java** | 17+ | Lenguaje principal |
+| **Spring Boot** | 3.x | Framework principal |
+| **Spring Security** | 6.x | Autenticación y autorización |
+| **Spring Data JPA** | 3.x | Persistencia |
+| **Hibernate** | 6.x | ORM |
+| **MapStruct** | 1.5+ | Mapeo entre capas |
+| **Lombok** | 1.18+ | Reducción de boilerplate |
+| **Apache POI** | 5.x | Generación de reportes Excel |
+| **Bucket4j** | 8.x | Rate limiting |
+| **Caffeine Cache** | 3.x | Caché en memoria (desarrollo) |
+| **Redis** | 7.x | Caché distribuido (producción) |
+| **Thymeleaf** | 3.x | Motor de plantillas HTML |
+| **BCrypt** | — | Encriptación de contraseñas (factor 12) |
 
 ---
 
-## ⚙️ Configuración
+## Módulos del Sistema
 
-### application.properties
+### 1. Gestión de Usuarios (Empleados)
 
-```properties
-# Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/sisplus_db
-spring.datasource.username=sisplus_user
-spring.datasource.password=tu_password_segura
+Permite crear, actualizar, eliminar y consultar empleados. Cada empleado tiene:
+- Nombre, apellido y cédula (única)
+- Historial de asistencias asociadas
 
-# JPA
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.format_sql=true
-
-# Redis (opcional - comentar si no usas Redis)
-spring.data.redis.host=localhost
-spring.data.redis.port=6379
-
-# JWT
-jwt.secret=tu_clave_secreta_muy_larga_y_segura_aqui
-jwt.access-token-expiration=3600000  # 1 hora
-jwt.refresh-token-expiration=604800000  # 7 días
-
-# Rate Limiting
-rate-limit.capacity=100
-rate-limit.refill-tokens=10
-rate-limit.refill-duration=1m
-
-# Timezone
-app.timezone=America/Bogota
-```
-
-### Variables de Entorno (Recomendado para Producción)
-
-```bash
-export DB_URL=jdbc:postgresql://localhost:5432/sisplus_db
-export DB_USERNAME=sisplus_user
-export DB_PASSWORD=tu_password_segura
-export JWT_SECRET=tu_clave_secreta_muy_larga
-export REDIS_HOST=localhost
-export REDIS_PORT=6379
-```
+**Validaciones de entrada:**
+- Cédula: solo dígitos, entre 5 y 15 caracteres
+- Nombre y apellido: máximo 100 caracteres, sin caracteres maliciosos (sanitización XSS)
 
 ---
 
-## 🎮 Uso
+### 2. Registro de Asistencia
 
-### Iniciar la Aplicación
+Los registros de asistencia almacenan:
+- Hora de entrada (`entryTime`)
+- Hora de salida (`departureTime`)
+- Referencia al empleado
 
-```bash
-# Desarrollo
-mvn spring-boot:run
+El sistema detecta automáticamente si ya existe una entrada registrada para el día; en ese caso, registra la salida en lugar de una nueva entrada.
 
-# Producción (con JAR)
-mvn clean package
-java -jar target/sisplus-1.0.0.jar
-```
-
-La aplicación estará disponible en `http://localhost:8080`
-
-### Endpoints Principales
-
-#### 1. Autenticación
-
-```bash
-# Login
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "password": "admin123"
-  }'
-```
-
-#### 2. Gestión de Usuarios
-
-```bash
-# Listar usuarios
-curl -X GET http://localhost:8080/api/users \
-  -H "Authorization: Bearer {token}"
-
-# Crear usuario
-curl -X POST http://localhost:8080/api/users \
-  -H "Authorization: Bearer {token}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Juan",
-    "lastName": "Pérez",
-    "cc": "1234567890"
-  }'
-```
-
-#### 3. Control de Asistencias
-
-```bash
-# Registrar entrada
-curl -X POST http://localhost:8080/api/users/1/entry \
-  -H "Authorization: Bearer {token}"
-
-# Registrar salida
-curl -X POST http://localhost:8080/api/users/1/exit \
-  -H "Authorization: Bearer {token}"
-```
-
-#### 4. Cálculo de Nómina
-
-```bash
-# Nómina diaria
-curl -X GET "http://localhost:8080/api/users/1/payroll?period=daily&date=2024-01-15" \
-  -H "Authorization: Bearer {token}"
-
-# Nómina mensual
-curl -X GET "http://localhost:8080/api/users/1/payroll?period=monthly&month=1&year=2024" \
-  -H "Authorization: Bearer {token}"
-```
-
-#### 5. Exportar a Excel
-
-```bash
-# Generar reporte mensual
-curl -X GET "http://localhost:8080/api/payroll/export?month=1&year=2024" \
-  -H "Authorization: Bearer {token}" \
-  --output nomina_enero_2024.xlsx
-```
-
-### Usuario por Defecto
-
-Al iniciar por primera vez, se crea un usuario administrador:
-
-- **Username**: `admin`
-- **Password**: `admin123`
-
-⚠️ **IMPORTANTE**: Cambiar la contraseña en producción.
+**Filtros disponibles para consultas:**
+- Por día específico
+- Por rango de fechas
+- Por semana o mes
+- Filtrados por usuario
 
 ---
 
-## 🏗 Arquitectura
+### 3. Cálculo de Nómina
 
-SisPlus implementa **Arquitectura Hexagonal** (Puertos y Adaptadores) para máxima flexibilidad y testabilidad.
+El cálculo de nómina se realiza con base en las tarifas configuradas en la base de datos (valores Colombia 2026 por defecto):
 
-```
-sisplus/
-├── app/
-│   ├── domain/              # Lógica de negocio pura
-│   │   ├── UserDomain
-│   │   ├── AttendanceDomain
-│   │   ├── PayrollCalculation
-│   │   └── PayrollConfiguration
-│   │
-│   ├── application/         # Puertos (Interfaces)
-│   │   ├── PortAdapter
-│   │   └── PortCaseAdapter
-│   │
-│   └── infrastructure/      # Adaptadores (Implementaciones)
-│       ├── entity/          # Entidades JPA
-│       ├── repository/      # Repositorios
-│       ├── service/         # Servicios
-│       ├── mapper/          # Mappers
-│       ├── web/            # Controladores REST
-│       └── security/        # Configuración de seguridad
-│
-├── config/                  # Configuraciones
-│   ├── CacheConfig
-│   ├── SecurityConfig
-│   └── AsyncConfig
-│
-└── resources/
-    └── application.properties
-```
+| Concepto | Tarifa por hora (COP) |
+|----------|-----------------------|
+| Hora regular | $7.959 |
+| Hora extra diurna | $9.948 |
+| Recargo nocturno | $2.786 |
+| Hora extra nocturna | $13.928,25 |
 
-### Capas y Responsabilidades
+**Períodos de cálculo soportados:**
+- `daily` — nómina del día
+- `weekly` — últimos 7 días
+- `monthly` — mes completo por mes y año
 
-#### 🎯 Dominio (Domain)
-- **Lógica de negocio pura** sin dependencias externas
-- **Entidades de dominio** (UserDomain, AttendanceDomain)
-- **Value Objects** (PayrollCalculation, PayrollConfiguration)
-- **Reglas de negocio** (cálculo de horas extras, recargos nocturnos)
+**Horario nocturno:** 19:00 a 06:00 (configurable)
 
-#### 🔌 Aplicación (Application)
-- **Puertos** (interfaces) que definen contratos
-- **Casos de uso** abstractos
-- **Independiente** de frameworks
-
-#### 🔧 Infraestructura (Infrastructure)
-- **Adaptadores** que implementan los puertos
-- **Persistencia** (JPA, PostgreSQL)
-- **Web** (Spring MVC, REST)
-- **Seguridad** (Spring Security, JWT)
-- **Caché** (Redis, Caffeine)
-
-### Flujo de Datos
-
-```
-Cliente → Controller → Service → PortAdapter → Repository → Database
-                ↓                      ↑
-              Mapper ← UserDomain ←────┘
-```
-
-### Ventajas de esta Arquitectura
-
-✅ **Testabilidad**: Lógica de dominio testeable sin frameworks  
-✅ **Flexibilidad**: Cambiar tecnologías sin tocar el dominio  
-✅ **Mantenibilidad**: Separación clara de responsabilidades  
-✅ **Escalabilidad**: Fácil agregar nuevas funcionalidades  
-✅ **DDD**: Alineado con Domain-Driven Design  
+**Lógica de distribución de horas extras:**
+- Las primeras 8 horas se consideran regulares
+- Las horas adicionales se clasifican como diurnas o nocturnas según el rango horario
 
 ---
 
-## 📚 API Documentation
+### 4. Exportación de Nómina a Excel
 
-### Autenticación Endpoints
+Genera un archivo `.xlsx` por mes con formato profesional que incluye:
+- Encabezado con título, mes, año y fecha de generación
+- Columnas de horas regulares, extras diurnas, extras nocturnas y nocturnas
+- Columnas de pago regular, recargos y extras
+- Fila de totales con fórmulas Excel
+- Formato de moneda y ajuste automático de columnas
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/auth/login` | Iniciar sesión | No |
-| POST | `/api/auth/refresh` | Renovar token | No |
-| POST | `/api/auth/logout` | Cerrar sesión | Sí |
+**Endpoint:** `GET /api/payroll/export/excel?month=3&year=2026`
 
-### Usuarios Endpoints
+---
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/users` | Listar usuarios | Sí |
-| POST | `/api/users` | Crear usuario | Sí |
-| PUT | `/api/users/{id}` | Actualizar usuario | Sí |
-| DELETE | `/api/users/{id}` | Eliminar usuario | Sí |
+### 5. Gestión de Administradores
 
-### Asistencias Endpoints
+Los administradores son los únicos usuarios con acceso al sistema. Poseen:
+- Username único
+- Contraseña encriptada con BCrypt (factor 12)
+- Roles (`ADMIN`)
+- Control de estado: `enabled`, `accountNonExpired`, `accountNonLocked`, `credentialsNonExpired`
+- Registro de último login y fecha de creación
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/users/{id}/entry` | Registrar entrada | Sí |
-| POST | `/api/users/{id}/exit` | Registrar salida | Sí |
-| GET | `/api/users/{id}/attendance` | Ver historial | Sí |
+**El sistema crea automáticamente un administrador por defecto** (`admin` / `admin123`) si no existe ninguno al iniciar. **Se recomienda cambiar la contraseña inmediatamente en producción.**
 
-### Nómina Endpoints
+---
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/users/{id}/payroll` | Calcular nómina | Sí |
-| GET | `/api/payroll/export` | Exportar Excel | Sí |
+### 6. Configuración del Sistema
 
-### Parámetros Query para Nómina
+Las configuraciones se almacenan en base de datos y pueden actualizarse sin reiniciar la aplicación:
 
-```
-period: daily | weekly | monthly
-date: yyyy-MM-dd (para daily/weekly)
-month: 1-12 (para monthly)
-year: yyyy (para monthly)
-```
+| Clave | Descripción | Valor por defecto |
+|-------|-------------|-------------------|
+| `TIME_ZONE` | Zona horaria del sistema | `America/Bogota` |
+| `REGULAR_HOUR_RATE` | Tarifa hora regular | `7959` |
+| `DAY_OVERTIME_RATE` | Tarifa hora extra diurna | `9948` |
+| `NIGHT_SURCHARGE_RATE` | Recargo nocturno por hora | `2786` |
+| `NIGHT_OVERTIME_RATE` | Tarifa hora extra nocturna | `13928.25` |
+| `NIGHT_START_HOUR` | Inicio horario nocturno (24h) | `19` |
+| `NIGHT_END_HOUR` | Fin horario nocturno (24h) | `6` |
 
-### Ejemplo de Respuesta (Nómina)
+---
 
+### 7. Integración con Lector Biométrico
+
+El sistema se integra con dispositivos de control de acceso biométrico (huella dactilar, reconocimiento facial, tarjeta) mediante el protocolo **ZKTeco Push**. Los dispositivos registran las marcaciones directamente en el sistema en tiempo real sin intervención manual.
+
+La integración soporta:
+- Registro y actualización automática de dispositivos conectados
+- Recepción de marcaciones en tiempo real con identificación del método de verificación
+- Cola de comandos para enviar instrucciones a los dispositivos (reinicio, sincronización de usuarios, etc.)
+- Procesamiento de logs de asistencia con conversión automática a registros de entrada/salida
+
+> Los endpoints de comunicación con los dispositivos biométricos **no están documentados públicamente** por razones de seguridad.
+
+---
+
+## API REST
+
+Todos los endpoints bajo `/api/**` requieren autenticación, excepto los indicados.
+
+### Autenticación — `/api/auth`
+
+| Método | Endpoint | Acceso | Descripción |
+|--------|----------|--------|-------------|
+| `POST` | `/api/auth/login` | Público | Iniciar sesión |
+| `POST` | `/api/auth/logout` | Autenticado | Cerrar sesión |
+| `GET` | `/api/auth/me` | Autenticado | Obtener usuario actual |
+
+**Body de login:**
 ```json
 {
-  "id": 1,
-  "name": "Juan",
-  "lastName": "Pérez",
-  "cc": "1234567890",
-  "payroll": {
-    "regularHours": 160.0,
-    "dayOvertimeHours": 10.0,
-    "nightOvertimeHours": 5.0,
-    "nightHours": 20.0,
-    "regularPay": 1273440.0,
-    "dayOvertimePay": 99480.0,
-    "nightOvertimePay": 69641.25,
-    "nightSurchargePay": 55720.0,
-    "totalOvertimePay": 169121.25,
-    "totalPay": 1498281.25
-  }
+  "username": "admin",
+  "password": "tu_contraseña"
 }
 ```
 
 ---
 
-## 🧪 Testing
+### Empleados — `/api/users`
 
-### Ejecutar Tests
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/users` | Listar todos los empleados |
+| `POST` | `/api/users` | Crear nuevo empleado |
+| `PUT` | `/api/users/{id}` | Actualizar empleado |
+| `DELETE` | `/api/users/{id}` | Eliminar empleado |
+| `GET` | `/api/users/{id}/payroll` | Calcular nómina |
+| `POST` | `/api/users/{id}/entry` | Registrar entrada manualmente |
+| `POST` | `/api/users/{id}/exit` | Registrar salida manualmente |
+
+**Parámetros de nómina (`/payroll`):**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `period` | `daily` / `weekly` / `monthly` | Período de cálculo |
+| `date` | `LocalDate` | Fecha específica (daily/weekly) |
+| `month` | `Integer` | Mes (monthly) |
+| `year` | `Integer` | Año (monthly) |
+
+---
+
+### Asistencias — `/api/attendances`
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/attendances` | Listar asistencias con filtros |
+| `GET` | `/api/attendances/{id}` | Obtener asistencia por ID |
+| `PUT` | `/api/attendances/{id}` | Editar asistencia (entrada/salida) |
+| `DELETE` | `/api/attendances/{id}` | Eliminar asistencia |
+
+**Parámetros de filtro:**
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| `date` | Día específico |
+| `startDate` + `endDate` | Rango de fechas |
+| `userId` | Filtrar por empleado |
+| `filter` | `today`, `week`, `month`, `all` |
+
+---
+
+### Configuración — `/api/config`
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/config` | Listar todas las configuraciones |
+| `GET` | `/api/config/{key}` | Obtener configuración por clave |
+| `POST` | `/api/config` | Crear configuración |
+| `PUT` | `/api/config/{key}?value=X` | Actualizar configuración |
+
+---
+
+### Administradores — `/api/admin` *(Requiere rol ADMIN)*
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/admin/` | Listar administradores |
+| `GET` | `/api/admin/{username}` | Buscar por username |
+| `POST` | `/api/admin` | Crear administrador |
+| `DELETE` | `/api/admin/{username}` | Eliminar administrador |
+
+---
+
+### Exportación de Nómina — `/api/payroll`
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/payroll/export/excel` | Exportar nómina mensual a Excel |
+
+**Parámetros:** `month` (opcional), `year` (opcional). Si se omiten, usa el mes y año actual.
+
+---
+
+### Vistas Web
+
+| Ruta | Vista |
+|------|-------|
+| `/` | Pantalla de login |
+| `/dashboard` | Panel principal |
+| `/employee` | Gestión de empleados |
+| `/assistance` | Registro de asistencias |
+| `/payroll` | Nómina |
+| `/admin` | Administración |
+| `/config` | Configuración del sistema |
+
+---
+
+## Seguridad
+
+### Autenticación
+
+- Basada en **sesiones HTTP** con Spring Security
+- Protección contra **session fixation** (cambio de ID de sesión al autenticar)
+- Máximo **1 sesión activa** por usuario
+- Sesión invalidada completamente al hacer logout
+
+### Protección contra Fuerza Bruta
+
+- Tras **5 intentos fallidos** consecutivos desde una misma IP, se bloquea por **15 minutos**
+- El contador se limpia automáticamente tras un login exitoso
+- Los segundos restantes de bloqueo se informan en la respuesta
+
+### Rate Limiting (Bucket4j)
+
+| Endpoint | Límite |
+|----------|--------|
+| `/api/auth/login` | 5 requests / 5 minutos |
+| `/api/payroll/**` | 10 requests / minuto |
+| `/api/users/**` | 30 requests / minuto |
+| Resto de `/api/**` | 100 requests / minuto |
+
+### Validación y Sanitización (XSS)
+
+Todos los datos de entrada son sanitizados antes de persistirse:
+
+| Campo | Tipo de sanitización |
+|-------|----------------------|
+| Nombre, apellido | Solo letras, números y caracteres españoles |
+| Cédula | Solo dígitos |
+| Username | Alfanumérico, punto, guión |
+| Claves de configuración | Solo mayúsculas y guión bajo |
+| Valores numéricos | Solo dígitos y punto decimal |
+
+Adicionalmente se eliminan: etiquetas `<script>`, atributos de evento (`onclick`, `onload`, etc.), protocolos peligrosos (`javascript:`, `vbscript:`), etiquetas HTML peligrosas (`<iframe>`, `<object>`, `<form>`, etc.), bytes nulos e inyecciones CRLF.
+
+### Protección contra DoS
+
+- Rechazo de payloads mayores a **1 MB**
+- Rechazo de query strings mayores a **500 caracteres**
+- Queries a base de datos con **timeout de 5 segundos**
+- Consultas de asistencia filtradas en SQL (no en memoria)
+
+### Headers de Seguridad HTTP
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; ...
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+```
+
+### CORS
+
+Orígenes permitidos por defecto (ajustar en producción):
+- `http://localhost:8080`
+- `http://localhost:3000`
+
+### Manejo de Errores
+
+El `GlobalExceptionHandler` controla todas las excepciones:
+- En **producción**: mensajes genéricos con un `errorId` para rastrear en logs sin exponer información interna
+- En **desarrollo** (`dev` / `local`): se incluye el mensaje de la excepción
+- Nunca se expone el stack trace al cliente
+
+---
+
+## Configuración de Nómina
+
+La nómina se calcula usando `PayrollConfiguration`, un objeto inmutable que se carga desde la base de datos al inicio y se cachea por 1 hora.
+
+```
+Sueldo diario = Horas regulares × Tarifa regular
+             + Horas nocturnas × Recargo nocturno
+             + Horas extras diurnas × Tarifa extra diurna
+             + Horas extras nocturnas × Tarifa extra nocturna
+```
+
+Las tarifas se actualizan en tiempo real a través del endpoint `PUT /api/config/{key}`, sin necesidad de reiniciar el servidor. El caché se invalida automáticamente al modificar cualquier configuración.
+
+---
+
+## Caché
+
+El sistema usa una estrategia de caché en dos modos configurables:
+
+### Modo Caffeine (por defecto — desarrollo/instancia única)
+
+Activado cuando `spring.cache.type=caffeine` (valor por defecto si no se especifica).
+
+| Cache | TTL |
+|-------|-----|
+| `users` | 10 minutos |
+| `userById` | 10 minutos |
+| `payrollConfig` | 10 minutos |
+| `attendances` | 10 minutos |
+| `todayAttendances` | 10 minutos |
+| `payrollCalculations` | 10 minutos |
+
+### Modo Redis (producción — entornos distribuidos)
+
+Activado con `spring.cache.type=redis`.
+
+| Cache | TTL |
+|-------|-----|
+| `users` / `userById` | 15 minutos |
+| `payrollConfig` | 1 hora |
+| `attendances` | 5 minutos |
+| `todayAttendances` | 2 minutos |
+| `payrollCalculations` | 30 minutos |
+
+### Estrategia de invalidación
+
+Las operaciones de escritura (crear, actualizar, eliminar) invalidan automáticamente los caches relevantes mediante `@CacheEvict`. Esto garantiza que nunca se sirvan datos desactualizados.
+
+---
+
+## Procesamiento Asíncrono
+
+Los cálculos de nómina pesados (múltiples empleados) se procesan de forma asíncrona con un pool de threads dedicado:
+
+| Pool | Threads mínimos | Threads máximos | Cola |
+|------|-----------------|-----------------|------|
+| `payrollExecutor` | 5 | 10 | 25 |
+| `taskExecutor` (general) | 3 | 6 | 50 |
+
+Si la cola se llena, la tarea se ejecuta en el hilo que la solicitó (política `CallerRunsPolicy`) para evitar la pérdida de datos.
+
+El cálculo masivo de nómina para todos los empleados usa `parallelStream()` dentro del executor dedicado.
+
+---
+
+## Integración Biométrica
+
+SisPlus se integra con dispositivos de lectura biométrica (huella dactilar, reconocimiento facial, tarjeta de proximidad) de la marca ZKTeco mediante el protocolo **Push**.
+
+### Funcionamiento general
+
+1. El dispositivo biométrico establece conexión con el servidor al iniciar
+2. El servidor registra el dispositivo y le envía su configuración
+3. El dispositivo envía las marcaciones en tiempo real al servidor
+4. El servidor procesa cada marcación e identifica al empleado por su PIN (ID de usuario)
+5. Se registra automáticamente la entrada o salida según el estado de la marcación
+
+### Métodos de verificación soportados
+
+- Huella dactilar
+- Reconocimiento facial
+- Tarjeta de proximidad
+- Combinaciones (huella + tarjeta, facial + contraseña, etc.)
+- Vena del dedo y palma (en dispositivos compatibles)
+
+### Gestión de dispositivos
+
+Desde el panel de administración (`/api/zk/**`, requiere rol ADMIN) es posible:
+- Ver todos los dispositivos registrados y su estado (Online/Offline)
+- Enviar comandos al dispositivo: reinicio, sincronización de hora, sincronización de usuarios, limpieza de logs
+- Consultar información del firmware y capacidades del dispositivo
+
+---
+
+## Instalación y Configuración
+
+### Requisitos previos
+
+- Java 17 o superior
+- Maven 3.8+
+- Base de datos compatible con JPA (MySQL, PostgreSQL, H2)
+- Redis (opcional, solo para producción)
+
+### Pasos de instalación
 
 ```bash
-# Todos los tests
-mvn test
+# 1. Clonar el repositorio
+git clone https://github.com/tu-org/sisplus.git
+cd sisplus
 
-# Tests específicos
-mvn test -Dtest=UserServiceTest
+# 2. Configurar las variables de entorno (ver sección siguiente)
 
-# Con cobertura
-mvn clean test jacoco:report
+# 3. Compilar el proyecto
+mvn clean package -DskipTests
+
+# 4. Ejecutar
+java -jar target/sisplus-*.jar
 ```
 
-### Estructura de Tests
+### Acceso inicial
+
+Al arrancar por primera vez, el sistema crea automáticamente:
+- Las configuraciones de nómina por defecto
+- Un administrador por defecto
+
+> ⚠️ **Importante:** Cambia la contraseña del administrador por defecto inmediatamente después del primer inicio.
+
+---
+
+## Variables de Entorno
+
+Configura las siguientes propiedades en `application.properties` o como variables de entorno:
+
+### Base de datos
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/sisplus
+spring.datasource.username=TU_USUARIO_DB
+spring.datasource.password=TU_CONTRASEÑA_DB
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+```
+
+### Caché
+
+```properties
+# Desarrollo (Caffeine - por defecto)
+spring.cache.type=caffeine
+
+# Producción (Redis)
+spring.cache.type=redis
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+```
+
+### Perfil de la aplicación
+
+```properties
+# Controla si se exponen detalles de errores al cliente
+spring.profiles.active=prod
+# Usar "dev" o "local" para mensajes de error detallados en desarrollo
+```
+
+### CORS (producción)
+
+Modifica los orígenes permitidos en `SecurityConfig.java`:
+
+```java
+config.setAllowedOrigins(List.of(
+    "https://tu-dominio.com"
+));
+```
+
+---
+
+## Estructura del Proyecto
 
 ```
-src/test/java/
-├── domain/              # Tests de lógica de negocio
-│   ├── UserDomainTest
-│   └── PayrollCalculationTest
+src/main/java/com/optical/net/sisplus/
 │
-├── service/             # Tests de servicios
-│   ├── UserServiceTest
-│   └── PayrollServiceTest
+├── SisPlusApplication.java                    # Punto de entrada, inicialización de configs
 │
-└── integration/         # Tests de integración
-    ├── UserControllerIT
-    └── PayrollControllerIT
+└── app/
+    ├── application/
+    │   └── PortAdapter.java                   # Interfaz de puertos (casos de uso)
+    │
+    ├── domain/
+    │   ├── UserDomain.java                    # Dominio usuario + cálculo de nómina
+    │   ├── AttendanceDomain.java              # Dominio asistencia + horas nocturnas
+    │   ├── PayrollCalculation.java            # Resultado de cálculo de nómina
+    │   ├── PayrollConfiguration.java          # Configuración inmutable de tarifas
+    │   ├── ConfigurationDomain.java           # Configuración del sistema
+    │   ├── AdminDomain.java                   # Dominio administrador
+    │   └── exception/                         # Excepciones de dominio tipadas
+    │
+    └── infrastructure/
+        ├── adapter/
+        │   └── PortCaseAdapter.java           # Implementación JPA del puerto
+        │
+        ├── config/
+        │   ├── AsyncConfig.java               # Thread pools asíncronos
+        │   ├── CacheConfig.java               # Redis y Caffeine
+        │   ├── RateLimitingConfig.java        # Buckets y bloqueo por IP
+        │   ├── RateLimitInterceptor.java      # Interceptor HTTP de rate limiting
+        │   └── WebMvcConfig.java              # Registro de interceptores
+        │
+        ├── controller/
+        │   ├── api/                           # Controladores REST
+        │   │   ├── AuthController.java
+        │   │   ├── UserController.java
+        │   │   ├── AttendanceController.java
+        │   │   ├── ConfigurationController.java
+        │   │   ├── PayrollExportController.java
+        │   │   ├── AdminController.java
+        │   │   └── ZkDeviceController.java
+        │   ├── view/
+        │   │   └── MainController.java        # Rutas de vistas Thymeleaf
+        │   └── exception/
+        │       └── GlobalExceptionHandler.java
+        │
+        ├── entity/                            # Entidades JPA
+        │   ├── User.java
+        │   ├── Attendance.java
+        │   ├── Configuration.java
+        │   ├── Admin.java
+        │   ├── ZkDevice.java
+        │   └── ZkDeviceCommand.java
+        │
+        ├── mapper/
+        │   ├── domains/                       # MapStruct: Entity ↔ Domain
+        │   └── response/                      # Mappers: Domain → Response DTO
+        │
+        ├── repository/                        # Interfaces JPA con queries optimizadas
+        │
+        ├── security/
+        │   ├── SecurityConfig.java            # Configuración Spring Security
+        │   ├── CustomUserDetailsService.java  # Carga de usuarios para autenticación
+        │   └── XssSanitizer.java              # Sanitización de entradas
+        │
+        ├── service/
+        │   ├── UserService.java
+        │   ├── AttendanceService.java
+        │   ├── PayrollService.java
+        │   ├── PayrollConfigurationService.java
+        │   ├── PayrollExportService.java
+        │   ├── ConfigurationService.java
+        │   ├── AdminService.java
+        │   ├── AuthService.java
+        │   ├── ZkDeviceService.java
+        │   └── AuditService.java
+        │
+        ├── web/                               # DTOs de Request y Response
+        │
+        └── zkteco/
+            └── ZkTecoConstants.java           # Constantes del protocolo biométrico
 ```
-
-### Cobertura Actual
-
-- **Domain Layer**: 95%
-- **Service Layer**: 85%
-- **Controller Layer**: 80%
-- **Overall**: 87%
 
 ---
 
-## 🗺 Roadmap
+## Auditoría
 
-### ✅ Versión 1.0 (Actual)
-- [x] Control de asistencias
-- [x] Cálculo de horas extrás para la nomina
-- [x] Exportación a Excel
-- [x] Autenticación JWT
-- [x] Caché Redis
+El sistema registra en un logger dedicado (`AUDIT`) las siguientes acciones:
 
-### 🚧 Versión 1.1 (En Desarrollo)
-- [ ] Gestión de vacaciones y permisos
-- [ ] Workflow de aprobación de horas extras
-- [ ] Cálculo de deducciones (seguridad social, salud, pensión)
-- [ ] Sistema de notificaciones
-- [ ] Integración con sistema biometrico de huellas para ingreso de asistencia
+- Creación, actualización y eliminación de usuarios
+- Registros de entrada y salida de asistencia
+- Cambios de configuración (clave, valor anterior y nuevo)
+- Login exitoso y fallido (con IP)
+- Logout
+- Cálculos de nómina
+- Exportaciones de datos
 
-### 📅 Versión 2.0 (Planificado)
-- [ ] Módulo de recursos humanos
-- [ ] Gestión de contratos
-- [ ] Evaluaciones de desempeño
-- [ ] Reportes avanzados con gráficos
-- [ ] API pública para integraciones
-- [ ] Autenticación 2FA
-
-### 🔮 Versión 3.0 (Futuro)
-- [ ] Multi-tenant (múltiples empresas)
-- [ ] App móvil (Android/iOS)
-- [ ] Reconocimiento facial para asistencias
-- [ ] IA para predicción de nómina
-- [ ] Integración con sistemas de contabilidad
+Los logs de auditoría se escriben con nivel `INFO` (o `WARN` para fallos de login) y pueden dirigirse a un archivo separado configurando el appender correspondiente en `logback.xml`.
 
 ---
 
-## 🤝 Contribuir
+## Licencia
 
-¡Las contribuciones son bienvenidas! Sigue estos pasos:
-
-### 1. Fork el Proyecto
-
-```bash
-# Hacer fork desde GitHub
-# Luego clonar tu fork
-git clone https://github.com/tu-usuario/sisplus.git
-```
-
-### 2. Crear una Rama
-
-```bash
-git checkout -b feature/nueva-funcionalidad
-```
-
-### 3. Hacer Cambios
-
-```bash
-# Hacer tus cambios
-git add .
-git commit -m "feat: agregar nueva funcionalidad"
-```
-
-### 4. Push y Pull Request
-
-```bash
-git push origin feature/nueva-funcionalidad
-# Crear Pull Request desde GitHub
-```
-
-### Convención de Commits
-
-Usamos [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: nueva funcionalidad
-fix: corrección de bug
-docs: documentación
-style: formato de código
-refactor: refactorización
-test: agregar tests
-chore: tareas de mantenimiento
-```
-
-### Reportar Bugs
-
-Abre un issue en GitHub con:
-- Descripción del problema
-- Pasos para reproducir
-- Comportamiento esperado vs actual
-- Capturas de pantalla (si aplica)
-- Versión de Java, Spring Boot, etc.
-
----
-
-## 📄 Licencia
-
-Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
-
----
-
-## 📞 Contacto
-
-**Desarrollador Principal**: Jean Franco Boom Bolaño
-
-- 📧 Email: jeanf2805@gmail.com
-- 💼 LinkedIn: [linkedin.com/in/Jean Franco Boom](https://www.linkedin.com/in/jean-franco-boom-bola%C3%B1o-a53773268))
-
-**Link del Proyecto**: [https://github.com/tu-usuario/sisplus](https://github.com/tu-usuario/sisplus)
-
----
-
-## 🙏 Agradecimientos
-
-- [Spring Boot](https://spring.io/projects/spring-boot)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Redis](https://redis.io/)
-- [Apache POI](https://poi.apache.org/)
-- [Lombok](https://projectlombok.org/)
-
----
-
-<div align="center">
-
-**⭐ Si este proyecto te ayudó, considera darle una estrella en GitHub ⭐**
-
-Hecho con ❤️ en Colombia 🇨🇴
-
-</div>
+Propiedad de **Optical Net**. Todos los derechos reservados.
