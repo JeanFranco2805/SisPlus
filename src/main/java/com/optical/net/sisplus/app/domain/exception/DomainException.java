@@ -1,8 +1,6 @@
 package com.optical.net.sisplus.app.domain.exception;
 
-/**
- * Excepción base para todas las excepciones de dominio
- */
+
 public abstract class DomainException extends RuntimeException {
     private final String errorCode;
 

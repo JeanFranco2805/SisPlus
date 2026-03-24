@@ -1,9 +1,9 @@
 package com.optical.net.sisplus.app.application;
+
 import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.domain.AttendanceDomain;
 import com.optical.net.sisplus.app.domain.ConfigurationDomain;
 import com.optical.net.sisplus.app.domain.UserDomain;
-import com.optical.net.sisplus.app.infrastructure.entity.Admin;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +20,10 @@ public interface PortAdapter {
 
     void registerAttendance(Long usuarioId);
 
+    void registerAttendanceByCc(String cc);
+
     void registerDeparture(Long usuarioId);
+    void registerDeparture(String cc);
 
     AttendanceDomain getAttendanceForDay(Long usuarioId, LocalDate fecha);
 
@@ -42,7 +45,7 @@ public interface PortAdapter {
 
     ConfigurationDomain getConfig(String key);
 
-     List<ConfigurationDomain> getAllConfig();
+    List<ConfigurationDomain> getAllConfig();
 
     ConfigurationDomain updateConfig(String key, String value);
 

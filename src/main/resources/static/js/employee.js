@@ -1,371 +1,289 @@
 const API_BASE = '/api/';
-let allEmployees = [];
-let filteredEmployees = [];
 
-const ITEMS_PER_PAGE = 15;
-let currentPage = 1;
-let totalPages = 1;
+let allEmployees      = [];
+let filteredEmployees = [];
+const PER_PAGE        = 10;
+let currentPage       = 1;
+
+const AVATAR_COLORS = [
+    { bg:'rgba(30,58,138,.1)',  color:'#1E3A8A' },
+    { bg:'rgba(13,148,136,.1)', color:'#0D9488' },
+    { bg:'rgba(217,119,6,.1)',  color:'#B45309' },
+    { bg:'rgba(225,29,72,.1)',  color:'#E11D48' },
+    { bg:'rgba(124,58,237,.1)',color:'#7C3AED' },
+    { bg:'rgba(5,150,105,.1)',  color:'#059669' },
+];
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
-
-    if (window.innerWidth <= 768) {
+    const main    = document.getElementById('mainContent');
+    if (window.innerWidth <= 900) {
         sidebar.classList.toggle('open');
     } else {
         sidebar.classList.toggle('closed');
-        mainContent.classList.toggle('expanded');
+        main.classList.toggle('expanded');
     }
 }
 
-window.addEventListener('resize', function() {
-    const sidebar = document.getElementById('sidebar');
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('open');
-    }
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) document.getElementById('sidebar').classList.remove('open');
 });
 
+function initClock() {
+    const el = document.getElementById('topbarTime');
+    if (!el) return;
+    const tick = () => { el.textContent = new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', hour12:true }); };
+    tick(); setInterval(tick, 30000);
+    const y = new Date().getFullYear();
+    const fv = document.getElementById('footerVersion');
+    const fm = document.getElementById('footerYearMain');
+    if (fv) fv.textContent = `v2.0 · ${y}`;
+    if (fm) fm.textContent = y;
+}
+
 function showAlert(message, type = 'success', container = 'alertContainer') {
-    const alertContainer = document.getElementById(container);
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
     const icon = type === 'success'
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    const el = document.getElementById(container);
+    el.innerHTML = `<div class="alert alert-${type}">${icon}<span>${message}</span></div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 5000);
+}
 
-    alertContainer.innerHTML = `
-            <div class="alert ${alertClass}">
-                ${icon}
-                <span>${message}</span>
-            </div>
-        `;
-
-    setTimeout(() => {
-        alertContainer.innerHTML = '';
-    }, 5000);
+function getInitials(name, lastName) {
+    return ((name || '').charAt(0) + (lastName || '').charAt(0)).toUpperCase();
 }
 
 async function loadEmployees() {
     try {
-        const response = await fetch(`${API_BASE}users`);
-
-        if (!response.ok) {
-            throw new Error('Error al cargar empleados');
-        }
-
-        allEmployees = await response.json();
-        filterEmployees();
-
-        document.getElementById('loadingIndicator').classList.add('hidden');
-        document.getElementById('employeesTable').classList.remove('hidden');
-        document.getElementById('paginationContainer').classList.remove('hidden');
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Error al cargar los empleados. Por favor, recarga la página.', 'error');
-        document.getElementById('loadingIndicator').innerHTML = '<p style="color: var(--error);">Error al cargar empleados</p>';
+        const res = await fetch(`${API_BASE}users`);
+        if (!res.ok) throw new Error();
+        allEmployees = await res.json();
+        applyFilter();
+        document.getElementById('stateLoading').classList.add('hidden');
+        document.getElementById('tableSection').classList.remove('hidden');
+    } catch {
+        document.getElementById('stateLoading').textContent = 'Error al cargar empleados.';
+        showAlert('Error al cargar los empleados. Recarga la página.', 'error');
     }
 }
 
-function filterEmployees() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-    filteredEmployees = allEmployees.filter(emp => {
-        const employeeId = (emp.id || '').toString().toLowerCase();
-        const fullName = `${emp.name} ${emp.lastName}`.toLowerCase();
-        const cc = emp.cc.toLowerCase();
-        return employeeId.includes(searchTerm) || fullName.includes(searchTerm) || cc.includes(searchTerm);
-    });
-
+function applyFilter() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    filteredEmployees = allEmployees.filter(e =>
+        `${e.id}`.includes(q) ||
+        `${e.name} ${e.lastName}`.toLowerCase().includes(q) ||
+        (e.cc || '').toLowerCase().includes(q)
+    );
     currentPage = 1;
-    updatePagination();
-    displayCurrentPage();
+    renderTable();
+    renderPagination();
 }
 
-function updatePagination() {
-    totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
+function renderTable() {
+    const tbody = document.getElementById('empTableBody');
+    const empty = document.getElementById('stateEmpty');
+    const start = (currentPage - 1) * PER_PAGE;
+    const slice = filteredEmployees.slice(start, start + PER_PAGE);
 
-    const totalRecords = filteredEmployees.length;
-    const start = totalRecords > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0;
-    const end = Math.min(currentPage * ITEMS_PER_PAGE, totalRecords);
-
-    document.getElementById('totalRecords').textContent = totalRecords;
-    document.getElementById('showingStart').textContent = start;
-    document.getElementById('showingEnd').textContent = end;
-
-    document.getElementById('firstPageBtn').disabled = currentPage === 1;
-    document.getElementById('prevPageBtn').disabled = currentPage === 1;
-    document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
-    document.getElementById('lastPageBtn').disabled = currentPage === totalPages || totalPages === 0;
-
-    renderPageNumbers();
-}
-
-function renderPageNumbers() {
-    const pageNumbersContainer = document.getElementById('pageNumbers');
-    let pages = [];
-
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-            pages.push(i);
-        } else if (pages[pages.length - 1] !== '...') {
-            pages.push('...');
-        }
-    }
-
-    pageNumbersContainer.innerHTML = pages.map(page => {
-        if (page === '...') {
-            return '<span style="padding: 8px;">...</span>';
-        }
-        return `<button class="pagination-btn ${page === currentPage ? 'active' : ''}" onclick="goToPage(${page})">${page}</button>`;
-    }).join('');
-}
-
-function displayCurrentPage() {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    const pageEmployees = filteredEmployees.slice(start, end);
-
-    displayEmployees(pageEmployees);
-    updatePagination();
-}
-
-function goToPage(page) {
-    currentPage = page;
-    displayCurrentPage();
-}
-
-function previousPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        displayCurrentPage();
-    }
-}
-
-function nextPage() {
-    if (currentPage < totalPages) {
-        currentPage++;
-        displayCurrentPage();
-    }
-}
-
-function goToFirstPage() {
-    currentPage = 1;
-    displayCurrentPage();
-}
-
-function goToLastPage() {
-    currentPage = totalPages;
-    displayCurrentPage();
-}
-
-function displayEmployees(employees) {
-    const tbody = document.getElementById('employeesTableBody');
-
-    if (employees.length === 0) {
-        tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-gray);">
-                        No se encontraron empleados
-                    </td>
-                </tr>
-            `;
+    if (!filteredEmployees.length) {
+        empty.classList.remove('hidden');
+        tbody.innerHTML = '';
         return;
     }
+    empty.classList.add('hidden');
 
-    tbody.innerHTML = employees.map(emp => {
-        const employeeId = emp.id || 'N/A';
+    tbody.innerHTML = slice.map((emp, i) => {
+        const col      = AVATAR_COLORS[(start + i) % AVATAR_COLORS.length];
+        const initials = getInitials(emp.name, emp.lastName);
         return `
-                <tr>
-                    <td><strong>#${employeeId}</strong></td>
-                    <td>${emp.name}</td>
-                    <td>${emp.lastName}</td>
-                    <td>${emp.cc}</td>
-                    <td><span class="badge badge-success">Activo</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-secondary btn-sm" onclick="viewEmployee(${employeeId})" title="Ver Detalles">
-                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                                Ver
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="openEditModal(${employeeId})" title="Editar">
-                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                                Editar
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteEmployee(${employeeId})" title="Eliminar">
-                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                </svg>
-                                Eliminar
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+        <tr>
+          <td style="font-size:11px;color:var(--gray-400)">#${emp.id}</td>
+          <td>
+            <div class="emp-name-cell">
+              <div class="emp-avatar" style="background:${col.bg};color:${col.color}">${initials}</div>
+              <span class="emp-fullname">${emp.name} ${emp.lastName}</span>
+            </div>
+          </td>
+          <td>${emp.cc}</td>
+          <td><span class="badge badge-active">Activo</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="btn btn-secondary btn-sm" onclick="openViewModal(${emp.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Ver
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="openEditModal(${emp.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+                Editar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="confirmDelete(${emp.id}, '${emp.name} ${emp.lastName}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Eliminar
+              </button>
+            </div>
+          </td>
+        </tr>`;
     }).join('');
 }
 
+function renderPagination() {
+    const total     = filteredEmployees.length;
+    const totalPgs  = Math.max(1, Math.ceil(total / PER_PAGE));
+    const start     = total ? (currentPage - 1) * PER_PAGE + 1 : 0;
+    const end       = Math.min(currentPage * PER_PAGE, total);
+
+    document.getElementById('paginInfo').textContent = `Mostrando ${start}–${end} de ${total} empleados`;
+
+    const ctrl = document.getElementById('paginControls');
+    let pages = [];
+    for (let i = 1; i <= totalPgs; i++) {
+        if (i === 1 || i === totalPgs || (i >= currentPage - 1 && i <= currentPage + 1)) pages.push(i);
+        else if (pages[pages.length - 1] !== '…') pages.push('…');
+    }
+
+    ctrl.innerHTML = `
+      <button class="page-btn" onclick="goPage(1)" ${currentPage===1?'disabled':''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      </button>
+      <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      ${pages.map(p => p === '…'
+        ? `<span style="padding:0 4px;font-size:12px;color:var(--gray-400)">…</span>`
+        : `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`
+    ).join('')}
+      <button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPgs?'disabled':''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="page-btn" onclick="goPage(${totalPgs})" ${currentPage===totalPgs?'disabled':''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      </button>`;
+}
+
+function goPage(p) {
+    const total = Math.max(1, Math.ceil(filteredEmployees.length / PER_PAGE));
+    currentPage = Math.min(Math.max(1, p), total);
+    renderTable();
+    renderPagination();
+}
+
+/* ── CREATE ── */
 function openCreateModal() {
-    document.getElementById('createModal').classList.add('active');
     document.getElementById('createForm').reset();
     document.getElementById('createAlert').innerHTML = '';
+    document.getElementById('modalCreate').classList.add('active');
 }
+function closeCreateModal() { document.getElementById('modalCreate').classList.remove('active'); }
 
-function closeCreateModal() {
-    document.getElementById('createModal').classList.remove('active');
-}
-
-async function createEmployee(event) {
-    event.preventDefault();
-
-    const formData = {
-        name: document.getElementById('createName').value,
-        lastName: document.getElementById('createLastName').value,
-        cc: document.getElementById('createCc').value
+async function createEmployee(e) {
+    e.preventDefault();
+    const body = {
+        name:     document.getElementById('cName').value.trim(),
+        lastName: document.getElementById('cLastName').value.trim(),
+        cc:       document.getElementById('cCc').value.trim()
     };
-
     try {
-        const response = await fetch(`${API_BASE}users`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
+        const res = await fetch(`${API_BASE}users`, {
+            method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
         });
-
-        if (!response.ok) {
-            throw new Error('Error al guardar empleado');
-        }
-
+        if (!res.ok) throw new Error();
         closeCreateModal();
-        showAlert('Empleado registrado exitosamente', 'success');
+        showAlert('Empleado registrado exitosamente');
         loadEmployees();
-
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Error al guardar el empleado. Intenta nuevamente.', 'error', 'createAlert');
+    } catch {
+        showAlert('Error al registrar el empleado.', 'error', 'createAlert');
     }
 }
 
-function viewEmployee(id) {
-    const employee = allEmployees.find(emp => emp.id === id);
+/* ── VIEW ── */
+function openViewModal(id) {
+    const emp = allEmployees.find(e => e.id === id);
+    if (!emp) return;
+    const col      = AVATAR_COLORS[id % AVATAR_COLORS.length];
+    const initials = getInitials(emp.name, emp.lastName);
+    document.getElementById('viewAvatar').style.background = col.bg;
+    document.getElementById('viewAvatar').style.color      = col.color;
+    document.getElementById('viewAvatar').textContent      = initials;
+    document.getElementById('viewId').textContent          = `#${emp.id}`;
+    document.getElementById('viewFullName').textContent    = `${emp.name} ${emp.lastName}`;
+    document.getElementById('vId').textContent             = emp.id;
+    document.getElementById('vName').textContent           = emp.name;
+    document.getElementById('vLastName').textContent       = emp.lastName;
+    document.getElementById('vCc').textContent             = emp.cc;
+    document.getElementById('modalView').classList.add('active');
+}
+function closeViewModal() { document.getElementById('modalView').classList.remove('active'); }
 
-    if (!employee) {
-        showAlert('Empleado no encontrado', 'error');
-        return;
-    }
-
-    document.getElementById('viewId').textContent = employee.id;
-    document.getElementById('viewFullName').textContent = `${employee.name} ${employee.lastName}`;
-    document.getElementById('viewName').textContent = employee.name;
-    document.getElementById('viewLastName').textContent = employee.lastName;
-    document.getElementById('viewCc').textContent = employee.cc;
-
-    document.getElementById('viewModal').classList.add('active');
+function openEditFromView(id) {
+    closeViewModal();
+    openEditModal(id);
 }
 
-function closeViewModal() {
-    document.getElementById('viewModal').classList.remove('active');
-}
-
+/* ── EDIT ── */
 function openEditModal(id) {
-    const employee = allEmployees.find(emp => emp.id === id);
-
-    if (!employee) {
-        showAlert('Empleado no encontrado', 'error');
-        return;
-    }
-
-    document.getElementById('editId').value = employee.id;
-    document.getElementById('editName').value = employee.name;
-    document.getElementById('editLastName').value = employee.lastName;
-    document.getElementById('editCc').value = employee.cc;
-
-    document.getElementById('editModal').classList.add('active');
+    const emp = allEmployees.find(e => e.id === id);
+    if (!emp) return;
+    document.getElementById('eId').value       = emp.id;
+    document.getElementById('eName').value     = emp.name;
+    document.getElementById('eLastName').value = emp.lastName;
+    document.getElementById('eCc').value       = emp.cc;
     document.getElementById('editAlert').innerHTML = '';
+    document.getElementById('modalEdit').classList.add('active');
 }
+function closeEditModal() { document.getElementById('modalEdit').classList.remove('active'); }
 
-function closeEditModal() {
-    document.getElementById('editModal').classList.remove('active');
-}
-
-async function updateEmployee(event) {
-    event.preventDefault();
-
-    const employeeId = document.getElementById('editId').value;
-    const formData = {
-        name: document.getElementById('editName').value,
-        lastName: document.getElementById('editLastName').value,
-        cc: document.getElementById('editCc').value
+async function updateEmployee(e) {
+    e.preventDefault();
+    const id   = document.getElementById('eId').value;
+    const body = {
+        name:     document.getElementById('eName').value.trim(),
+        lastName: document.getElementById('eLastName').value.trim(),
+        cc:       document.getElementById('eCc').value.trim()
     };
-
     try {
-        const response = await fetch(`${API_BASE}users/${employeeId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
+        const res = await fetch(`${API_BASE}users/${id}`, {
+            method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
         });
-
-        if (!response.ok) {
-            throw new Error('Error al actualizar empleado');
-        }
-
+        if (!res.ok) throw new Error();
         closeEditModal();
-        showAlert('Empleado actualizado exitosamente', 'success');
+        showAlert('Empleado actualizado exitosamente');
         loadEmployees();
-
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Error al actualizar el empleado. Intenta nuevamente.', 'error', 'editAlert');
+    } catch {
+        showAlert('Error al actualizar el empleado.', 'error', 'editAlert');
     }
 }
 
-async function deleteEmployee(id) {
-    if (!confirm('¿Está seguro de que desea eliminar este empleado? Esta acción no se puede deshacer.')) {
-        return;
-    }
+/* ── DELETE ── */
+let pendingDeleteId = null;
+function confirmDelete(id, name) {
+    pendingDeleteId = id;
+    document.getElementById('deleteEmpName').textContent = name;
+    document.getElementById('modalDelete').classList.add('active');
+}
+function closeDeleteModal() { document.getElementById('modalDelete').classList.remove('active'); pendingDeleteId = null; }
 
+async function deleteEmployee() {
+    if (!pendingDeleteId) return;
     try {
-        const response = await fetch(`${API_BASE}users/${id}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al eliminar empleado');
-        }
-
-        showAlert('Empleado eliminado exitosamente', 'success');
+        const res = await fetch(`${API_BASE}users/${pendingDeleteId}`, { method:'DELETE' });
+        if (!res.ok) throw new Error();
+        closeDeleteModal();
+        showAlert('Empleado eliminado exitosamente');
         loadEmployees();
-
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Error al eliminar el empleado. Intenta nuevamente.', 'error');
+    } catch {
+        showAlert('Error al eliminar el empleado.', 'error');
+        closeDeleteModal();
     }
 }
 
-window.onclick = function(event) {
-    const createModal = document.getElementById('createModal');
-    const viewModal = document.getElementById('viewModal');
-    const editModal = document.getElementById('editModal');
+/* ── Backdrop click ── */
+window.addEventListener('click', e => {
+    ['modalCreate','modalView','modalEdit','modalDelete'].forEach(id => {
+        if (e.target === document.getElementById(id)) {
+            document.getElementById(id).classList.remove('active');
+        }
+    });
+});
 
-    if (event.target === createModal) {
-        closeCreateModal();
-    }
-    if (event.target === viewModal) {
-        closeViewModal();
-    }
-    if (event.target === editModal) {
-        closeEditModal();
-    }
-}
-
-window.onload = function() {
-    loadEmployees();
-}
+window.onload = () => { initClock(); loadEmployees(); };

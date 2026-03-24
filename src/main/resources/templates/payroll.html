@@ -3,256 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nómina - SisPlus</title>
-    <link rel="stylesheet" th:href="@{/css/payroll.css}">
-    <script th:src="@{/js/payroll.js}"></script>
+    <title>Nómina — SisPlus</title>
+    <link rel="stylesheet" href="/css/payroll.css" th:href="@{/css/payroll.css}">
+    <script src="/js/payroll.js" th:src="@{/js/payroll.js}" defer></script>
 </head>
 <body>
+
+<!-- ── Topbar ── -->
 <div class="topbar">
     <div class="topbar-left">
         <button class="menu-toggle" onclick="toggleSidebar()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12h18M3 6h18M3 18h18"/>
-            </svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
         <a href="/dashboard" class="logo">
-            <div class="logo-icon">S+</div>
-            <span>SisPlus</span>
+            <div class="logo-mark">S+</div>
+            <span class="logo-name">SisPlus</span>
         </a>
     </div>
     <div class="topbar-right">
-        <div class="user-info">
+        <span class="topbar-time" id="topbarTime"></span>
+        <div class="user-chip">
             <div class="user-avatar">AD</div>
-            <div class="user-details">
-                <div class="user-name">Administrador</div>
-                <div class="user-role">Admin Principal</div>
+            <div class="user-info-text">
+                <span class="user-name">Administrador</span>
+                <span class="user-role">Admin Principal</span>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ── Sidebar ── -->
 <div class="sidebar" id="sidebar">
-    <nav class="nav-menu">
+    <div class="nav-section">
+        <div class="nav-section-label">Principal</div>
         <a href="/dashboard" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"/>
-                <rect x="14" y="3" width="7" height="7"/>
-                <rect x="14" y="14" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/>
-            </svg>
-            <span>Dashboard</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
         </a>
         <a href="/employee" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>Empleados</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Empleados
         </a>
         <a href="/assistance" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            <span>Asistencias</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Asistencias
         </a>
         <a href="/payroll" class="nav-item active">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span>Nómina</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Nómina
         </a>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+        <div class="nav-section-label">Sistema</div>
         <a href="/admin" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            <span>Administradores</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Administradores
         </a>
         <a href="/config" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                <path d="M2 12a10 10 0 0 1 18-6"/>
-                <path d="M2 16h.01"/>
-                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
-            </svg>
-            <span>Configuracion</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuración
         </a>
-    </nav>
+    </div>
 </div>
 
+<!-- ── Main ── -->
 <div class="main-content" id="mainContent">
-    <div class="page-header">
-        <div class="page-title-section">
-            <h1 class="page-title">Cálculo de Nómina</h1>
-            <p class="page-subtitle">Consulta el desglose de pagos por empleado y período</p>
-        </div>
-        <div class="page-actions">
-            <button class="btn btn-success" onclick="downloadExcel()">
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
+    <div class="content-area">
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Nómina</h1>
+                <p class="page-subtitle">Cálculo de pagos por empleado y período</p>
+            </div>
+            <button class="btn btn-teal" onclick="downloadExcel()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Descargar Excel
             </button>
         </div>
-    </div>
 
-    <div id="alertContainer"></div>
+        <div id="alertContainer" class="alert-container"></div>
 
-    <div class="content-card">
-        <div class="card-header">
-            <h2 class="card-title">Calcular Nómina Individual</h2>
-        </div>
+        <div class="payroll-layout">
 
-        <div class="filters">
-            <div class="form-group">
-                <label class="form-label" for="employeeSelect">Empleado *</label>
-                <select id="employeeSelect" class="form-select" required>
-                    <option value="">-- Seleccione un empleado --</option>
-                </select>
-            </div>
+            <!-- LEFT: Formulario de consulta -->
+            <div class="card">
+                <div class="card-head">
+                    <span class="card-title">Parámetros de consulta</span>
+                </div>
+                <div class="card-body">
+                    <div class="field-group">
+                        <label class="field-label" for="employeeSelect">Empleado *</label>
+                        <select id="employeeSelect" class="field-select">
+                            <option value="">— Selecciona un empleado —</option>
+                        </select>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="periodSelect">Período *</label>
-                <select id="periodSelect" class="form-select" onchange="toggleDateInputs()">
-                    <option value="daily">Diario</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="monthly">Mensual</option>
-                </select>
-            </div>
+                    <div class="field-group">
+                        <label class="field-label" for="periodSelect">Período *</label>
+                        <select id="periodSelect" class="field-select" onchange="togglePeriod()">
+                            <option value="daily">Diario</option>
+                            <option value="weekly">Semanal</option>
+                            <option value="monthly">Mensual</option>
+                        </select>
+                    </div>
 
-            <div class="form-group" id="dateGroup">
-                <label class="form-label" for="dateInput">Fecha</label>
-                <input type="date" id="dateInput" class="form-input">
-            </div>
+                    <div class="field-group" id="dateGroup">
+                        <label class="field-label" for="dateInput">Fecha</label>
+                        <input type="date" id="dateInput" class="field-input">
+                    </div>
 
-            <div class="form-group hidden" id="monthGroup">
-                <label class="form-label" for="monthInput">Mes</label>
-                <select id="monthInput" class="form-select">
-                    <option value="1">Enero</option>
-                    <option value="2">Febrero</option>
-                    <option value="3">Marzo</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Mayo</option>
-                    <option value="6">Junio</option>
-                    <option value="7">Julio</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Septiembre</option>
-                    <option value="10">Octubre</option>
-                    <option value="11">Noviembre</option>
-                    <option value="12">Diciembre</option>
-                </select>
-            </div>
-
-            <div class="form-group hidden" id="yearGroup">
-                <label class="form-label" for="yearInput">Año</label>
-                <input type="number" id="yearInput" class="form-input" value="2026" min="2020" max="2030">
-            </div>
-
-            <div class="form-group" style="align-self: end;">
-                <button class="btn btn-primary" onclick="calculatePayroll()">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    Calcular Nómina
-                </button>
-            </div>
-        </div>
-
-        <div id="resultsContainer" class="hidden">
-            <div id="employeeInfoContainer" class="employee-info"></div>
-
-            <div class="payroll-result">
-                <div style="background: var(--bg-gray); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <svg style="width: 24px; height: 24px; color: var(--primary-color);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        <div>
-                            <strong id="periodInfo" style="font-size: 14px;">Período: Diario</strong>
-                            <p id="daysWorkedInfo" style="font-size: 13px; color: var(--text-gray); margin-top: 4px;"></p>
+                    <div class="field-row">
+                        <div class="field-group hidden" id="monthGroup">
+                            <label class="field-label" for="monthInput">Mes</label>
+                            <select id="monthInput" class="field-select">
+                                <option value="1">Enero</option><option value="2">Febrero</option>
+                                <option value="3">Marzo</option><option value="4">Abril</option>
+                                <option value="5">Mayo</option><option value="6">Junio</option>
+                                <option value="7">Julio</option><option value="8">Agosto</option>
+                                <option value="9">Septiembre</option><option value="10">Octubre</option>
+                                <option value="11">Noviembre</option><option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                        <div class="field-group hidden" id="yearGroup">
+                            <label class="field-label" for="yearInput">Año</label>
+                            <input type="number" id="yearInput" class="field-input" min="2020" max="2030">
                         </div>
                     </div>
-                </div>
 
-                <h3 style="margin-bottom: 20px; font-size: 18px; font-weight: 600;">Desglose de Horas (Total del Período)</h3>
-
-                <div class="result-grid">
-                    <div class="result-card">
-                        <div class="result-label">Horas Regulares</div>
-                        <div class="result-value hours" id="regularHours">0</div>
+                    <div class="form-divider"></div>
+                    <div class="form-action">
+                        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="calculatePayroll()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            Calcular nómina
+                        </button>
                     </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Horas Extras Diurnas</div>
-                        <div class="result-value hours" id="dayOvertimeHours">0</div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Horas Extras Nocturnas</div>
-                        <div class="result-value hours" id="nightOvertimeHours">0</div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Horas Nocturnas</div>
-                        <div class="result-value hours" id="nightHours">0</div>
-                    </div>
-                </div>
-
-                <h3 style="margin-bottom: 20px; font-size: 18px; font-weight: 600;">Desglose de Pagos (Total del Período)</h3>
-
-                <div class="result-grid">
-                    <div class="result-card">
-                        <div class="result-label">Pago Regular</div>
-                        <div class="result-value currency" id="regularPay">0</div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Pago Horas Extras Diurnas</div>
-                        <div class="result-value currency" id="dayOvertimePay">0</div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Pago Horas Extras Nocturnas</div>
-                        <div class="result-value currency" id="nightOvertimePay">0</div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Recargo Nocturno</div>
-                        <div class="result-value currency" id="nightSurchargePay">0</div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-label">Total Horas Extras</div>
-                        <div class="result-value currency" id="totalOvertimePay">0</div>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <div class="summary-title">TOTAL A PAGAR</div>
-                    <div class="summary-value" id="totalPay">0</div>
                 </div>
             </div>
-        </div>
 
-        <div id="loadingIndicator" class="loading hidden">
-            <p>Calculando nómina...</p>
+            <!-- RIGHT: Resultados -->
+            <div id="resultsCard" class="card hidden">
+
+                <!-- Sin resultados aún -->
+                <div class="results-empty hidden" id="resultsEmpty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    No se pudo calcular la nómina
+                </div>
+
+                <!-- Loading -->
+                <div class="results-loading" id="resultsLoading">
+                    <div class="spinner"></div>
+                    Calculando nómina…
+                </div>
+
+                <!-- Contenido -->
+                <div id="resultsContent" class="hidden">
+
+                    <!-- Empleado strip -->
+                    <div class="emp-strip">
+                        <div class="emp-avatar-lg" id="empAvatarText"></div>
+                        <div>
+                            <div class="emp-strip-name" id="empStripName"></div>
+                            <div class="emp-strip-cc"   id="empStripCc"></div>
+                        </div>
+                    </div>
+
+                    <!-- Period info -->
+                    <div class="period-info">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <span><strong id="periodLabel"></strong> · <span id="periodInfo"></span></span>
+                    </div>
+
+                    <!-- Horas -->
+                    <div class="results-section">
+                        <div class="results-section-title">Desglose de horas</div>
+                        <div class="results-grid">
+                            <div class="result-card">
+                                <div class="result-label">Regulares</div>
+                                <div class="result-value"><span id="rRegularHours"></span><span class="result-unit">h</span></div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Extra diurnas</div>
+                                <div class="result-value"><span id="rDayExtra"></span><span class="result-unit">h</span></div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Extra nocturnas</div>
+                                <div class="result-value"><span id="rNightExtra"></span><span class="result-unit">h</span></div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-label">Nocturnas</div>
+                                <div class="result-value"><span id="rNightHours"></span><span class="result-unit">h</span></div>
+                            </div>
+                        </div>
+
+                        <div class="results-section-title">Desglose de pagos</div>
+                        <div class="pay-grid">
+                            <div class="pay-card">
+                                <div class="pay-label">Pago regular</div>
+                                <div class="pay-value" id="rRegularPay"></div>
+                            </div>
+                            <div class="pay-card">
+                                <div class="pay-label">H. extra diurnas</div>
+                                <div class="pay-value" id="rDayExtraPay"></div>
+                            </div>
+                            <div class="pay-card">
+                                <div class="pay-label">H. extra nocturnas</div>
+                                <div class="pay-value" id="rNightExtraPay"></div>
+                            </div>
+                            <div class="pay-card">
+                                <div class="pay-label">Recargo nocturno</div>
+                                <div class="pay-value" id="rNightSurcharge"></div>
+                            </div>
+                            <div class="pay-card" style="grid-column:1/-1">
+                                <div class="pay-label">Total horas extras</div>
+                                <div class="pay-value" id="rTotalExtra"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="total-card">
+                        <div>
+                            <div class="total-label">Total a pagar</div>
+                            <div class="total-value" id="rTotalPay"></div>
+                        </div>
+                        <div class="total-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            <span id="rPeriodBadge"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+    <div class="footer-sidebar-zone">
+        <span class="footer-brand">SisPlus</span>
+        <span class="footer-sep">·</span>
+        <span class="footer-version" id="footerVersion"></span>
+    </div>
+    <div class="footer-main-zone">
+        <span class="footer-copy">© <span id="footerYearMain"></span> Todos los derechos reservados</span>
+        <div class="footer-right">
+            <a href="/config" class="footer-link">Configuración</a>
+            <span class="footer-link">Soporte</span>
+            <div class="footer-status">
+                <span class="footer-status-dot"></span>
+                Sistemas operativos
+            </div>
+        </div>
+    </div>
+</footer>
+
 </body>
 </html>

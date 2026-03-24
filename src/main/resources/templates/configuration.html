@@ -3,251 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración - SisPlus</title>
-    <link rel="stylesheet" th:href="@{/css/configuration.css}">
-    <script th:src="@{/js/configuration.js}"></script>
-
+    <title>Configuración — SisPlus</title>
+    <link rel="stylesheet" href="/css/configuration.css" th:href="@{/css/configuration.css}">
+    <script src="/js/configuration.js" th:src="@{/js/configuration.js}" defer></script>
 </head>
 <body>
+
+<!-- ── Topbar ── -->
 <div class="topbar">
     <div class="topbar-left">
         <button class="menu-toggle" onclick="toggleSidebar()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12h18M3 6h18M3 18h18"/>
-            </svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
         <a href="/dashboard" class="logo">
-            <div class="logo-icon">S+</div>
-            <span>SisPlus</span>
+            <div class="logo-mark">S+</div>
+            <span class="logo-name">SisPlus</span>
         </a>
     </div>
     <div class="topbar-right">
-        <div class="user-info">
+        <span class="topbar-time" id="topbarTime"></span>
+        <div class="user-chip">
             <div class="user-avatar">AD</div>
-            <div class="user-details">
-                <div class="user-name">Administrador</div>
-                <div class="user-role">Admin Principal</div>
+            <div class="user-info-text">
+                <span class="user-name">Administrador</span>
+                <span class="user-role">Admin Principal</span>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ── Sidebar ── -->
 <div class="sidebar" id="sidebar">
-    <nav class="nav-menu">
+    <div class="nav-section">
+        <div class="nav-section-label">Principal</div>
         <a href="/dashboard" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"/>
-                <rect x="14" y="3" width="7" height="7"/>
-                <rect x="14" y="14" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/>
-            </svg>
-            <span>Dashboard</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
         </a>
         <a href="/employee" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>Empleados</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Empleados
         </a>
         <a href="/assistance" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            <span>Asistencias</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Asistencias
         </a>
         <a href="/payroll" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span>Nómina</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Nómina
         </a>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+        <div class="nav-section-label">Sistema</div>
         <a href="/admin" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            <span>Administradores</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Administradores
         </a>
-        <a href="/config" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                <path d="M2 12a10 10 0 0 1 18-6"/>
-                <path d="M2 16h.01"/>
-                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
-            </svg>
-            <span>Configuracion</span>
+        <a href="/config" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuración
         </a>
-    </nav>
+    </div>
 </div>
 
+<!-- ── Main ── -->
 <div class="main-content" id="mainContent">
-    <div class="page-header">
-        <h1 class="page-title">Configuración del Sistema</h1>
-        <p class="page-subtitle">Administra los parámetros de cálculo de nómina y horarios</p>
-    </div>
+    <div class="content-area">
 
-    <div id="alertContainer"></div>
-
-    <div id="loadingIndicator" class="loading">
-        <div class="loading-spinner"></div>
-        <p style="margin-top: 16px;">Cargando configuración...</p>
-    </div>
-
-    <div id="configContent" style="display: none;">
-        <div class="info-box">
-            <div class="info-box-title">
-                <svg style="display: inline; vertical-align: middle; margin-right: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                Información Importante
-            </div>
-            <div class="info-box-content">
-                Los cambios en la configuración afectarán los cálculos de nómina futuros. Asegúrese de que los valores sean correctos antes de guardar. Los cambios requieren reiniciar la aplicación para aplicarse completamente.
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Configuración</h1>
+                <p class="page-subtitle">Parámetros de cálculo de nómina y horarios del sistema</p>
             </div>
         </div>
 
-        <form id="configForm" onsubmit="saveConfiguration(event)">
-            <div class="content-card">
-                <div class="card-header">
-                    <div>
-                        <h2 class="card-title">Tarifas de Pago</h2>
-                        <p class="card-description">Valores por hora en pesos colombianos (COP)</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="config-section">
-                        <div class="config-grid">
-                            <div class="form-group">
-                                <label class="form-label" for="regularHourRate">
-                                    Tarifa Hora Regular
-                                    <span class="label-description">Pago por hora normal de trabajo</span>
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-prefix">$</span>
-                                    <input type="number" id="regularHourRate" class="form-input" step="0.01" required min="0">
+        <div class="info-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Los cambios afectan los cálculos de nómina futuros. Después de guardar, reinicia la aplicación para que los cambios se apliquen completamente.
+        </div>
+
+        <div id="alertContainer" class="alert-container"></div>
+
+        <!-- Loading -->
+        <div class="state-loading" id="stateLoading">
+            <div class="spinner"></div>
+            <span>Cargando configuración…</span>
+        </div>
+
+        <!-- Content -->
+        <div id="configContent" class="hidden">
+            <form id="configForm" onsubmit="saveConfiguration(event)" novalidate>
+                <div class="config-layout">
+
+                    <!-- ── Tarifas de pago ── -->
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-head-info">
+                                <div class="card-title">Tarifas de pago</div>
+                                <div class="card-desc">Valores por hora en pesos colombianos (COP)</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="section-label">Horas regulares y extras</div>
+                            <div class="config-grid">
+
+                                <div class="field-group">
+                                    <label class="field-label" for="regularHourRate">Hora regular</label>
+                                    <span class="field-desc">Tarifa base por hora de trabajo</span>
+                                    <div class="input-prefix-wrap">
+                                        <span class="input-prefix">$</span>
+                                        <input type="number" id="regularHourRate" class="field-input no-border" step="0.01" min="0" required>
+                                        <span class="input-suffix">COP</span>
+                                    </div>
                                 </div>
+
+                                <div class="field-group">
+                                    <label class="field-label" for="dayOvertimeRate">Hora extra diurna</label>
+                                    <span class="field-desc">Recargo por hora extra durante el día</span>
+                                    <div class="input-prefix-wrap">
+                                        <span class="input-prefix">$</span>
+                                        <input type="number" id="dayOvertimeRate" class="field-input no-border" step="0.01" min="0" required>
+                                        <span class="input-suffix">COP</span>
+                                    </div>
+                                </div>
+
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label" for="dayOvertimeRate">
-                                    Tarifa Hora Extra Diurna
-                                    <span class="label-description">Pago por hora extra durante el día</span>
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-prefix">$</span>
-                                    <input type="number" id="dayOvertimeRate" class="form-input" step="0.01" required min="0">
-                                </div>
-                            </div>
+                            <div class="card-divider"></div>
+                            <div class="section-label">Recargos nocturnos</div>
+                            <div class="config-grid">
 
-                            <div class="form-group">
-                                <label class="form-label" for="nightSurchargeRate">
-                                    Tarifa Recargo Nocturno
-                                    <span class="label-description">Recargo por trabajo en horario nocturno</span>
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-prefix">$</span>
-                                    <input type="number" id="nightSurchargeRate" class="form-input" step="0.01" required min="0">
+                                <div class="field-group">
+                                    <label class="field-label" for="nightSurchargeRate">Recargo nocturno</label>
+                                    <span class="field-desc">Adicional por trabajo en horario nocturno</span>
+                                    <div class="input-prefix-wrap">
+                                        <span class="input-prefix">$</span>
+                                        <input type="number" id="nightSurchargeRate" class="field-input no-border" step="0.01" min="0" required>
+                                        <span class="input-suffix">COP</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group">
-                                <label class="form-label" for="nightOvertimeRate">
-                                    Tarifa Hora Extra Nocturna
-                                    <span class="label-description">Pago por hora extra en horario nocturno</span>
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-prefix">$</span>
-                                    <input type="number" id="nightOvertimeRate" class="form-input" step="0.01" required min="0">
+                                <div class="field-group">
+                                    <label class="field-label" for="nightOvertimeRate">Hora extra nocturna</label>
+                                    <span class="field-desc">Recargo por hora extra en horario nocturno</span>
+                                    <div class="input-prefix-wrap">
+                                        <span class="input-prefix">$</span>
+                                        <input type="number" id="nightOvertimeRate" class="field-input no-border" step="0.01" min="0" required>
+                                        <span class="input-suffix">COP</span>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="content-card">
-                <div class="card-header">
-                    <div>
-                        <h2 class="card-title">Horarios</h2>
-                        <p class="card-description">Configuración de horarios de trabajo</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="config-section">
-                        <div class="config-grid">
-                            <div class="form-group">
-                                <label class="form-label" for="nightStartHour">
-                                    Inicio Horario Nocturno
-                                    <span class="label-description">Hora de inicio del recargo nocturno</span>
-                                </label>
-                                <div class="input-group">
-                                    <input type="number" id="nightStartHour" class="form-input" required min="0" max="23">
-                                    <span class="input-prefix">:00 hrs</span>
+                    <!-- ── Horarios ── -->
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-head-info">
+                                <div class="card-title">Horarios y zona horaria</div>
+                                <div class="card-desc">Define cuándo inicia y termina el turno nocturno</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="section-label">Horario nocturno</div>
+                            <div class="config-grid">
+
+                                <div class="field-group">
+                                    <label class="field-label" for="nightStartHour">Inicio del turno nocturno</label>
+                                    <span class="field-desc">Hora en formato 24h (0–23)</span>
+                                    <div class="input-prefix-wrap">
+                                        <input type="number" id="nightStartHour" class="field-input no-border" min="0" max="23" required>
+                                        <span class="input-suffix">:00 h</span>
+                                    </div>
                                 </div>
+
+                                <div class="field-group">
+                                    <label class="field-label" for="nightEndHour">Fin del turno nocturno</label>
+                                    <span class="field-desc">Hora en formato 24h (0–23)</span>
+                                    <div class="input-prefix-wrap">
+                                        <input type="number" id="nightEndHour" class="field-input no-border" min="0" max="23" required>
+                                        <span class="input-suffix">:00 h</span>
+                                    </div>
+                                </div>
+
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label" for="nightEndHour">
-                                    Fin Horario Nocturno
-                                    <span class="label-description">Hora de finalización del recargo nocturno</span>
-                                </label>
-                                <div class="input-group">
-                                    <input type="number" id="nightEndHour" class="form-input" required min="0" max="23">
-                                    <span class="input-prefix">:00 hrs</span>
-                                </div>
-                            </div>
+                            <div class="card-divider"></div>
+                            <div class="section-label">Zona horaria</div>
 
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label class="form-label" for="timeZone">
-                                    Zona Horaria
-                                    <span class="label-description">Zona horaria del sistema</span>
-                                </label>
-                                <select id="timeZone" class="form-select" required>
-                                    <option value="America/Bogota">América/Bogotá (Colombia)</option>
-                                    <option value="America/Mexico_City">América/Ciudad de México</option>
-                                    <option value="America/Lima">América/Lima (Perú)</option>
-                                    <option value="America/Santiago">América/Santiago (Chile)</option>
-                                    <option value="America/Buenos_Aires">América/Buenos Aires (Argentina)</option>
+                            <div class="field-group">
+                                <label class="field-label" for="timeZone">Zona horaria del sistema</label>
+                                <span class="field-desc">Afecta el cálculo de entradas, salidas y recargos nocturnos</span>
+                                <select id="timeZone" class="field-select" required>
+                                    <option value="America/Bogota">América/Bogotá (Colombia, UTC−5)</option>
+                                    <option value="America/Mexico_City">América/Ciudad de México (UTC−6)</option>
+                                    <option value="America/Lima">América/Lima (Perú, UTC−5)</option>
+                                    <option value="America/Santiago">América/Santiago (Chile, UTC−4)</option>
+                                    <option value="America/Buenos_Aires">América/Buenos Aires (Argentina, UTC−3)</option>
+                                    <option value="America/Caracas">América/Caracas (Venezuela, UTC−4)</option>
+                                    <option value="America/Guayaquil">América/Guayaquil (Ecuador, UTC−5)</option>
                                 </select>
                             </div>
+
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="action-buttons">
-                <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="1 4 1 10 7 10"/>
-                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-                    </svg>
-                    Restablecer
-                </button>
-                <button type="submit" class="btn btn-primary" id="saveButton">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                        <polyline points="17 21 17 13 7 13 7 21"/>
-                        <polyline points="7 3 7 8 15 8"/>
-                    </svg>
-                    Guardar Cambios
-                </button>
-            </div>
-        </form>
+                    <!-- ── Action row ── -->
+                    <div class="action-row">
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            Restablecer
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Guardar cambios
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
     </div>
 </div>
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+    <div class="footer-sidebar-zone">
+        <span class="footer-brand">SisPlus</span>
+        <span class="footer-sep">·</span>
+        <span class="footer-version" id="footerVersion"></span>
+    </div>
+    <div class="footer-main-zone">
+        <span class="footer-copy">© <span id="footerYearMain"></span> Todos los derechos reservados</span>
+        <div class="footer-right">
+            <a href="/config" class="footer-link">Configuración</a>
+            <span class="footer-link">Soporte</span>
+            <div class="footer-status">
+                <span class="footer-status-dot"></span>
+                Sistemas operativos
+            </div>
+        </div>
+    </div>
+</footer>
+
 </body>
 </html>

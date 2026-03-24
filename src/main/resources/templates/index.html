@@ -3,199 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - SisPlus</title>
-    <link rel="stylesheet" th:href="@{/css/index.css}">
-    <script th:src="@{/js/index.js}"></script>
+    <title>Dashboard — SisPlus</title>
+    <link rel="stylesheet" href="/css/index.css" th:href="@{/css/index.css}">
+    <script src="/js/index.js" th:src="@{/js/index.js}" defer></script>
 </head>
 <body>
+
 <div class="topbar">
     <div class="topbar-left">
-        <button class="menu-toggle" onclick="toggleSidebar()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menú">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 12h18M3 6h18M3 18h18"/>
             </svg>
         </button>
         <a href="/dashboard" class="logo">
-            <div class="logo-icon">S+</div>
-            <span>SisPlus</span>
+            <div class="logo-mark">S+</div>
+            <span class="logo-name">SisPlus</span>
         </a>
     </div>
     <div class="topbar-right">
-        <div class="user-info">
+        <span class="topbar-greeting" id="topbarGreeting"></span>
+        <span class="topbar-time" id="topbarTime"></span>
+        <div class="user-chip">
             <div class="user-avatar">AD</div>
-            <div class="user-details">
-                <div class="user-name">Administrador</div>
-                <div class="user-role">Admin Principal</div>
+            <div class="user-info-text">
+                <span class="user-name">Administrador</span>
+                <span class="user-role">Admin Principal</span>
             </div>
         </div>
     </div>
 </div>
 
 <div class="sidebar" id="sidebar">
-    <nav class="nav-menu">
+    <div class="nav-section">
+        <div class="nav-section-label">Principal</div>
         <a href="/dashboard" class="nav-item active">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"/>
-                <rect x="14" y="3" width="7" height="7"/>
-                <rect x="14" y="14" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/>
-            </svg>
-            <span>Dashboard</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
         </a>
         <a href="/employee" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>Empleados</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Empleados
         </a>
         <a href="/assistance" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            <span>Asistencias</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Asistencias
         </a>
         <a href="/payroll" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span>Nómina</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Nómina
         </a>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+        <div class="nav-section-label">Sistema</div>
         <a href="/admin" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            <span>Administradores</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Administradores
         </a>
         <a href="/config" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                <path d="M2 12a10 10 0 0 1 18-6"/>
-                <path d="M2 16h.01"/>
-                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
-            </svg>
-            <span>Configuracion</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuración
         </a>
-    </nav>
+    </div>
+</div>
 </div>
 
 <div class="main-content" id="mainContent">
-    <div class="page-header">
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle" id="currentDate">Cargando fecha...</p>
-    </div>
+    <div class="content-area">
 
-    <div class="stats-grid">
-        <div class="stat-card" onclick="window.location.href='/employee'">
-            <div class="stat-header">
-                <span class="stat-label">Empleados Activos</span>
-                <div class="stat-icon blue">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                    </svg>
+        <div class="page-header">
+            <div class="greeting-line" id="greetingLine"></div>
+            <div class="page-subtitle" id="currentDate"></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" onclick="window.location.href='/employee'">
+                <div class="stat-accent accent-navy"></div>
+                <div class="stat-label">Empleados activos</div>
+                <div class="stat-value" id="statEmployees">—</div>
+                <div><span class="stat-pill pill-neu" id="pillEmployees">Cargando...</span></div>
+                <div class="sparkline" id="sparkEmployees"></div>
+            </div>
+            <div class="stat-card" onclick="window.location.href='/assistance'">
+                <div class="stat-accent accent-teal"></div>
+                <div class="stat-label">Asistencias hoy</div>
+                <div class="stat-value" id="statAttendance">—</div>
+                <div id="pillAttendance"><span class="stat-pill pill-neu">Cargando...</span></div>
+                <div class="sparkline" id="sparkAttendance"></div>
+            </div>
+            <div class="stat-card" onclick="window.location.href='/assistance'">
+                <div class="stat-accent accent-amber"></div>
+                <div class="stat-label">Horas extras hoy</div>
+                <div class="stat-value" id="statOvertime">—</div>
+                <div><span class="stat-pill pill-neu" id="pillOvertime">Cargando...</span></div>
+                <div class="sparkline" id="sparkOvertime"></div>
+            </div>
+            <div class="stat-card" onclick="window.location.href='/assistance'">
+                <div class="stat-accent accent-rose"></div>
+                <div class="stat-label">Alertas pendientes</div>
+                <div class="stat-value" id="statPending">—</div>
+                <div><span class="stat-pill pill-neu" id="pillPending">Cargando...</span></div>
+                <div class="sparkline" id="sparkPending"></div>
+            </div>
+        </div>
+
+        <div class="content-row">
+
+            <div class="card">
+                <div class="card-head">
+                    <span class="card-title">Asistencias recientes</span>
+                    <a href="/assistance" class="card-link">Ver todas →</a>
+                </div>
+                <div class="table-loading" id="tableLoading">Cargando asistencias...</div>
+                <div class="table-empty hidden" id="tableEmpty">No hay asistencias registradas hoy</div>
+                <table class="attendance-table hidden" id="recentTable">
+                    <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Horas</th>
+                        <th>H. Extra</th>
+                        <th>Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recentBody"></tbody>
+                </table>
+            </div>
+
+            <div class="right-col">
+                <div class="quick-card">
+                    <div class="quick-head">Acciones rápidas</div>
+                    <a href="/assistance" class="quick-item">
+                        <div class="q-icon" style="background:rgba(30,58,138,.1)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#1E3A8A" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                        </div>
+                        <div class="q-info">
+                            <div class="q-name">Registrar entrada</div>
+                            <div class="q-sub">Marcar inicio de jornada</div>
+                        </div>
+                        <span class="q-arrow">›</span>
+                    </a>
+                    <a href="/assistance" class="quick-item">
+                        <div class="q-icon" style="background:rgba(13,148,136,.1)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        </div>
+                        <div class="q-info">
+                            <div class="q-name">Registrar salida</div>
+                            <div class="q-sub">Marcar fin de jornada</div>
+                        </div>
+                        <span class="q-arrow">›</span>
+                    </a>
+                    <a href="/payroll" class="quick-item">
+                        <div class="q-icon" style="background:rgba(217,119,6,.1)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="q-info">
+                            <div class="q-name">Calcular nómina</div>
+                            <div class="q-sub">Ver resumen del período</div>
+                        </div>
+                        <span class="q-arrow">›</span>
+                    </a>
+                    <a href="/employee" class="quick-item">
+                        <div class="q-icon" style="background:rgba(124,58,237,.1)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                        </div>
+                        <div class="q-info">
+                            <div class="q-name">Nuevo empleado</div>
+                            <div class="q-sub">Registrar en el sistema</div>
+                        </div>
+                        <span class="q-arrow">›</span>
+                    </a>
+                </div>
+
+                <div class="activity-card">
+                    <div class="activity-head">Actividad reciente</div>
+                    <div class="activity-body" id="activityBody">
+                        <div class="act-item">
+                            <div class="act-timeline"><div class="act-dot" style="background:var(--gray-300)"></div></div>
+                            <div class="act-content"><div class="act-text" style="color:var(--gray-400)">Cargando actividad...</div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-value" id="totalEmployees">0</div>
-            <div class="stat-change neutral">
-                <span id="employeesChange">Cargando...</span>
-            </div>
-        </div>
 
-        <div class="stat-card" onclick="window.location.href='/assistance'">
-            <div class="stat-header">
-                <span class="stat-label">Asistencias Hoy</span>
-                <div class="stat-icon green">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="stat-value" id="todayAttendances">0</div>
-            <div class="stat-change neutral">
-                <span id="attendanceRate">Cargando...</span>
-            </div>
-        </div>
-
-        <div class="stat-card" onclick="window.location.href='/assistance'">
-            <div class="stat-header">
-                <span class="stat-label">Horas Extras Hoy</span>
-                <div class="stat-icon orange">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="stat-value" id="totalOvertimeHours">0</div>
-            <div class="stat-change neutral">
-                <span id="overtimeEmployees">Cargando...</span>
-            </div>
-        </div>
-
-        <div class="stat-card" onclick="window.location.href='/assistance'">
-            <div class="stat-header">
-                <span class="stat-label">Alertas Pendientes</span>
-                <div class="stat-icon red">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="stat-value" id="pendingAlerts">0</div>
-            <div class="stat-change negative">
-                <span id="alertsDescription">Cargando...</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="content-card">
-        <div class="card-header">
-            <h2 class="card-title">Asistencias Recientes</h2>
-            <a href="/assistance" class="btn btn-secondary">Ver todas</a>
-        </div>
-        <div class="table-container">
-            <div id="loadingTable" class="loading">
-                <p>Cargando asistencias...</p>
-            </div>
-            <table id="recentAttendancesTable" style="display: none;">
-                <thead>
-                <tr>
-                    <th>Empleado</th>
-                    <th>Entrada</th>
-                    <th>Salida</th>
-                    <th>Horas</th>
-                    <th>Estado</th>
-                </tr>
-                </thead>
-                <tbody id="recentAttendancesBody">
-                </tbody>
-            </table>
-            <div id="emptyState" class="empty-state" style="display: none;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <p>No hay asistencias registradas hoy</p>
-            </div>
         </div>
     </div>
 </div>
+
+<footer class="site-footer">
+    <div class="footer-sidebar-zone">
+        <span class="footer-brand">SisPlus</span>
+        <span class="footer-sep">·</span>
+        <span class="footer-version" id="footerYear2"></span>
+    </div>
+    <div class="footer-main-zone">
+        <div class="footer-left">
+            <span class="footer-copy">© <span id="footerYearMain"></span> Todos los derechos reservados</span>
+        </div>
+        <div class="footer-right">
+            <span class="footer-link" onclick="window.location.href='/config'">Configuración</span>
+            <span class="footer-link">Soporte</span>
+            <div class="footer-status">
+                <span class="footer-status-dot"></span>
+                Sistemas operativos
+            </div>
+        </div>
+    </div>
+</footer>
+
 </body>
 </html>
