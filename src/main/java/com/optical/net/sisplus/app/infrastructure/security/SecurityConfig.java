@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/",
                                 "/login",
+                                "/register",
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/iclock/**",
@@ -96,10 +97,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * CORS — Solo permite el origen de tu frontend.
-     * Cambiar "http://localhost:3000" por tu dominio en producción.
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

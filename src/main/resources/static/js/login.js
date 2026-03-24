@@ -1,28 +1,38 @@
 let isLoading = false;
 
+function togglePassword() {
+    const input = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = `
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>`;
+    } else {
+        input.type = 'password';
+        icon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>`;
+    }
+}
+
 function showAlert(type, message) {
-    const alertError = document.getElementById('alertError');
-    const alertSuccess = document.getElementById('alertSuccess');
-
-    alertError.classList.remove('hidden');
-    alertSuccess.classList.remove('hidden');
-
-    setTimeout(() => {
-        alertError.classList.add('hidden');
-        alertSuccess.classList.add('hidden');
-    }, 100);
+    document.getElementById('alertError').classList.remove('show');
+    document.getElementById('alertSuccess').classList.remove('show');
 
     if (type === 'error') {
         document.getElementById('errorMessage').textContent = message;
-        setTimeout(() => alertError.classList.remove('hidden'), 100);
+        document.getElementById('alertError').classList.add('show');
     } else if (type === 'success') {
-        setTimeout(() => alertSuccess.classList.remove('hidden'), 100);
+        document.getElementById('alertSuccess').classList.add('show');
     }
 }
 
 function hideAlerts() {
-    document.getElementById('alertError').classList.add('hidden');
-    document.getElementById('alertSuccess').classList.add('hidden');
+    document.getElementById('alertError').classList.remove('show');
+    document.getElementById('alertSuccess').classList.remove('show');
 }
 
 async function handleLogin(event) {
@@ -49,24 +59,17 @@ async function handleLogin(event) {
     try {
         const response = await fetch('/api/auth/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-                rememberMe: rememberMe
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, rememberMe })
         });
 
         const data = await response.json();
 
         if (response.ok && data.success) {
-            showAlert('success', 'Inicio de sesión exitoso');
-
+            showAlert('success');
             setTimeout(() => {
                 window.location.href = data.redirectUrl || '/dashboard';
-            }, 800);
+            }, 900);
         } else {
             showAlert('error', data.message || 'Credenciales incorrectas');
             loginButton.classList.remove('loading');
@@ -74,7 +77,6 @@ async function handleLogin(event) {
             isLoading = false;
         }
     } catch (error) {
-        console.error('Error en login:', error);
         showAlert('error', 'Error de conexión. Por favor intenta nuevamente.');
         loginButton.classList.remove('loading');
         loginButton.disabled = false;
@@ -82,7 +84,7 @@ async function handleLogin(event) {
     }
 }
 
-document.querySelectorAll('.form-input').forEach(input => {
+document.querySelectorAll('.field-input').forEach(input => {
     input.addEventListener('input', hideAlerts);
 });
 

@@ -42,10 +42,9 @@ public class UserService {
 
     @Transactional
     public UserResponse createUser(UserRequest request) {
-        // --- Sanitización XSS ---
-        String safeName     = sanitizeName(request.getName(), "name");
+        String safeName = sanitizeName(request.getName(), "name");
         String safeLastName = sanitizeName(request.getLastName(), "lastName");
-        String safeCc       = xssSanitizer.sanitizeCc(request.getCc());
+        String safeCc = xssSanitizer.sanitizeCc(request.getCc());
 
         validateUserFields(safeName, safeLastName, safeCc);
 
@@ -71,9 +70,9 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(Long id, UserRequest request) {
         // --- Sanitización XSS ---
-        String safeName     = sanitizeName(request.getName(), "name");
+        String safeName = sanitizeName(request.getName(), "name");
         String safeLastName = sanitizeName(request.getLastName(), "lastName");
-        String safeCc       = xssSanitizer.sanitizeCc(request.getCc());
+        String safeCc = xssSanitizer.sanitizeCc(request.getCc());
 
         validateUserFields(safeName, safeLastName, safeCc);
 
@@ -112,14 +111,22 @@ public class UserService {
     }
 
     @Transactional
+    public void registerEntryByCC(String cc) {
+        log.info("Registrando entrada para usuario con CC: {}", cc);
+        portAdapter.registerAttendanceByCc(cc);
+    }
+
+    @Transactional
+    public void registerExitByCC(String cc) {
+        log.info("Registrando salida para usuario: {}", cc);
+        portAdapter.registerAttendanceByCc(cc);
+    }
+
+    @Transactional
     public void registerExit(Long id) {
         log.info("Registrando salida para usuario: {}", id);
         portAdapter.registerDeparture(id);
     }
-
-    // ----------------------------------------------------------
-    //  Helpers de validación
-    // ----------------------------------------------------------
 
     private String sanitizeName(String value, String field) {
         if (value == null || value.isBlank()) {

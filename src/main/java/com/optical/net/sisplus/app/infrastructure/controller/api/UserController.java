@@ -42,6 +42,19 @@ public class UserController {
         return userService.calculatePayroll(id, date, month, year, period);
     }
 
+    @PostMapping("/{cc}/entryCC")
+    public ResponseEntity<String> registerEntryByCC(@PathVariable String cc) {
+        userService.registerEntryByCC(cc);
+        return ResponseEntity.ok("Entry registered successfully");
+    }
+
+    @PostMapping("/{cc}/exitCC")
+    public ResponseEntity<String> registerExit(@PathVariable String cc) {
+        userService.registerExitByCC(cc);
+        return ResponseEntity.ok("Exit registered successfully");
+    }
+
+
     @PostMapping("/{id}/entry")
     public ResponseEntity<String> registerEntry(@PathVariable Long id) {
         userService.registerEntry(id);

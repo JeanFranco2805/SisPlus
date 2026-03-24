@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Asistencia — SisPlus</title>
+    <link rel="stylesheet" href="/css/register.css" th:href="@{/css/register.css}">
+    <script src="/js/register.js" th:src="@{/js/register.js}" defer></script>
+</head>
+<body>
+
+<!-- Acceso rápido al dashboard -->
+<a href="/dashboard" class="admin-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Panel admin
+</a>
+
+<div class="kiosk-card">
+
+    <!-- Header -->
+    <div class="kiosk-header">
+        <div class="logo-wrap">
+            <div class="logo-mark">S+</div>
+            <span class="logo-name">SisPlus</span>
+        </div>
+        <div class="kiosk-title">Control de asistencia</div>
+        <div class="kiosk-subtitle" id="liveDate">Cargando fecha…</div>
+    </div>
+
+    <!-- Body -->
+    <div class="kiosk-body">
+
+        <div class="field-group">
+            <label class="field-label" for="ccInput">Número de cédula</label>
+            <div class="cc-wrap">
+                <span class="cc-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                </span>
+                <input
+                        type="number"
+                        id="ccInput"
+                        class="cc-input"
+                        placeholder="Ingresa tu cédula"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        autofocus
+                >
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <!-- Entrada -->
+            <button class="action-btn btn-entry" id="btnEntry" onclick="registerEntry()">
+                <div class="btn-spinner"></div>
+                <div class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                </div>
+                <span class="btn-label">Registrar entrada</span>
+                <span class="btn-sub">Inicio de jornada</span>
+            </button>
+
+            <!-- Salida -->
+            <button class="action-btn btn-exit" id="btnExit" onclick="registerExit()">
+                <div class="btn-spinner"></div>
+                <div class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </div>
+                <span class="btn-label">Registrar salida</span>
+                <span class="btn-sub">Fin de jornada</span>
+            </button>
+        </div>
+
+        <!-- Feedback -->
+        <div class="feedback" id="feedback">
+            <span id="feedbackIcon"></span>
+            <span id="feedbackText"></span>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="kiosk-footer">
+        <div>
+            <div class="footer-time" id="liveClock">—</div>
+        </div>
+        <div class="footer-status">
+            <span class="status-dot"></span>
+            En línea
+        </div>
+        <div class="footer-brand">SisPlus</div>
+    </div>
+
+</div>
+
+</body>
+</html>

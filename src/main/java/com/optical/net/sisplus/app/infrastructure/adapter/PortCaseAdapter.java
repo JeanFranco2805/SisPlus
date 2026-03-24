@@ -60,8 +60,8 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "users",               allEntries = true),
-            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public UserDomain saveUser(UserDomain userDomain) {
@@ -109,8 +109,8 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "users",               allEntries = true),
-            @CacheEvict(value = "userById",            key = "#id"),
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "userById", key = "#id"),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public void deleteUser(Long id) {
@@ -122,8 +122,8 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "todayAttendances",    allEntries = true),
-            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "todayAttendances", allEntries = true),
+            @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public void registerAttendance(Long usuarioId) {
@@ -153,12 +153,21 @@ public class PortCaseAdapter implements PortAdapter {
         attendanceRepository.save(attendance);
     }
 
+    @Override
+    public void registerAttendanceByCc(String cc) {
+        log.info("Registrando asistencia para usuario con CC: {}", cc);
+        var user = userRepository.findByCc(cc).orElseThrow(
+                () -> new RuntimeException("Usuario no encontrado con CC: " + cc)
+        );
+        registerAttendance(user.getId());
+    }
+
 
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "todayAttendances",    allEntries = true),
-            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "todayAttendances", allEntries = true),
+            @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public void registerDeparture(Long usuarioId) {
@@ -181,6 +190,28 @@ public class PortCaseAdapter implements PortAdapter {
                         "No se encontró un registro de entrada sin salida para hoy"
                 ));
 
+        attendance.setDepartureTime(ahora);
+        attendanceRepository.save(attendance);
+    }
+
+    @Override
+    public void registerDeparture(String cc) {
+        log.info("Registrando salida para usuario: {}", cc);
+
+        var user = userRepository.findByCc(cc).orElseThrow(
+                () -> new RuntimeException("Usuario no encontrado con ID: " + cc)
+        );
+        LocalDateTime ahora = LocalDateTime.now(COLOMBIA_ZONE);
+
+        var attendances = attendanceRepository.findByUser(user);
+        var attendance = attendances.stream()
+                .filter(e -> e.getEntryTime() != null &&
+                        e.getEntryTime().toLocalDate().equals(ahora.toLocalDate()) &&
+                        e.getDepartureTime() == null)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No se encontró un registro de entrada sin salida para hoy"
+                ));
         attendance.setDepartureTime(ahora);
         attendanceRepository.save(attendance);
     }
@@ -218,7 +249,7 @@ public class PortCaseAdapter implements PortAdapter {
         log.debug("Obteniendo asistencias del día: {} (con caché)", fecha);
 
         LocalDateTime start = fecha.atStartOfDay();
-        LocalDateTime end   = fecha.plusDays(1).atStartOfDay();
+        LocalDateTime end = fecha.plusDays(1).atStartOfDay();
 
         return attendanceRepository.findByDateRange(start, end)
                 .stream()
@@ -256,8 +287,8 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "todayAttendances",    allEntries = true),
-            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "todayAttendances", allEntries = true),
+            @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public AttendanceDomain updateAttendance(Long attendanceId, LocalDateTime entryTime, LocalDateTime departureTime) {
@@ -284,8 +315,8 @@ public class PortCaseAdapter implements PortAdapter {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "todayAttendances",    allEntries = true),
-            @CacheEvict(value = "userById",            allEntries = true),
+            @CacheEvict(value = "todayAttendances", allEntries = true),
+            @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
     public void deleteAttendance(Long attendanceId) {

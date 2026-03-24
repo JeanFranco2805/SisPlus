@@ -36,4 +36,8 @@ public class MainController {
     public String config(){
         return "configuration";
     }
+    @GetMapping("register")
+    public String register(){
+        return "register";
+    }
 }
