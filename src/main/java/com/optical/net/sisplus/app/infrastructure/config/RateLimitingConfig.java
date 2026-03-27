@@ -16,35 +16,24 @@ import java.util.concurrent.ConcurrentHashMap;
 @Configuration
 public class RateLimitingConfig {
 
-    /** Intentos fallidos antes de bloquear la IP en login */
     private static final int MAX_FAILURES = 5;
 
-    /** Tiempo de bloqueo tras superar MAX_FAILURES */
     private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 
-    /** Tiempo sin actividad para considerar un bucket "abandonado" */
     private static final Duration BUCKET_IDLE_TIMEOUT = Duration.ofMinutes(10);
 
     private final Map<String, TimedBucket> buckets = new ConcurrentHashMap<>();
 
     private final Map<String, FailureRecord> loginFailures = new ConcurrentHashMap<>();
 
-    // =========================================================
-    //  Definición de límites por endpoint
-    // =========================================================
-
     public enum RateLimit {
-        /** 5 intentos de login cada 5 minutos (más realista que 1 min) */
         LOGIN(5, Duration.ofMinutes(5)),
 
-        /** 100 requests por minuto para la API general */
-        API_DEFAULT(100, Duration.ofMinutes(1)),
+        API_DEFAULT(500, Duration.ofMinutes(1)),
 
-        /** 10 cálculos de nómina por minuto (operación pesada) */
         PAYROLL(10, Duration.ofMinutes(1)),
 
-        /** 30 operaciones de usuarios por minuto */
-        USERS(30, Duration.ofMinutes(1));
+        USERS(200, Duration.ofMinutes(1));
 
         private final long capacity;
         private final Duration refillDuration;
