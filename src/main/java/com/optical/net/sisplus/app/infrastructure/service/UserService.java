@@ -19,6 +19,8 @@ import java.util.List;
 @Service
 public class UserService {
 
+    private static final double DEFAULT_SALARY = 1_423_500.0;
+
     private final PortAdapter portAdapter;
     private final PayrollService payrollService;
     private final PayrollConfigurationService configurationService;
@@ -45,8 +47,10 @@ public class UserService {
         String safeName = sanitizeName(request.getName(), "name");
         String safeLastName = sanitizeName(request.getLastName(), "lastName");
         String safeCc = xssSanitizer.sanitizeCc(request.getCc());
+        double safeSalary = resolveSalary(request.getSalary());
 
         validateUserFields(safeName, safeLastName, safeCc);
+        validateSalary(safeSalary);
 
         log.info("Creando nuevo usuario con CC: {}", safeCc);
 
@@ -54,6 +58,7 @@ public class UserService {
                 .name(safeName)
                 .lastName(safeLastName)
                 .cc(safeCc)
+                .salary(safeSalary)
                 .build();
 
         UserDomain saved = portAdapter.saveUser(user);
@@ -69,12 +74,13 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(Long id, UserRequest request) {
-        // --- Sanitización XSS ---
         String safeName = sanitizeName(request.getName(), "name");
         String safeLastName = sanitizeName(request.getLastName(), "lastName");
         String safeCc = xssSanitizer.sanitizeCc(request.getCc());
+        double safeSalary = resolveSalary(request.getSalary());
 
         validateUserFields(safeName, safeLastName, safeCc);
+        validateSalary(safeSalary);
 
         log.info("Actualizando usuario con ID: {}", id);
 
@@ -83,6 +89,7 @@ public class UserService {
                 .name(safeName)
                 .lastName(safeLastName)
                 .cc(safeCc)
+                .salary(safeSalary)
                 .build();
 
         UserDomain saved = portAdapter.saveUser(user);
@@ -128,6 +135,11 @@ public class UserService {
         portAdapter.registerDeparture(id);
     }
 
+    private double resolveSalary(Double salary) {
+        if (salary == null || salary <= 0) return DEFAULT_SALARY;
+        return salary;
+    }
+
     private String sanitizeName(String value, String field) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("El campo '" + field + "' es requerido.");
@@ -140,15 +152,20 @@ public class UserService {
             throw new IllegalArgumentException("El nombre no puede estar vacío.");
         if (name.length() > 100)
             throw new IllegalArgumentException("El nombre excede el máximo de 100 caracteres.");
-
         if (lastName == null || lastName.isBlank())
             throw new IllegalArgumentException("El apellido no puede estar vacío.");
         if (lastName.length() > 100)
             throw new IllegalArgumentException("El apellido excede el máximo de 100 caracteres.");
-
         if (cc == null || cc.isBlank())
             throw new IllegalArgumentException("La cédula no puede estar vacía.");
         if (!cc.matches("^[0-9]{5,15}$"))
             throw new IllegalArgumentException("La cédula debe contener entre 5 y 15 dígitos.");
+    }
+
+    private void validateSalary(double salary) {
+        if (salary < 0)
+            throw new IllegalArgumentException("El salario no puede ser negativo.");
+        if (salary > 100_000_000)
+            throw new IllegalArgumentException("El salario excede el valor máximo permitido.");
     }
 }
