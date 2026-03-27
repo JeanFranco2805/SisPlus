@@ -1,4 +1,6 @@
 package com.optical.net.sisplus;
+
+import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.service.AdminService;

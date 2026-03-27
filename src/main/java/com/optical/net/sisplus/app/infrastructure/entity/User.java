@@ -30,11 +30,14 @@ public class User {
 
     private boolean status;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private double salary = 2000_000;
+
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY
     )
     private List<Attendance> attendances;
-
 }

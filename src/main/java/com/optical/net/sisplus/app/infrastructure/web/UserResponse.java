@@ -12,12 +12,13 @@ public class UserResponse {
     private String name;
     private String lastName;
     private String cc;
+    private double salary;
 
     private double regularHours;
     private double dayOvertimeHours;
     private double nightOvertimeHours;
     private double nightHours;
-    
+
     private double regularPay;
     private double nightSurchargePay;
     private double dayOvertimePay;

@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- ── Topbar ── -->
 <div class="topbar">
     <div class="topbar-left">
         <button class="menu-toggle" onclick="toggleSidebar()">
@@ -32,7 +31,6 @@
     </div>
 </div>
 
-<!-- ── Sidebar ── -->
 <div class="sidebar" id="sidebar">
     <div class="nav-section">
         <div class="nav-section-label">Principal</div>
@@ -67,7 +65,6 @@
     </div>
 </div>
 
-<!-- ── Main ── -->
 <div class="main-content" id="mainContent">
     <div class="content-area">
 
@@ -106,6 +103,7 @@
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Cédula</th>
+                            <th>Salario</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -129,7 +127,6 @@
     </div>
 </div>
 
-<!-- ── Footer ── -->
 <footer class="site-footer">
     <div class="footer-sidebar-zone">
         <span class="footer-brand">SisPlus</span>
@@ -149,7 +146,7 @@
     </div>
 </footer>
 
-<!-- ── Modal: Crear empleado ── -->
+<!-- Modal: Crear empleado -->
 <div class="modal-backdrop" id="modalCreate">
     <div class="modal">
         <div class="modal-head">
@@ -175,6 +172,11 @@
                     <label class="field-label" for="cCc">Cédula *</label>
                     <input type="text" id="cCc" class="field-input" placeholder="Número de identificación" required>
                 </div>
+                <div class="field-group">
+                    <label class="field-label" for="cSalary">Salario mensual (COP)</label>
+                    <input type="number" id="cSalary" class="field-input" placeholder="1423500" min="0" step="1000">
+                    <span style="font-size:11px;color:var(--gray-400);margin-top:2px;">Por defecto: salario mínimo 2026 ($1.423.500)</span>
+                </div>
             </div>
             <div class="modal-foot">
                 <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancelar</button>
@@ -184,7 +186,7 @@
     </div>
 </div>
 
-<!-- ── Modal: Ver empleado ── -->
+<!-- Modal: Ver empleado -->
 <div class="modal-backdrop" id="modalView">
     <div class="modal">
         <div class="modal-head">
@@ -218,9 +220,13 @@
                     <span class="detail-label">Apellido</span>
                     <span class="detail-value" id="vLastName">—</span>
                 </div>
-                <div class="detail-item" style="grid-column:1/-1">
+                <div class="detail-item">
                     <span class="detail-label">Cédula</span>
                     <span class="detail-value" id="vCc">—</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Salario mensual</span>
+                    <span class="detail-value" id="vSalary" style="color:var(--teal)">—</span>
                 </div>
             </div>
         </div>
@@ -231,7 +237,7 @@
     </div>
 </div>
 
-<!-- ── Modal: Editar empleado ── -->
+<!-- Modal: Editar empleado -->
 <div class="modal-backdrop" id="modalEdit">
     <div class="modal">
         <div class="modal-head">
@@ -258,6 +264,11 @@
                     <label class="field-label" for="eCc">Cédula *</label>
                     <input type="text" id="eCc" class="field-input" required>
                 </div>
+                <div class="field-group">
+                    <label class="field-label" for="eSalary">Salario mensual (COP)</label>
+                    <input type="number" id="eSalary" class="field-input" min="0" step="1000" required>
+                    <span style="font-size:11px;color:var(--gray-400);margin-top:2px;">Salario mínimo 2026: $1.423.500</span>
+                </div>
             </div>
             <div class="modal-foot">
                 <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
@@ -267,7 +278,7 @@
     </div>
 </div>
 
-<!-- ── Modal: Confirmar eliminación ── -->
+<!-- Modal: Confirmar eliminación -->
 <div class="modal-backdrop" id="modalDelete">
     <div class="modal" style="max-width:400px">
         <div class="modal-head">

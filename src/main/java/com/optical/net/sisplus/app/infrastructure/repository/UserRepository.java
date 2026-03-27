@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * OPTIMIZACIÓN: Encuentra todos los usuarios SIN cargar asistencias
      * Perfecto para listados donde no se necesitan las asistencias
      */
-    @Query("SELECT u FROM User u")
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.attendances")
     java.util.List<User> findAllWithoutAttendances();
 
     Optional<User> findByCc(String cc);

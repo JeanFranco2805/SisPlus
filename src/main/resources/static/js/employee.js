@@ -4,6 +4,7 @@ let allEmployees      = [];
 let filteredEmployees = [];
 const PER_PAGE        = 10;
 let currentPage       = 1;
+const DEFAULT_SALARY  = 2000_000;
 
 const AVATAR_COLORS = [
     { bg:'rgba(30,58,138,.1)',  color:'#1E3A8A' },
@@ -52,6 +53,15 @@ function showAlert(message, type = 'success', container = 'alertContainer') {
 
 function getInitials(name, lastName) {
     return ((name || '').charAt(0) + (lastName || '').charAt(0)).toUpperCase();
+}
+
+function formatCurrency(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value || 0);
 }
 
 async function loadEmployees() {
@@ -106,6 +116,7 @@ function renderTable() {
             </div>
           </td>
           <td>${emp.cc}</td>
+          <td style="font-size:12px;color:var(--gray-700);font-weight:500">${formatCurrency(emp.salary || DEFAULT_SALARY)}</td>
           <td><span class="badge badge-active">Activo</span></td>
           <td>
             <div class="action-btns">
@@ -168,9 +179,9 @@ function goPage(p) {
     renderPagination();
 }
 
-/* ── CREATE ── */
 function openCreateModal() {
     document.getElementById('createForm').reset();
+    document.getElementById('cSalary').value = DEFAULT_SALARY;
     document.getElementById('createAlert').innerHTML = '';
     document.getElementById('modalCreate').classList.add('active');
 }
@@ -178,25 +189,29 @@ function closeCreateModal() { document.getElementById('modalCreate').classList.r
 
 async function createEmployee(e) {
     e.preventDefault();
+    const salary = parseFloat(document.getElementById('cSalary').value) || DEFAULT_SALARY;
     const body = {
         name:     document.getElementById('cName').value.trim(),
         lastName: document.getElementById('cLastName').value.trim(),
-        cc:       document.getElementById('cCc').value.trim()
+        cc:       document.getElementById('cCc').value.trim(),
+        salary:   salary
     };
     try {
         const res = await fetch(`${API_BASE}users`, {
             method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
         });
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.message || 'Error al registrar');
+        }
         closeCreateModal();
         showAlert('Empleado registrado exitosamente');
         loadEmployees();
-    } catch {
-        showAlert('Error al registrar el empleado.', 'error', 'createAlert');
+    } catch (err) {
+        showAlert(err.message || 'Error al registrar el empleado.', 'error', 'createAlert');
     }
 }
 
-/* ── VIEW ── */
 function openViewModal(id) {
     const emp = allEmployees.find(e => e.id === id);
     if (!emp) return;
@@ -211,6 +226,7 @@ function openViewModal(id) {
     document.getElementById('vName').textContent           = emp.name;
     document.getElementById('vLastName').textContent       = emp.lastName;
     document.getElementById('vCc').textContent             = emp.cc;
+    document.getElementById('vSalary').textContent         = formatCurrency(emp.salary || DEFAULT_SALARY);
     document.getElementById('modalView').classList.add('active');
 }
 function closeViewModal() { document.getElementById('modalView').classList.remove('active'); }
@@ -220,7 +236,6 @@ function openEditFromView(id) {
     openEditModal(id);
 }
 
-/* ── EDIT ── */
 function openEditModal(id) {
     const emp = allEmployees.find(e => e.id === id);
     if (!emp) return;
@@ -228,6 +243,7 @@ function openEditModal(id) {
     document.getElementById('eName').value     = emp.name;
     document.getElementById('eLastName').value = emp.lastName;
     document.getElementById('eCc').value       = emp.cc;
+    document.getElementById('eSalary').value   = emp.salary || DEFAULT_SALARY;
     document.getElementById('editAlert').innerHTML = '';
     document.getElementById('modalEdit').classList.add('active');
 }
@@ -235,26 +251,30 @@ function closeEditModal() { document.getElementById('modalEdit').classList.remov
 
 async function updateEmployee(e) {
     e.preventDefault();
-    const id   = document.getElementById('eId').value;
+    const id     = document.getElementById('eId').value;
+    const salary = parseFloat(document.getElementById('eSalary').value) || DEFAULT_SALARY;
     const body = {
         name:     document.getElementById('eName').value.trim(),
         lastName: document.getElementById('eLastName').value.trim(),
-        cc:       document.getElementById('eCc').value.trim()
+        cc:       document.getElementById('eCc').value.trim(),
+        salary:   salary
     };
     try {
         const res = await fetch(`${API_BASE}users/${id}`, {
             method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
         });
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.message || 'Error al actualizar');
+        }
         closeEditModal();
         showAlert('Empleado actualizado exitosamente');
         loadEmployees();
-    } catch {
-        showAlert('Error al actualizar el empleado.', 'error', 'editAlert');
+    } catch (err) {
+        showAlert(err.message || 'Error al actualizar el empleado.', 'error', 'editAlert');
     }
 }
 
-/* ── DELETE ── */
 let pendingDeleteId = null;
 function confirmDelete(id, name) {
     pendingDeleteId = id;
@@ -277,7 +297,6 @@ async function deleteEmployee() {
     }
 }
 
-/* ── Backdrop click ── */
 window.addEventListener('click', e => {
     ['modalCreate','modalView','modalEdit','modalDelete'].forEach(id => {
         if (e.target === document.getElementById(id)) {
