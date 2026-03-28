@@ -6,6 +6,25 @@
     <title>Asistencias — SisPlus</title>
     <link rel="stylesheet" href="/css/assistance.css" th:href="@{/css/assistance.css}">
     <script src="/js/assistance.js" th:src="@{/js/assistance.js}" defer></script>
+    <style>
+        .date-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .date-val {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-700);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .datetime-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+    </style>
 </head>
 <body>
 
@@ -126,6 +145,7 @@
                         <thead>
                         <tr>
                             <th>Empleado</th>
+                            <th>Fecha</th>
                             <th>Entrada</th>
                             <th>Salida</th>
                             <th>Trabajadas</th>

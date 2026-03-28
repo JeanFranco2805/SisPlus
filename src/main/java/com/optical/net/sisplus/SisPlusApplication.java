@@ -39,7 +39,7 @@ public class SisPlusApplication implements CommandLineRunner {
         getOrCreate("NIGHT_OVERTIME_RATE", "13928.25");
         getOrCreate("NIGHT_START_HOUR", "19");
         getOrCreate("NIGHT_END_HOUR", "6");
-
+        adminService.createDefaultAdminIfNotExists();
         String timeZone = getOrCreate("TIME_ZONE", "America/Bogota");
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
     }
