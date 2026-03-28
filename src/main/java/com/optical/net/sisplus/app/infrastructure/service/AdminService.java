@@ -63,4 +63,25 @@ public class AdminService {
     public List<AdminDomain> findAllAdmins() {
         return portCaseAdapter.findAllAdmins();
     }
+
+    public void createDefaultAdminIfNotExists() {
+        if (!adminRepository.existsByUsername("admin")) {
+            Admin defaultAdmin = new Admin();
+            defaultAdmin.setUsername("admin");
+            defaultAdmin.setPassword(passwordEncoder.encode("admin123"));
+            defaultAdmin.setEnabled(true);
+            defaultAdmin.setAccountNonExpired(true);
+            defaultAdmin.setAccountNonLocked(true);
+            defaultAdmin.setCredentialsNonExpired(true);
+
+            Set<String> roles = new HashSet<>();
+            roles.add("ADMIN");
+            defaultAdmin.setRoles(roles);
+
+            adminRepository.save(defaultAdmin);
+            System.out.println("✅ Administrador por defecto creado - Username: admin, Password: admin123");
+        } else {
+            System.out.println("ℹ️  El administrador por defecto ya existe");
+        }
+    }
 }

@@ -19,26 +19,6 @@ public class UserDomain {
     private double salary;
     private List<AttendanceDomain> attendance;
 
-    private double effectiveRegularRate(PayrollConfiguration config) {
-        if (salary > 0) return salary / 240.0;
-        return config.getRegularHourRate();
-    }
-
-    private double effectiveDayOvertimeRate(PayrollConfiguration config) {
-        if (salary > 0) return (salary / 240.0) * 1.25;
-        return config.getDayOvertimeRate();
-    }
-
-    private double effectiveNightSurchargeRate(PayrollConfiguration config) {
-        if (salary > 0) return (salary / 240.0) * 0.35;
-        return config.getNightSurchargeRate();
-    }
-
-    private double effectiveNightOvertimeRate(PayrollConfiguration config) {
-        if (salary > 0) return (salary / 240.0) * 1.75;
-        return config.getNightOvertimeRate();
-    }
-
     public PayrollCalculation calculateDailyPayroll(LocalDate date, PayrollConfiguration config) {
         if (attendance == null || attendance.isEmpty()) {
             return PayrollCalculation.builder().build();
@@ -56,10 +36,10 @@ public class UserDomain {
         double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(todayAttendance, config);
         double nightHours = todayAttendance.getNightHours(config);
 
-        double regularPay = regularHours * effectiveRegularRate(config);
-        double nightSurchargePay = nightHours * effectiveNightSurchargeRate(config);
-        double dayOvertimePay = dayOvertimeHours * effectiveDayOvertimeRate(config);
-        double nightOvertimePay = nightOvertimeHours * effectiveNightOvertimeRate(config);
+        double regularPay = regularHours * config.getRegularHourRate();
+        double nightSurchargePay = nightHours * config.getNightSurchargeRate();
+        double dayOvertimePay = dayOvertimeHours * config.getDayOvertimeRate();
+        double nightOvertimePay = nightOvertimeHours * config.getNightOvertimeRate();
         double totalOvertimePay = dayOvertimePay + nightOvertimePay;
         double totalPay = regularPay + nightSurchargePay + totalOvertimePay;
 
@@ -93,7 +73,10 @@ public class UserDomain {
 
     public PayrollCalculation calculateMonthlyPayroll(int month, int year, PayrollConfiguration config) {
         if (attendance == null || attendance.isEmpty()) {
-            return PayrollCalculation.builder().build();
+            return PayrollCalculation.builder()
+                    .regularPay(salary > 0 ? salary : 0)
+                    .totalPay(salary > 0 ? salary : 0)
+                    .build();
         }
 
         List<AttendanceDomain> monthlyAttendances = attendance.stream()
@@ -102,7 +85,52 @@ public class UserDomain {
                 .filter(AttendanceDomain::isComplete)
                 .toList();
 
-        return calculatePayrollForPeriod(monthlyAttendances, config);
+        double totalRegularHours = 0;
+        double totalDayOvertimeHours = 0;
+        double totalNightOvertimeHours = 0;
+        double totalNightHours = 0;
+        double totalNightSurchargePay = 0;
+        double totalDayOvertimePay = 0;
+        double totalNightOvertimePay = 0;
+
+        for (AttendanceDomain att : monthlyAttendances) {
+            if (att == null || !att.isComplete()) {
+                continue;
+            }
+
+            double workedHours = att.getWorkedHours();
+            double regularHours = Math.min(workedHours, config.getRegularWorkHours());
+            double nightHours = att.getNightHours(config);
+
+            double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att, config);
+            double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att, config);
+
+            totalRegularHours += regularHours;
+            totalDayOvertimeHours += dayOvertimeHours;
+            totalNightOvertimeHours += nightOvertimeHours;
+            totalNightHours += nightHours;
+
+            totalNightSurchargePay += nightHours * config.getNightSurchargeRate();
+            totalDayOvertimePay += dayOvertimeHours * config.getDayOvertimeRate();
+            totalNightOvertimePay += nightOvertimeHours * config.getNightOvertimeRate();
+        }
+
+        double basePay = salary > 0 ? salary : totalRegularHours * config.getRegularHourRate();
+        double totalOvertimePay = totalDayOvertimePay + totalNightOvertimePay;
+        double totalPay = basePay + totalNightSurchargePay + totalOvertimePay;
+
+        return PayrollCalculation.builder()
+                .regularHours(totalRegularHours)
+                .dayOvertimeHours(totalDayOvertimeHours)
+                .nightOvertimeHours(totalNightOvertimeHours)
+                .nightHours(totalNightHours)
+                .regularPay(basePay)
+                .nightSurchargePay(totalNightSurchargePay)
+                .dayOvertimePay(totalDayOvertimePay)
+                .nightOvertimePay(totalNightOvertimePay)
+                .totalOvertimePay(totalOvertimePay)
+                .totalPay(totalPay)
+                .build();
     }
 
     private PayrollCalculation calculatePayrollForPeriod(List<AttendanceDomain> attendances, PayrollConfiguration config) {
@@ -132,10 +160,10 @@ public class UserDomain {
             totalNightOvertimeHours += nightOvertimeHours;
             totalNightHours += nightHours;
 
-            totalRegularPay += regularHours * effectiveRegularRate(config);
-            totalNightSurchargePay += nightHours * effectiveNightSurchargeRate(config);
-            totalDayOvertimePay += dayOvertimeHours * effectiveDayOvertimeRate(config);
-            totalNightOvertimePay += nightOvertimeHours * effectiveNightOvertimeRate(config);
+            totalRegularPay += regularHours * config.getRegularHourRate();
+            totalNightSurchargePay += nightHours * config.getNightSurchargeRate();
+            totalDayOvertimePay += dayOvertimeHours * config.getDayOvertimeRate();
+            totalNightOvertimePay += nightOvertimeHours * config.getNightOvertimeRate();
         }
 
         double totalOvertimePay = totalDayOvertimePay + totalNightOvertimePay;

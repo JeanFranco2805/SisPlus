@@ -15,7 +15,6 @@ const AVATAR_COLORS = [
     { bg:'rgba(5,150,105,.1)',  color:'#059669' },
 ];
 
-/* ── Sidebar / clock ── */
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const main    = document.getElementById('mainContent');
@@ -42,7 +41,6 @@ function initClock() {
     if (fm) fm.textContent = y;
 }
 
-/* ── Alerts ── */
 function showAlert(msg, type = 'success', container = 'alertContainer') {
     const icon = type === 'success'
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
@@ -52,14 +50,20 @@ function showAlert(msg, type = 'success', container = 'alertContainer') {
     setTimeout(() => { el.innerHTML = ''; }, 5000);
 }
 
-/* ── Helpers ── */
 function getInitials(name, lastName) {
     return ((name || '').charAt(0) + (lastName || '').charAt(0)).toUpperCase();
 }
+
 function fmtTime(dt) {
     if (!dt) return '—';
     return new Date(dt).toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', hour12:false });
 }
+
+function fmtDate(dt) {
+    if (!dt) return '—';
+    return new Date(dt).toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
 function fmtDateTimeLocal(dt) {
     if (!dt) return '';
     const d = new Date(dt);
@@ -67,7 +71,6 @@ function fmtDateTimeLocal(dt) {
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/* ── Load employees for selects ── */
 async function loadEmployees() {
     try {
         const res = await fetch(`${API_BASE}/users`);
@@ -80,10 +83,9 @@ async function loadEmployees() {
             const el = document.getElementById(id);
             if (el) el.innerHTML = options;
         });
-    } catch { /* silently fail */ }
+    } catch { }
 }
 
-/* ── Load attendances ── */
 async function loadAttendances(filter = 'today') {
     try {
         const res = await fetch(`${API_BASE}/attendances?filter=${filter}`);
@@ -136,7 +138,6 @@ async function changePeriodFilter() {
     await loadAttendances(filter);
 }
 
-/* ── Render ── */
 function renderTable() {
     const tbody = document.getElementById('attTableBody');
     const empty = document.getElementById('stateEmpty');
@@ -159,6 +160,9 @@ function renderTable() {
         const extra    = (att.extraHours  || 0) > 0 ? `<span class="hours-val hours-extra">${att.extraHours.toFixed(2)}h</span>` : '<span class="hours-val">—</span>';
         const night    = (att.nightHours  || 0) > 0 ? `<span class="hours-val hours-night">${att.nightHours.toFixed(2)}h</span>`  : '<span class="hours-val">—</span>';
         const userId   = user.id || '';
+        const dateStr  = fmtDate(att.entryTime);
+        const entryStr = fmtTime(att.entryTime);
+        const exitStr  = fmtTime(att.departureTime);
 
         return `
         <tr>
@@ -168,8 +172,21 @@ function renderTable() {
               <span class="emp-fullname">${user.name || ''} ${user.lastName || ''}</span>
             </div>
           </td>
-          <td><span class="time-val">${fmtTime(att.entryTime)}</span></td>
-          <td><span class="time-val">${fmtTime(att.departureTime)}</span></td>
+          <td>
+            <div class="date-cell">
+              <span class="date-val">${dateStr}</span>
+            </div>
+          </td>
+          <td>
+            <div class="datetime-cell">
+              <span class="time-val">${entryStr}</span>
+            </div>
+          </td>
+          <td>
+            <div class="datetime-cell">
+              <span class="time-val">${exitStr}</span>
+            </div>
+          </td>
           <td><span class="hours-val">${hours}</span></td>
           <td>${extra}</td>
           <td>${night}</td>
@@ -234,7 +251,6 @@ function goPage(p) {
     renderPagination();
 }
 
-/* ── Entry modal ── */
 function openEntryModal() {
     document.getElementById('entryForm').reset();
     document.getElementById('entryAlert').innerHTML = '';
@@ -257,7 +273,6 @@ async function registerEntry(e) {
     }
 }
 
-/* ── Exit modal ── */
 function openExitModal() {
     document.getElementById('exitForm').reset();
     document.getElementById('exitAlert').innerHTML = '';
@@ -292,7 +307,6 @@ async function quickExit(userId) {
     }
 }
 
-/* ── Edit modal ── */
 async function openEditModal(attId) {
     try {
         const res = await fetch(`${API_BASE}/attendances/${attId}`);
@@ -330,7 +344,6 @@ async function updateAttendance(e) {
     }
 }
 
-/* ── Delete ── */
 let pendingDeleteId = null;
 function confirmDelete(id) {
     pendingDeleteId = id;
@@ -352,7 +365,6 @@ async function deleteAttendance() {
     }
 }
 
-/* ── Backdrop click ── */
 window.addEventListener('click', e => {
     ['modalEntry','modalExit','modalEdit','modalDelete'].forEach(id => {
         if (e.target === document.getElementById(id))
