@@ -5,7 +5,6 @@ import com.optical.net.sisplus.app.domain.PayrollCalculation;
 import com.optical.net.sisplus.app.domain.PayrollConfiguration;
 import com.optical.net.sisplus.app.domain.UserDomain;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +13,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-/**
- * Servicio especializado para cálculos de nómina
- * Implementa procesamiento asíncrono para operaciones pesadas
- * Ahora inyecta PayrollConfiguration en lugar de usar variables estáticas
- */
 @Slf4j
 @Service
 public class PayrollService {
@@ -31,12 +25,6 @@ public class PayrollService {
         this.configurationService = configurationService;
     }
 
-    /**
-     * Calcula nómina de forma síncrona con caché
-     * Ahora recibe la configuración como parámetro
-     */
-    @Cacheable(value = "payrollCalculations",
-            key = "#userId + '-' + #period + '-' + #month + '-' + #year")
     public PayrollCalculation calculatePayroll(Long userId, String period,
                                                Integer month, Integer year,
                                                LocalDate date,
@@ -44,6 +32,12 @@ public class PayrollService {
         log.debug("Calculando nómina para usuario {} - periodo: {}", userId, period);
 
         UserDomain user = portAdapter.findUserById(userId);
+
+        if (user.getAttendance() == null || user.getAttendance().isEmpty()) {
+            log.warn("Usuario {} no tiene asistencias cargadas", userId);
+        } else {
+            log.debug("Usuario {} tiene {} asistencias", userId, user.getAttendance().size());
+        }
 
         return switch (period.toLowerCase()) {
             case "weekly" -> user.calculateWeeklyPayroll(
@@ -62,10 +56,6 @@ public class PayrollService {
         };
     }
 
-    /**
-     * Calcula nómina mensual de forma ASÍNCRONA
-     * Útil para reportes que procesan múltiples empleados
-     */
     @Async("payrollExecutor")
     public CompletableFuture<PayrollCalculation> calculateMonthlyPayrollAsync(
             Long userId, int month, int year) {
@@ -87,10 +77,6 @@ public class PayrollService {
         }
     }
 
-    /**
-     * Calcula nómina para TODOS los empleados de forma asíncrona
-     * Procesa en paralelo para mejor rendimiento
-     */
     @Async("payrollExecutor")
     public CompletableFuture<List<EmployeePayroll>> calculatePayrollForAllEmployees(
             int month, int year) {
@@ -102,7 +88,6 @@ public class PayrollService {
             List<UserDomain> users = portAdapter.getAllUsers();
             PayrollConfiguration config = configurationService.getPayrollConfig();
 
-            // Procesar en paralelo
             List<EmployeePayroll> payrolls = users.parallelStream()
                     .map(user -> {
                         try {
@@ -131,9 +116,6 @@ public class PayrollService {
         }
     }
 
-    /**
-     * DTO para resultado de nómina de empleado
-     */
     public record EmployeePayroll(
             Long userId,
             String firstName,

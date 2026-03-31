@@ -19,28 +19,16 @@ public class AttendanceDomain implements Comparable<AttendanceDomain> {
     private LocalDateTime departureTime;
     private int hoursWorked;
 
-    /**
-     * Calcula las horas trabajadas
-     * @return Horas trabajadas en formato decimal
-     */
     public double getWorkedHours() {
         if (entryTime == null || departureTime == null) return 0.0;
-        return Duration.between(entryTime, departureTime).toHours();
+        long minutes = Duration.between(entryTime, departureTime).toMinutes();
+        return minutes / 60.0;
     }
 
-    /**
-     * Obtiene la fecha de la asistencia
-     * @return Fecha de entrada
-     */
     public LocalDate getDate() {
         return entryTime != null ? entryTime.toLocalDate() : null;
     }
 
-    /**
-     * Calcula las horas nocturnas con configuración específica
-     * @param config Configuración de horarios nocturnos
-     * @return Horas nocturnas trabajadas
-     */
     public double getNightHours(PayrollConfiguration config) {
         if (entryTime == null || departureTime == null) return 0.0;
         if (entryTime.isAfter(departureTime)) return 0.0;
@@ -57,18 +45,11 @@ public class AttendanceDomain implements Comparable<AttendanceDomain> {
         return minutes / 60.0;
     }
 
-    /**
-     * @deprecated Usar {@link #getNightHours(PayrollConfiguration)}
-     */
     @Deprecated(since = "1.1", forRemoval = true)
     public double getNightHours() {
         return getNightHours(PayrollConfiguration.defaults());
     }
 
-    /**
-     * Verifica si la asistencia está completa (tiene entrada y salida)
-     * @return true si está completa
-     */
     public boolean isComplete() {
         return entryTime != null && departureTime != null;
     }

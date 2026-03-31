@@ -22,16 +22,13 @@ public class UserService {
     private static final double DEFAULT_SALARY = 1_423_500.0;
 
     private final PortAdapter portAdapter;
-    private final PayrollService payrollService;
     private final PayrollConfigurationService configurationService;
     private final XssSanitizer xssSanitizer;
 
     public UserService(PortAdapter portAdapter,
-                       PayrollService payrollService,
                        PayrollConfigurationService configurationService,
                        XssSanitizer xssSanitizer) {
         this.portAdapter = portAdapter;
-        this.payrollService = payrollService;
         this.configurationService = configurationService;
         this.xssSanitizer = xssSanitizer;
     }
@@ -103,12 +100,50 @@ public class UserService {
         log.debug("Calculando nómina para usuario {} - periodo: {}", id, period);
 
         UserDomain user = portAdapter.findUserById(id);
+
+        log.debug("Usuario {} cargado con {} asistencias", id,
+                user.getAttendance() != null ? user.getAttendance().size() : 0);
+
         PayrollConfiguration config = configurationService.getPayrollConfig();
 
-        PayrollCalculation payroll = payrollService.calculatePayroll(
-                id, period, month, year, date, config);
+        PayrollCalculation payroll = calculatePayrollByPeriod(user, date, month, year, period, config);
+
+        log.debug("Nómina calculada para usuario {}: totalPay={}, regularHours={}, dayOT={}, nightOT={}",
+                id, payroll.getTotalPay(), payroll.getRegularHours(),
+                payroll.getDayOvertimeHours(), payroll.getNightOvertimeHours());
 
         return UserResponseMapper.fromDomainWithPayroll(user, payroll);
+    }
+
+    private PayrollCalculation calculatePayrollByPeriod(UserDomain user, LocalDate date,
+                                                        Integer month, Integer year,
+                                                        String period, PayrollConfiguration config) {
+        if (period != null) {
+            return switch (period.toLowerCase()) {
+                case "weekly" -> {
+                    LocalDate d = date != null ? date : LocalDate.now();
+                    log.debug("Calculando nómina semanal para fecha: {}, weekStart: {}", d, d.minusDays(6));
+                    yield user.calculateWeeklyPayroll(d, config);
+                }
+                case "monthly" -> {
+                    int m = month != null ? month : LocalDate.now().getMonthValue();
+                    int y = year != null ? year : LocalDate.now().getYear();
+                    log.debug("Calculando nómina mensual para {}/{}", m, y);
+                    yield user.calculateMonthlyPayroll(m, y, config);
+                }
+                default -> {
+                    LocalDate d = date != null ? date : LocalDate.now();
+                    log.debug("Calculando nómina diaria para fecha: {}", d);
+                    yield user.calculateDailyPayroll(d, config);
+                }
+            };
+        }
+
+        if (month != null && year != null) {
+            return user.calculateMonthlyPayroll(month, year, config);
+        }
+
+        return user.calculateDailyPayroll(date != null ? date : LocalDate.now(), config);
     }
 
     @Transactional

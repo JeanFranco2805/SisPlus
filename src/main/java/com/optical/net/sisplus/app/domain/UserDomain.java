@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,6 +66,7 @@ public class UserDomain {
 
         LocalDate weekStart = date.minusDays(6);
         List<AttendanceDomain> weeklyAttendances = attendance.stream()
+                .filter(a -> a.getDate() != null)
                 .filter(a -> !a.getDate().isBefore(weekStart) && !a.getDate().isAfter(date))
                 .filter(AttendanceDomain::isComplete)
                 .toList();
@@ -192,17 +194,15 @@ public class UserDomain {
         }
 
         double workedHours = attendance.getWorkedHours();
-        double overtimeHours = Math.max(0, workedHours - config.getRegularWorkHours());
-
-        if (overtimeHours == 0) {
+        if (workedHours <= config.getRegularWorkHours()) {
             return 0.0;
         }
 
         LocalDateTime entryTime = attendance.getEntryTime();
         LocalDateTime departureTime = attendance.getDepartureTime();
-        LocalDateTime regularWorkEnd = entryTime.plusHours(config.getRegularWorkHours());
+        LocalDateTime regularWorkEnd = entryTime.plusMinutes((long)(config.getRegularWorkHours() * 60));
 
-        if (regularWorkEnd.isAfter(departureTime)) {
+        if (!regularWorkEnd.isBefore(departureTime)) {
             return 0.0;
         }
 
@@ -226,17 +226,15 @@ public class UserDomain {
         }
 
         double workedHours = attendance.getWorkedHours();
-        double overtimeHours = Math.max(0, workedHours - config.getRegularWorkHours());
-
-        if (overtimeHours == 0) {
+        if (workedHours <= config.getRegularWorkHours()) {
             return 0.0;
         }
 
         LocalDateTime entryTime = attendance.getEntryTime();
         LocalDateTime departureTime = attendance.getDepartureTime();
-        LocalDateTime regularWorkEnd = entryTime.plusHours(config.getRegularWorkHours());
+        LocalDateTime regularWorkEnd = entryTime.plusMinutes((long)(config.getRegularWorkHours() * 60));
 
-        if (regularWorkEnd.isAfter(departureTime)) {
+        if (!regularWorkEnd.isBefore(departureTime)) {
             return 0.0;
         }
 

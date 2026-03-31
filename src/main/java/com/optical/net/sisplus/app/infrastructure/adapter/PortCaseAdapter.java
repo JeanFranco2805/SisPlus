@@ -56,7 +56,6 @@ public class PortCaseAdapter implements PortAdapter {
         this.adminMapper = adminMapper;
     }
 
-
     @Override
     @Transactional
     @Caching(evict = {
@@ -71,23 +70,38 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
-    @Cacheable(value = "userById", key = "#usuarioId")
     @Transactional(readOnly = true)
     public UserDomain findUserById(Long usuarioId) {
-        log.debug("Buscando usuario por ID: {} (con caché)", usuarioId);
+        log.debug("Buscando usuario por ID: {}", usuarioId);
 
         var user = userRepository.findByIdWithAttendances(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId));
 
-        var userDomain = userMapper.toDomain(user);
+        var userDomain = UserDomain.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .lastName(user.getLastName())
+                .cc(user.getCc())
+                .salary(user.getSalary())
+                .build();
 
-        List<AttendanceDomain> attendanceDomains = user.getAttendances() != null
-                ? user.getAttendances().stream()
-                .map(attendanceMapper::toDomain)
-                .collect(Collectors.toList())
-                : new ArrayList<>();
+        List<AttendanceDomain> attendanceDomains = new ArrayList<>();
+        if (user.getAttendances() != null) {
+            for (var att : user.getAttendances()) {
+                AttendanceDomain attDomain = AttendanceDomain.builder()
+                        .id(att.getId())
+                        .entryTime(att.getEntryTime())
+                        .departureTime(att.getDepartureTime())
+                        .build();
+                attDomain.setUser(userDomain);
+                attendanceDomains.add(attDomain);
+            }
+        }
 
         userDomain.setAttendance(attendanceDomains);
+
+        log.debug("Usuario {} cargado con {} asistencias", usuarioId, attendanceDomains.size());
+
         return userDomain;
     }
 
@@ -117,7 +131,6 @@ public class PortCaseAdapter implements PortAdapter {
         log.info("Eliminando usuario con ID: {}", id);
         userRepository.removeById(id);
     }
-
 
     @Override
     @Transactional
@@ -161,7 +174,6 @@ public class PortCaseAdapter implements PortAdapter {
         );
         registerAttendance(user.getId());
     }
-
 
     @Override
     @Transactional
@@ -311,7 +323,6 @@ public class PortCaseAdapter implements PortAdapter {
         return attendanceMapper.toDomain(updatedAttendance);
     }
 
-
     @Override
     @Transactional
     @Caching(evict = {
@@ -325,7 +336,6 @@ public class PortCaseAdapter implements PortAdapter {
         }
         attendanceRepository.deleteById(attendanceId);
     }
-
 
     @Override
     @Transactional
