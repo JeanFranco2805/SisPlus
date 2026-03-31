@@ -40,4 +40,6 @@ public class MainController {
     public String register(){
         return "register";
     }
+    @GetMapping("reports")
+    public String reports() { return "reports"; }
 }

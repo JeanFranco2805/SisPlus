@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administradores — SisPlus</title>
-    <link rel="stylesheet" href="/css/admin.css" th:href="@{/css/admin.css}">
-    <script src="/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+    <title>Historial de Reportes — SisPlus</title>
+    <link rel="stylesheet" href="/css/reports.css" th:href="@{/css/reports.css}">
+    <script src="/js/reports.js" th:src="@{/js/reports.js}" defer></script>
 </head>
 <body>
 
-<!-- ── Topbar ── -->
 <div class="topbar">
     <div class="topbar-left">
         <button class="menu-toggle" onclick="toggleSidebar()">
@@ -32,7 +31,6 @@
     </div>
 </div>
 
-<!-- ── Sidebar ── -->
 <div class="sidebar" id="sidebar">
     <div class="nav-section">
         <div class="nav-section-label">Principal</div>
@@ -52,7 +50,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             Nómina
         </a>
-        <a href="/reports" class="nav-item">
+        <a href="/reports" class="nav-item active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Reportes
         </a>
@@ -60,7 +58,7 @@
     <div class="nav-divider"></div>
     <div class="nav-section">
         <div class="nav-section-label">Sistema</div>
-        <a href="/admin" class="nav-item active">
+        <a href="/admin" class="nav-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             Administradores
         </a>
@@ -71,59 +69,88 @@
     </div>
 </div>
 
-<!-- ── Main ── -->
 <div class="main-content" id="mainContent">
     <div class="content-area">
 
         <div class="page-header">
             <div>
-                <h1 class="page-title">Administradores</h1>
-                <p class="page-subtitle">Usuarios con acceso al sistema</p>
+                <h1 class="page-title">Historial de Reportes</h1>
+                <p class="page-subtitle">Snapshots permanentes de nómina mensual · Se generan automáticamente al cierre del mes</p>
             </div>
             <button class="btn btn-primary" onclick="openCreateModal()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Nuevo administrador
+                Generar reporte
             </button>
         </div>
 
-        <div class="info-banner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Los administradores tienen acceso completo al sistema. El nombre de usuario debe ser único y la contraseña debe contener al menos 6 caracteres.
+        <div class="stats-row">
+            <div class="stat-mini">
+                <div class="stat-mini-accent accent-navy"></div>
+                <div class="stat-mini-label">Total de reportes</div>
+                <div class="stat-mini-value" id="statTotal">—</div>
+                <div class="stat-mini-sub">Snapshots almacenados</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-accent accent-teal"></div>
+                <div class="stat-mini-label">Reportes automáticos</div>
+                <div class="stat-mini-value" id="statAuto">—</div>
+                <div class="stat-mini-sub">Generados al cierre del mes</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-accent accent-amber"></div>
+                <div class="stat-mini-label">Nómina acumulada</div>
+                <div class="stat-mini-value" id="statPayroll" style="font-size:18px">—</div>
+                <div class="stat-mini-sub">Suma histórica total</div>
+            </div>
         </div>
 
         <div id="alertContainer" class="alert-container"></div>
 
         <div class="card">
             <div class="card-head">
-                <span class="card-title">Lista de administradores</span>
+                <span class="card-title">Reportes de nómina</span>
             </div>
+
             <div class="card-toolbar">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre de usuario…" oninput="applyFilter()">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por mes o año…" oninput="applyFilter()">
                 </div>
+                <select id="yearFilter" class="filter-select" onchange="applyFilter()">
+                    <option value="">Todos los años</option>
+                </select>
+                <select id="typeFilter" class="filter-select" onchange="applyFilter()">
+                    <option value="">Todos los tipos</option>
+                    <option value="AUTOMATIC">Automático</option>
+                    <option value="MANUAL">Manual</option>
+                </select>
             </div>
 
-            <div class="state-loading" id="stateLoading">Cargando administradores…</div>
+            <div class="state-loading" id="stateLoading">
+                <div class="spinner"></div>
+                <span>Cargando reportes…</span>
+            </div>
 
             <div id="tableSection" class="hidden">
                 <div class="table-wrap">
-                    <table class="adm-table">
+                    <table class="rep-table">
                         <thead>
                         <tr>
-                            <th>Usuario</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
+                            <th>Período</th>
+                            <th>Nómina total</th>
+                            <th>Empleados</th>
+                            <th>Tipo</th>
+                            <th>Generado el</th>
                             <th>Acciones</th>
                         </tr>
                         </thead>
-                        <tbody id="admTableBody"></tbody>
+                        <tbody id="repTableBody"></tbody>
                     </table>
                 </div>
 
                 <div class="state-empty hidden" id="stateEmpty">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    No se encontraron administradores
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    No hay reportes registrados
                 </div>
 
                 <div class="pagination">
@@ -136,7 +163,6 @@
     </div>
 </div>
 
-<!-- ── Footer ── -->
 <footer class="site-footer">
     <div class="footer-sidebar-zone">
         <span class="footer-brand">SisPlus</span>
@@ -156,54 +182,48 @@
     </div>
 </footer>
 
-<!-- ── Modal: Crear administrador ── -->
 <div class="modal-backdrop" id="modalCreate">
     <div class="modal">
         <div class="modal-head">
-            <span class="modal-title">Nuevo administrador</span>
+            <span class="modal-title">Generar reporte de nómina</span>
             <button class="modal-close" onclick="closeCreateModal()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
-        <form id="createForm" onsubmit="createAdmin(event)">
+        <form id="createForm" onsubmit="createReport(event)">
             <div class="modal-body">
                 <div id="createAlert"></div>
+                <p style="font-size:12px;color:var(--gray-500);margin-bottom:20px;line-height:1.6">
+                    Se generará un snapshot del estado actual de la nómina para el período seleccionado. Este reporte quedará guardado de forma permanente y podrás descargarlo en cualquier momento.
+                </p>
                 <div class="field-group">
-                    <label class="field-label" for="cUsername">Nombre de usuario *</label>
-                    <input type="text" id="cUsername" class="field-input" placeholder="Ej. jperez" minlength="3" required>
+                    <label class="field-label" for="createMonth">Mes *</label>
+                    <select id="createMonth" class="field-select" required>
+                        <option value="1">Enero</option><option value="2">Febrero</option>
+                        <option value="3">Marzo</option><option value="4">Abril</option>
+                        <option value="5">Mayo</option><option value="6">Junio</option>
+                        <option value="7">Julio</option><option value="8">Agosto</option>
+                        <option value="9">Septiembre</option><option value="10">Octubre</option>
+                        <option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    </select>
                 </div>
                 <div class="field-group">
-                    <label class="field-label" for="cPassword">Contraseña *</label>
-                    <div class="pwd-wrap">
-                        <input type="password" id="cPassword" class="field-input" placeholder="Mínimo 6 caracteres" minlength="6" required>
-                        <button type="button" class="pwd-eye" id="eyeBtn1" onclick="togglePwd('cPassword','eyeBtn1')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label" for="cConfirm">Confirmar contraseña *</label>
-                    <div class="pwd-wrap">
-                        <input type="password" id="cConfirm" class="field-input" placeholder="Repite la contraseña" minlength="6" required>
-                        <button type="button" class="pwd-eye" id="eyeBtn2" onclick="togglePwd('cConfirm','eyeBtn2')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        </button>
-                    </div>
+                    <label class="field-label" for="createYear">Año *</label>
+                    <input type="number" id="createYear" class="field-input" min="2020" max="2030" required>
                 </div>
             </div>
             <div class="modal-foot">
                 <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Crear administrador</button>
+                <button type="submit" class="btn btn-primary">Generar reporte</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ── Modal: Confirmar eliminación ── -->
 <div class="modal-backdrop" id="modalDelete">
     <div class="modal" style="max-width:400px">
         <div class="modal-head">
-            <span class="modal-title">Eliminar administrador</span>
+            <span class="modal-title">Eliminar reporte</span>
             <button class="modal-close" onclick="closeDeleteModal()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -214,15 +234,23 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </div>
                 <div>
-                    <p style="font-size:13px;font-weight:500;color:var(--gray-800);margin-bottom:6px">¿Eliminar a <span id="deleteAdmName" style="color:var(--navy)"></span>?</p>
-                    <p style="font-size:12px;color:var(--gray-500);line-height:1.55">Esta acción no se puede deshacer. El administrador perderá el acceso al sistema de forma inmediata.</p>
+                    <p style="font-size:13px;font-weight:500;color:var(--gray-800);margin-bottom:6px">¿Eliminar reporte de <span id="deleteReportName" style="color:var(--navy)"></span>?</p>
+                    <p style="font-size:12px;color:var(--gray-500);line-height:1.55">Esta acción es irreversible. El snapshot y el archivo Excel asociado se eliminarán permanentemente.</p>
                 </div>
             </div>
         </div>
         <div class="modal-foot">
             <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
-            <button class="btn btn-primary" style="background:var(--rose);border-color:var(--rose)" onclick="deleteAdmin()">Sí, eliminar</button>
+            <button class="btn btn-primary" style="background:var(--rose);border-color:var(--rose)" onclick="deleteReport()">Sí, eliminar</button>
         </div>
+    </div>
+</div>
+
+<div class="generating-overlay" id="generatingOverlay">
+    <div class="generating-box">
+        <div class="spinner" style="width:32px;height:32px;border-width:3px"></div>
+        <div class="generating-title">Generando reporte…</div>
+        <div class="generating-sub">Calculando nómina y creando el archivo Excel</div>
     </div>
 </div>
 
