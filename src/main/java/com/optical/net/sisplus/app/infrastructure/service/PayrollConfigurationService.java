@@ -9,7 +9,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,11 +21,11 @@ public class PayrollConfigurationService {
         log.debug("Cargando configuración de nómina desde base de datos");
 
         return PayrollConfiguration.builder()
-                .regularHourRate(getConfigDouble("REGULAR_HOUR_RATE", 7959.0))
-                .dayOvertimeRate(getConfigDouble("DAY_OVERTIME_RATE", 9948.0))
-                .nightSurchargeRate(getConfigDouble("NIGHT_SURCHARGE_RATE", 2786.0))
-                .nightOvertimeRate(getConfigDouble("NIGHT_OVERTIME_RATE", 13928.25))
-                .nightStartHour(getConfigInt("NIGHT_START_HOUR", 19))
+                .dayOvertimeMultiplier(getConfigDouble("DAY_OVERTIME_MULTIPLIER", 1.25))
+                .nightSurchargeMultiplier(getConfigDouble("NIGHT_SURCHARGE_MULTIPLIER", 0.35))
+                .nightOvertimeMultiplier(getConfigDouble("NIGHT_OVERTIME_MULTIPLIER", 1.75))
+                .workHoursPerMonth(getConfigInt("WORK_HOURS_PER_MONTH", 240))
+                .nightStartHour(getConfigInt("NIGHT_START_HOUR", 21))
                 .nightEndHour(getConfigInt("NIGHT_END_HOUR", 6))
                 .regularWorkHours(8)
                 .build();

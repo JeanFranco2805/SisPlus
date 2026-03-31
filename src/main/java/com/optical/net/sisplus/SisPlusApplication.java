@@ -1,6 +1,5 @@
 package com.optical.net.sisplus;
 
-import com.optical.net.sisplus.app.domain.AdminDomain;
 import com.optical.net.sisplus.app.infrastructure.entity.Configuration;
 import com.optical.net.sisplus.app.infrastructure.repository.ConfigurationRepository;
 import com.optical.net.sisplus.app.infrastructure.service.AdminService;
@@ -31,15 +30,16 @@ public class SisPlusApplication implements CommandLineRunner {
     public void run(String... args) {
         log.info("Inicializando configuraciones del sistema...");
 
-        // Crear configuraciones por defecto si no existen
         getOrCreate("TIME_ZONE", "America/Bogota");
-        getOrCreate("REGULAR_HOUR_RATE", "7959");
-        getOrCreate("DAY_OVERTIME_RATE", "9948");
-        getOrCreate("NIGHT_SURCHARGE_RATE", "2786");
-        getOrCreate("NIGHT_OVERTIME_RATE", "13928.25");
-        getOrCreate("NIGHT_START_HOUR", "19");
+        getOrCreate("WORK_HOURS_PER_MONTH", "240");
+        getOrCreate("DAY_OVERTIME_MULTIPLIER", "1.25");
+        getOrCreate("NIGHT_SURCHARGE_MULTIPLIER", "0.35");
+        getOrCreate("NIGHT_OVERTIME_MULTIPLIER", "1.75");
+        getOrCreate("NIGHT_START_HOUR", "21");
         getOrCreate("NIGHT_END_HOUR", "6");
+
         adminService.createDefaultAdminIfNotExists();
+
         String timeZone = getOrCreate("TIME_ZONE", "America/Bogota");
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
     }
