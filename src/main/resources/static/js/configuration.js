@@ -1,7 +1,6 @@
 const API_BASE = '/api/config';
 let originalConfig = {};
 
-/* ── Sidebar / clock ── */
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const main    = document.getElementById('mainContent');
@@ -28,7 +27,6 @@ function initClock() {
     if (fm) fm.textContent = y;
 }
 
-/* ── Alerts ── */
 function showAlert(msg, type = 'success') {
     const icons = {
         success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
@@ -41,7 +39,32 @@ function showAlert(msg, type = 'success') {
     setTimeout(() => { el.innerHTML = ''; }, 6000);
 }
 
-/* ── Load config ── */
+function fmtCOP(value) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+}
+
+function updatePreview() {
+    const salary       = parseFloat(document.getElementById('previewSalary').value) || 0;
+    const hoursPerMonth = parseFloat(document.getElementById('workHoursPerMonth').value) || 240;
+    const hedMult      = parseFloat(document.getElementById('dayOvertimeMultiplier').value) || 1.25;
+    const rnMult       = parseFloat(document.getElementById('nightSurchargeMultiplier').value) || 0.35;
+    const henMult      = parseFloat(document.getElementById('nightOvertimeMultiplier').value) || 1.75;
+
+    const hourlyRate = hoursPerMonth > 0 ? salary / hoursPerMonth : 0;
+
+    document.getElementById('pvHour').textContent = fmtCOP(hourlyRate);
+    document.getElementById('pvHed').textContent  = fmtCOP(hourlyRate * hedMult);
+    document.getElementById('pvRn').textContent   = fmtCOP(hourlyRate * rnMult);
+    document.getElementById('pvHen').textContent  = fmtCOP(hourlyRate * henMult);
+}
+
+function attachPreviewListeners() {
+    ['workHoursPerMonth','dayOvertimeMultiplier','nightSurchargeMultiplier','nightOvertimeMultiplier'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updatePreview);
+    });
+}
+
 async function loadConfiguration() {
     try {
         const res = await fetch(API_BASE);
@@ -50,18 +73,21 @@ async function loadConfiguration() {
 
         configs.forEach(c => { originalConfig[c.key] = c.value; });
 
-        setField('regularHourRate',  'REGULAR_HOUR_RATE',  '7959');
-        setField('dayOvertimeRate',  'DAY_OVERTIME_RATE',  '9948');
-        setField('nightSurchargeRate','NIGHT_SURCHARGE_RATE','2786');
-        setField('nightOvertimeRate','NIGHT_OVERTIME_RATE','13928.25');
-        setField('nightStartHour',   'NIGHT_START_HOUR',   '19');
-        setField('nightEndHour',     'NIGHT_END_HOUR',     '6');
+        setField('workHoursPerMonth',       'WORK_HOURS_PER_MONTH',       '240');
+        setField('dayOvertimeMultiplier',    'DAY_OVERTIME_MULTIPLIER',    '1.25');
+        setField('nightSurchargeMultiplier', 'NIGHT_SURCHARGE_MULTIPLIER', '0.35');
+        setField('nightOvertimeMultiplier',  'NIGHT_OVERTIME_MULTIPLIER',  '1.75');
+        setField('nightStartHour',           'NIGHT_START_HOUR',           '21');
+        setField('nightEndHour',             'NIGHT_END_HOUR',             '6');
 
         const tz = document.getElementById('timeZone');
         if (tz) tz.value = originalConfig['TIME_ZONE'] || 'America/Bogota';
 
         document.getElementById('stateLoading').classList.add('hidden');
         document.getElementById('configContent').classList.remove('hidden');
+
+        attachPreviewListeners();
+        updatePreview();
     } catch {
         document.getElementById('stateLoading').innerHTML =
             '<div class="spinner"></div><span>Error al cargar. Recarga la página.</span>';
@@ -70,24 +96,23 @@ async function loadConfiguration() {
 
 function setField(id, key, fallback) {
     const el = document.getElementById(id);
-    if (el) el.value = originalConfig[key] || fallback;
+    if (el) el.value = originalConfig[key] !== undefined ? originalConfig[key] : fallback;
 }
 
-/* ── Reset ── */
 function resetForm() {
     if (!confirm('¿Restablecer todos los campos a los valores guardados actualmente?')) return;
-    setField('regularHourRate',  'REGULAR_HOUR_RATE',  '7959');
-    setField('dayOvertimeRate',  'DAY_OVERTIME_RATE',  '9948');
-    setField('nightSurchargeRate','NIGHT_SURCHARGE_RATE','2786');
-    setField('nightOvertimeRate','NIGHT_OVERTIME_RATE','13928.25');
-    setField('nightStartHour',   'NIGHT_START_HOUR',   '19');
-    setField('nightEndHour',     'NIGHT_END_HOUR',     '6');
+    setField('workHoursPerMonth',       'WORK_HOURS_PER_MONTH',       '240');
+    setField('dayOvertimeMultiplier',    'DAY_OVERTIME_MULTIPLIER',    '1.25');
+    setField('nightSurchargeMultiplier', 'NIGHT_SURCHARGE_MULTIPLIER', '0.35');
+    setField('nightOvertimeMultiplier',  'NIGHT_OVERTIME_MULTIPLIER',  '1.75');
+    setField('nightStartHour',           'NIGHT_START_HOUR',           '21');
+    setField('nightEndHour',             'NIGHT_END_HOUR',             '6');
     const tz = document.getElementById('timeZone');
     if (tz) tz.value = originalConfig['TIME_ZONE'] || 'America/Bogota';
+    updatePreview();
     showAlert('Campos restablecidos a los valores guardados.');
 }
 
-/* ── Save ── */
 async function saveConfiguration(e) {
     e.preventDefault();
 
@@ -96,13 +121,13 @@ async function saveConfiguration(e) {
     saveBtn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Guardando…`;
 
     const updates = [
-        { key: 'REGULAR_HOUR_RATE',   value: document.getElementById('regularHourRate').value },
-        { key: 'DAY_OVERTIME_RATE',   value: document.getElementById('dayOvertimeRate').value },
-        { key: 'NIGHT_SURCHARGE_RATE',value: document.getElementById('nightSurchargeRate').value },
-        { key: 'NIGHT_OVERTIME_RATE', value: document.getElementById('nightOvertimeRate').value },
-        { key: 'NIGHT_START_HOUR',    value: document.getElementById('nightStartHour').value },
-        { key: 'NIGHT_END_HOUR',      value: document.getElementById('nightEndHour').value },
-        { key: 'TIME_ZONE',           value: document.getElementById('timeZone').value },
+        { key: 'WORK_HOURS_PER_MONTH',       value: document.getElementById('workHoursPerMonth').value },
+        { key: 'DAY_OVERTIME_MULTIPLIER',    value: document.getElementById('dayOvertimeMultiplier').value },
+        { key: 'NIGHT_SURCHARGE_MULTIPLIER', value: document.getElementById('nightSurchargeMultiplier').value },
+        { key: 'NIGHT_OVERTIME_MULTIPLIER',  value: document.getElementById('nightOvertimeMultiplier').value },
+        { key: 'NIGHT_START_HOUR',           value: document.getElementById('nightStartHour').value },
+        { key: 'NIGHT_END_HOUR',             value: document.getElementById('nightEndHour').value },
+        { key: 'TIME_ZONE',                  value: document.getElementById('timeZone').value },
     ];
 
     try {
@@ -117,7 +142,7 @@ async function saveConfiguration(e) {
         if (!results.every(r => r.ok)) throw new Error();
 
         updates.forEach(u => { originalConfig[u.key] = u.value; });
-        showAlert('Configuración guardada. Reinicia la aplicación para aplicar todos los cambios.', 'warning');
+        showAlert('Configuración guardada. Los cálculos de nómina usarán los nuevos valores de inmediato.', 'warning');
     } catch {
         showAlert('Error al guardar la configuración. Intenta nuevamente.', 'error');
     } finally {
@@ -132,7 +157,6 @@ async function saveConfiguration(e) {
     }
 }
 
-/* ── Hour validation ── */
 ['nightStartHour','nightEndHour'].forEach(id => {
     document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(id);

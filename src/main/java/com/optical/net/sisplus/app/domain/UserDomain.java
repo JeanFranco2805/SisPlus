@@ -29,17 +29,18 @@ public class UserDomain {
             return PayrollCalculation.builder().build();
         }
 
+        double hourlyRate = salary > 0 ? salary / config.getWorkHoursPerMonth() : 0;
+
         double workedHours = todayAttendance.getWorkedHours();
         double regularHours = Math.min(workedHours, config.getRegularWorkHours());
-
         double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(todayAttendance, config);
         double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(todayAttendance, config);
         double nightHours = todayAttendance.getNightHours(config);
 
-        double regularPay = regularHours * config.getRegularHourRate();
-        double nightSurchargePay = nightHours * config.getNightSurchargeRate();
-        double dayOvertimePay = dayOvertimeHours * config.getDayOvertimeRate();
-        double nightOvertimePay = nightOvertimeHours * config.getNightOvertimeRate();
+        double regularPay = regularHours * hourlyRate;
+        double nightSurchargePay = nightHours * hourlyRate * config.getNightSurchargeMultiplier();
+        double dayOvertimePay = dayOvertimeHours * hourlyRate * config.getDayOvertimeMultiplier();
+        double nightOvertimePay = nightOvertimeHours * hourlyRate * config.getNightOvertimeMultiplier();
         double totalOvertimePay = dayOvertimePay + nightOvertimePay;
         double totalPay = regularPay + nightSurchargePay + totalOvertimePay;
 
@@ -85,6 +86,8 @@ public class UserDomain {
                 .filter(AttendanceDomain::isComplete)
                 .toList();
 
+        double hourlyRate = salary > 0 ? salary / config.getWorkHoursPerMonth() : 0;
+
         double totalRegularHours = 0;
         double totalDayOvertimeHours = 0;
         double totalNightOvertimeHours = 0;
@@ -101,7 +104,6 @@ public class UserDomain {
             double workedHours = att.getWorkedHours();
             double regularHours = Math.min(workedHours, config.getRegularWorkHours());
             double nightHours = att.getNightHours(config);
-
             double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att, config);
             double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att, config);
 
@@ -110,12 +112,12 @@ public class UserDomain {
             totalNightOvertimeHours += nightOvertimeHours;
             totalNightHours += nightHours;
 
-            totalNightSurchargePay += nightHours * config.getNightSurchargeRate();
-            totalDayOvertimePay += dayOvertimeHours * config.getDayOvertimeRate();
-            totalNightOvertimePay += nightOvertimeHours * config.getNightOvertimeRate();
+            totalNightSurchargePay += nightHours * hourlyRate * config.getNightSurchargeMultiplier();
+            totalDayOvertimePay += dayOvertimeHours * hourlyRate * config.getDayOvertimeMultiplier();
+            totalNightOvertimePay += nightOvertimeHours * hourlyRate * config.getNightOvertimeMultiplier();
         }
 
-        double basePay = salary > 0 ? salary : totalRegularHours * config.getRegularHourRate();
+        double basePay = salary > 0 ? salary : totalRegularHours * hourlyRate;
         double totalOvertimePay = totalDayOvertimePay + totalNightOvertimePay;
         double totalPay = basePay + totalNightSurchargePay + totalOvertimePay;
 
@@ -134,6 +136,8 @@ public class UserDomain {
     }
 
     private PayrollCalculation calculatePayrollForPeriod(List<AttendanceDomain> attendances, PayrollConfiguration config) {
+        double hourlyRate = salary > 0 ? salary / config.getWorkHoursPerMonth() : 0;
+
         double totalRegularHours = 0;
         double totalDayOvertimeHours = 0;
         double totalNightOvertimeHours = 0;
@@ -151,7 +155,6 @@ public class UserDomain {
             double workedHours = att.getWorkedHours();
             double regularHours = Math.min(workedHours, config.getRegularWorkHours());
             double nightHours = att.getNightHours(config);
-
             double dayOvertimeHours = calculateDayOvertimeHoursFromAttendance(att, config);
             double nightOvertimeHours = calculateNightOvertimeHoursFromAttendance(att, config);
 
@@ -160,10 +163,10 @@ public class UserDomain {
             totalNightOvertimeHours += nightOvertimeHours;
             totalNightHours += nightHours;
 
-            totalRegularPay += regularHours * config.getRegularHourRate();
-            totalNightSurchargePay += nightHours * config.getNightSurchargeRate();
-            totalDayOvertimePay += dayOvertimeHours * config.getDayOvertimeRate();
-            totalNightOvertimePay += nightOvertimeHours * config.getNightOvertimeRate();
+            totalRegularPay += regularHours * hourlyRate;
+            totalNightSurchargePay += nightHours * hourlyRate * config.getNightSurchargeMultiplier();
+            totalDayOvertimePay += dayOvertimeHours * hourlyRate * config.getDayOvertimeMultiplier();
+            totalNightOvertimePay += nightOvertimeHours * hourlyRate * config.getNightOvertimeMultiplier();
         }
 
         double totalOvertimePay = totalDayOvertimePay + totalNightOvertimePay;

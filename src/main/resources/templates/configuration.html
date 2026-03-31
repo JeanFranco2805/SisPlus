@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- ── Topbar ── -->
 <div class="topbar">
     <div class="topbar-left">
         <button class="menu-toggle" onclick="toggleSidebar()">
@@ -32,7 +31,6 @@
     </div>
 </div>
 
-<!-- ── Sidebar ── -->
 <div class="sidebar" id="sidebar">
     <div class="nav-section">
         <div class="nav-section-label">Principal</div>
@@ -67,112 +65,136 @@
     </div>
 </div>
 
-<!-- ── Main ── -->
 <div class="main-content" id="mainContent">
     <div class="content-area">
 
         <div class="page-header">
             <div>
                 <h1 class="page-title">Configuración</h1>
-                <p class="page-subtitle">Parámetros de cálculo de nómina y horarios del sistema</p>
+                <p class="page-subtitle">Multiplicadores y horarios del sistema de nómina</p>
             </div>
         </div>
 
         <div class="info-banner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Los cambios afectan los cálculos de nómina futuros. Después de guardar, reinicia la aplicación para que los cambios se apliquen completamente.
+            Los multiplicadores se aplican sobre el valor hora de cada empleado, calculado como su salario mensual dividido entre las horas por mes. Así el sistema es justo para todos los rangos salariales.
         </div>
 
         <div id="alertContainer" class="alert-container"></div>
 
-        <!-- Loading -->
         <div class="state-loading" id="stateLoading">
             <div class="spinner"></div>
             <span>Cargando configuración…</span>
         </div>
 
-        <!-- Content -->
         <div id="configContent" class="hidden">
             <form id="configForm" onsubmit="saveConfiguration(event)" novalidate>
                 <div class="config-layout">
 
-                    <!-- ── Tarifas de pago ── -->
+                    <!-- Multiplicadores de nómina -->
                     <div class="card">
                         <div class="card-head">
                             <div class="card-head-info">
-                                <div class="card-title">Tarifas de pago</div>
-                                <div class="card-desc">Valores por hora en pesos colombianos (COP)</div>
+                                <div class="card-title">Multiplicadores de nómina</div>
+                                <div class="card-desc">Se aplican sobre el valor hora individual de cada empleado (salario ÷ horas por mes)</div>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="section-label">Horas regulares y extras</div>
+
+                            <div class="section-label">Base de cálculo</div>
                             <div class="config-grid">
-
-                                <div class="field-group">
-                                    <label class="field-label" for="regularHourRate">Hora regular</label>
-                                    <span class="field-desc">Tarifa base por hora de trabajo</span>
+                                <div class="field-group" style="grid-column: 1 / -1;">
+                                    <label class="field-label" for="workHoursPerMonth">Horas laborables por mes</label>
+                                    <span class="field-desc">Divisor para obtener el valor hora de cada empleado. Colombia estándar: 240 horas (30 días × 8 horas)</span>
                                     <div class="input-prefix-wrap">
-                                        <span class="input-prefix">$</span>
-                                        <input type="number" id="regularHourRate" class="field-input no-border" step="0.01" min="0" required>
-                                        <span class="input-suffix">COP</span>
+                                        <input type="number" id="workHoursPerMonth" class="field-input no-border" min="1" step="1" required>
+                                        <span class="input-suffix">h/mes</span>
                                     </div>
                                 </div>
-
-                                <div class="field-group">
-                                    <label class="field-label" for="dayOvertimeRate">Hora extra diurna</label>
-                                    <span class="field-desc">Recargo por hora extra durante el día</span>
-                                    <div class="input-prefix-wrap">
-                                        <span class="input-prefix">$</span>
-                                        <input type="number" id="dayOvertimeRate" class="field-input no-border" step="0.01" min="0" required>
-                                        <span class="input-suffix">COP</span>
-                                    </div>
-                                </div>
-
                             </div>
 
                             <div class="card-divider"></div>
-                            <div class="section-label">Recargos nocturnos</div>
+                            <div class="section-label">Recargos y extras</div>
                             <div class="config-grid">
 
                                 <div class="field-group">
-                                    <label class="field-label" for="nightSurchargeRate">Recargo nocturno</label>
-                                    <span class="field-desc">Adicional por trabajo en horario nocturno</span>
+                                    <label class="field-label" for="dayOvertimeMultiplier">Multiplicador HED</label>
+                                    <span class="field-desc">Hora extra diurna. Colombia: 1.25 (25% adicional sobre el valor hora)</span>
                                     <div class="input-prefix-wrap">
-                                        <span class="input-prefix">$</span>
-                                        <input type="number" id="nightSurchargeRate" class="field-input no-border" step="0.01" min="0" required>
-                                        <span class="input-suffix">COP</span>
+                                        <input type="number" id="dayOvertimeMultiplier" class="field-input no-border" step="0.01" min="1" required>
+                                        <span class="input-suffix" id="hedPct">×</span>
                                     </div>
                                 </div>
 
                                 <div class="field-group">
-                                    <label class="field-label" for="nightOvertimeRate">Hora extra nocturna</label>
-                                    <span class="field-desc">Recargo por hora extra en horario nocturno</span>
+                                    <label class="field-label" for="nightSurchargeMultiplier">Recargo nocturno (RN)</label>
+                                    <span class="field-desc">Adicional por horas regulares en turno nocturno. Colombia: 0.35 (35% del valor hora)</span>
                                     <div class="input-prefix-wrap">
-                                        <span class="input-prefix">$</span>
-                                        <input type="number" id="nightOvertimeRate" class="field-input no-border" step="0.01" min="0" required>
-                                        <span class="input-suffix">COP</span>
+                                        <input type="number" id="nightSurchargeMultiplier" class="field-input no-border" step="0.01" min="0" required>
+                                        <span class="input-suffix" id="rnPct">×</span>
+                                    </div>
+                                </div>
+
+                                <div class="field-group">
+                                    <label class="field-label" for="nightOvertimeMultiplier">Multiplicador HEN</label>
+                                    <span class="field-desc">Hora extra nocturna. Colombia: 1.75 (75% adicional sobre el valor hora)</span>
+                                    <div class="input-prefix-wrap">
+                                        <input type="number" id="nightOvertimeMultiplier" class="field-input no-border" step="0.01" min="1" required>
+                                        <span class="input-suffix" id="henPct">×</span>
                                     </div>
                                 </div>
 
                             </div>
+
+                            <!-- Preview dinámico -->
+                            <div class="card-divider"></div>
+                            <div class="section-label">Vista previa para ejemplo de salario</div>
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <label style="font-size:12px;color:var(--gray-600);font-weight:500;white-space:nowrap">Salario ejemplo:</label>
+                                    <div class="input-prefix-wrap" style="width:180px">
+                                        <span class="input-prefix">$</span>
+                                        <input type="number" id="previewSalary" class="field-input no-border" value="1750905" min="0" step="1" oninput="updatePreview()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px" id="previewGrid">
+                                <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px 14px">
+                                    <div style="font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px">Valor hora regular</div>
+                                    <div style="font-size:16px;font-weight:500;color:var(--gray-800)" id="pvHour">—</div>
+                                </div>
+                                <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px 14px">
+                                    <div style="font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px">Hora extra diurna (HED)</div>
+                                    <div style="font-size:16px;font-weight:500;color:var(--gray-800)" id="pvHed">—</div>
+                                </div>
+                                <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px 14px">
+                                    <div style="font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px">Recargo nocturno (RN)</div>
+                                    <div style="font-size:16px;font-weight:500;color:var(--gray-800)" id="pvRn">—</div>
+                                </div>
+                                <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px 14px">
+                                    <div style="font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px">Hora extra nocturna (HEN)</div>
+                                    <div style="font-size:16px;font-weight:500;color:var(--gray-800)" id="pvHen">—</div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                    <!-- ── Horarios ── -->
+                    <!-- Horarios y zona horaria -->
                     <div class="card">
                         <div class="card-head">
                             <div class="card-head-info">
                                 <div class="card-title">Horarios y zona horaria</div>
-                                <div class="card-desc">Define cuándo inicia y termina el turno nocturno</div>
+                                <div class="card-desc">Define el rango del turno nocturno y la zona horaria del sistema</div>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="section-label">Horario nocturno</div>
+                            <div class="section-label">Turno nocturno</div>
                             <div class="config-grid">
 
                                 <div class="field-group">
                                     <label class="field-label" for="nightStartHour">Inicio del turno nocturno</label>
-                                    <span class="field-desc">Hora en formato 24h (0–23)</span>
+                                    <span class="field-desc">Hora en formato 24h (0–23). Colombia: 21</span>
                                     <div class="input-prefix-wrap">
                                         <input type="number" id="nightStartHour" class="field-input no-border" min="0" max="23" required>
                                         <span class="input-suffix">:00 h</span>
@@ -181,7 +203,7 @@
 
                                 <div class="field-group">
                                     <label class="field-label" for="nightEndHour">Fin del turno nocturno</label>
-                                    <span class="field-desc">Hora en formato 24h (0–23)</span>
+                                    <span class="field-desc">Hora en formato 24h (0–23). Colombia: 6</span>
                                     <div class="input-prefix-wrap">
                                         <input type="number" id="nightEndHour" class="field-input no-border" min="0" max="23" required>
                                         <span class="input-suffix">:00 h</span>
@@ -195,7 +217,7 @@
 
                             <div class="field-group">
                                 <label class="field-label" for="timeZone">Zona horaria del sistema</label>
-                                <span class="field-desc">Afecta el cálculo de entradas, salidas y recargos nocturnos</span>
+                                <span class="field-desc">Afecta el registro de entradas, salidas y el cálculo de recargos nocturnos</span>
                                 <select id="timeZone" class="field-select" required>
                                     <option value="America/Bogota">América/Bogotá (Colombia, UTC−5)</option>
                                     <option value="America/Mexico_City">América/Ciudad de México (UTC−6)</option>
@@ -210,7 +232,7 @@
                         </div>
                     </div>
 
-                    <!-- ── Action row ── -->
+                    <!-- Botones -->
                     <div class="action-row">
                         <button type="button" class="btn btn-secondary" onclick="resetForm()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
@@ -229,7 +251,6 @@
     </div>
 </div>
 
-<!-- ── Footer ── -->
 <footer class="site-footer">
     <div class="footer-sidebar-zone">
         <span class="footer-brand">SisPlus</span>

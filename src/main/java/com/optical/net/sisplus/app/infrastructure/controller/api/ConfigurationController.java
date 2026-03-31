@@ -8,16 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * ============================================================
- *  CONFIGURATION CONTROLLER — Con sanitización XSS
- * ============================================================
- *
- * CAMBIOS:
- *  - key sanitizado: solo mayúsculas y guión bajo (REGULAR_HOUR_RATE)
- *  - value sanitizado según el tipo de clave (numérico vs texto)
- *  - Validación de longitud para prevenir valores enormes en BD
- */
 @RestController
 @RequestMapping("/api/config")
 @RequiredArgsConstructor
@@ -26,11 +16,13 @@ public class ConfigurationController {
     private final ConfigurationService service;
     private final XssSanitizer xssSanitizer;
 
-    /** Claves que solo aceptan valores numéricos */
     private static final java.util.Set<String> NUMERIC_KEYS = java.util.Set.of(
-            "REGULAR_HOUR_RATE", "DAY_OVERTIME_RATE",
-            "NIGHT_SURCHARGE_RATE", "NIGHT_OVERTIME_RATE",
-            "NIGHT_START_HOUR", "NIGHT_END_HOUR"
+            "DAY_OVERTIME_MULTIPLIER",
+            "NIGHT_SURCHARGE_MULTIPLIER",
+            "NIGHT_OVERTIME_MULTIPLIER",
+            "WORK_HOURS_PER_MONTH",
+            "NIGHT_START_HOUR",
+            "NIGHT_END_HOUR"
     );
 
     @PostMapping
@@ -59,8 +51,6 @@ public class ConfigurationController {
         String safeValue = sanitizeValue(safeKey, value);
         return service.update(safeKey, safeValue);
     }
-
-    // ----------------------------------------------------------
 
     private String sanitizeKey(String key) {
         if (key == null || key.isBlank())
