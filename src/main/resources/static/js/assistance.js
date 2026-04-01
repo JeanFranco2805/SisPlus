@@ -71,6 +71,18 @@ function fmtDateTimeLocal(dt) {
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/**
+ * Convierte horas decimales a formato HH:MM
+ * Ejemplo: 4.63 → "4:38"  |  8.0 → "8:00"  |  0.5 → "0:30"
+ */
+function decimalToHHMM(decimal) {
+    if (!decimal && decimal !== 0) return '0:00';
+    const totalMinutes = Math.round(Math.abs(decimal) * 60);
+    const hours   = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}:${String(minutes).padStart(2, '0')}`;
+}
+
 async function loadEmployees() {
     try {
         const res = await fetch(`${API_BASE}/users`);
@@ -156,9 +168,20 @@ function renderTable() {
         const initials = getInitials(user.name, user.lastName);
         const col      = AVATAR_COLORS[(start + i) % AVATAR_COLORS.length];
         const complete = !!att.departureTime;
-        const hours    = att.workedHours && complete ? att.workedHours.toFixed(2) + 'h' : '—';
-        const extra    = (att.extraHours  || 0) > 0 ? `<span class="hours-val hours-extra">${att.extraHours.toFixed(2)}h</span>` : '<span class="hours-val">—</span>';
-        const night    = (att.nightHours  || 0) > 0 ? `<span class="hours-val hours-night">${att.nightHours.toFixed(2)}h</span>`  : '<span class="hours-val">—</span>';
+
+        /* ── Formato HH:MM para todas las horas ── */
+        const hours = att.workedHours && complete
+            ? decimalToHHMM(att.workedHours)
+            : '—';
+
+        const extra = (att.extraHours || 0) > 0
+            ? `<span class="hours-val hours-extra">${decimalToHHMM(att.extraHours)}</span>`
+            : '<span class="hours-val">—</span>';
+
+        const night = (att.nightHours || 0) > 0
+            ? `<span class="hours-val hours-night">${decimalToHHMM(att.nightHours)}</span>`
+            : '<span class="hours-val">—</span>';
+
         const userId   = user.id || '';
         const dateStr  = fmtDate(att.entryTime);
         const entryStr = fmtTime(att.entryTime);

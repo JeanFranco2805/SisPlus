@@ -44,7 +44,18 @@ function showAlert(msg, type = 'success') {
 function fmtCurrency(v) {
     return new Intl.NumberFormat('es-CO', { minimumFractionDigits:2, maximumFractionDigits:2 }).format(v || 0);
 }
-function fmtHours(v) { return (v || 0).toFixed(2); }
+
+/**
+ * Convierte horas decimales a formato HH:MM
+ * Ejemplo: 4.63 → "4:38"  |  8.0 → "8:00"  |  0.5 → "0:30"
+ */
+function decimalToHHMM(decimal) {
+    if (!decimal && decimal !== 0) return '0:00';
+    const totalMinutes = Math.round(Math.abs(decimal) * 60);
+    const hours   = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}:${String(minutes).padStart(2, '0')}`;
+}
 
 function getMonthName(m) {
     return ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -170,11 +181,13 @@ function renderResults(data, atts, period) {
     document.getElementById('periodLabel').textContent = periodLabel;
     document.getElementById('periodInfo').textContent  = infoMsg;
 
-    document.getElementById('rRegularHours').textContent   = fmtHours(data.regularHours);
-    document.getElementById('rDayExtra').textContent       = fmtHours(data.dayOvertimeHours);
-    document.getElementById('rNightExtra').textContent     = fmtHours(data.nightOvertimeHours);
-    document.getElementById('rNightHours').textContent     = fmtHours(data.nightHours);
+    /* ── Horas en formato HH:MM ── */
+    document.getElementById('rRegularHours').textContent   = decimalToHHMM(data.regularHours);
+    document.getElementById('rDayExtra').textContent       = decimalToHHMM(data.dayOvertimeHours);
+    document.getElementById('rNightExtra').textContent     = decimalToHHMM(data.nightOvertimeHours);
+    document.getElementById('rNightHours').textContent     = decimalToHHMM(data.nightHours);
 
+    /* ── Pagos en moneda ── */
     document.getElementById('rRegularPay').textContent     = fmtCurrency(data.regularPay);
     document.getElementById('rDayExtraPay').textContent    = fmtCurrency(data.dayOvertimePay);
     document.getElementById('rNightExtraPay').textContent  = fmtCurrency(data.nightOvertimePay);
