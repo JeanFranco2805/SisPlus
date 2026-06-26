@@ -14,6 +14,10 @@ public class AttendanceResponse {
     private UserResponse user;
     private LocalDateTime entryTime;
     private LocalDateTime departureTime;
+    private Double entryLatitude;
+    private Double entryLongitude;
+    private Double exitLatitude;
+    private Double exitLongitude;
     private double workedHours;
     private double nightHours;
     private double extraHours;

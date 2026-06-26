@@ -19,11 +19,15 @@ public interface PortAdapter {
     void deleteUser(Long id);
 
     void registerAttendance(Long usuarioId);
+    void registerAttendance(Long usuarioId, Double latitude, Double longitude);
 
     void registerAttendanceByCc(String cc);
+    void registerAttendanceByCc(String cc, Double latitude, Double longitude);
 
     void registerDeparture(Long usuarioId);
+    void registerDeparture(Long usuarioId, Double latitude, Double longitude);
     void registerDeparture(String cc);
+    void registerDeparture(String cc, Double latitude, Double longitude);
 
     AttendanceDomain getAttendanceForDay(Long usuarioId, LocalDate fecha);
 

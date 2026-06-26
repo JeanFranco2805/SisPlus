@@ -49,14 +49,14 @@ public class SecurityConfig {
                                         "script-src 'self' 'unsafe-inline'; " +  // unsafe-inline necesario si usas Thymeleaf inline
                                         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
                                         "font-src 'self' https://fonts.gstatic.com; " +
-                                        "img-src 'self' data:; " +
-                                        "connect-src 'self'; " +
+                                        "img-src 'self' data: https://*.tile.openstreetmap.org https://*.openstreetmap.org; " +
+                                        "connect-src 'self' https://nominatim.openstreetmap.org; " +
                                         "frame-ancestors 'none';"
                         ))
                         .referrerPolicy(rp -> rp.policy(
                                 ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
-                        .permissionsPolicyHeader(pp -> pp.policy(
-                                "camera=(), microphone=(), geolocation=(), payment=()"))
+                                .permissionsPolicyHeader(pp -> pp.policy(
+                                        "camera=(), microphone=(), geolocation=(self), payment=()"))
                 )
 
 

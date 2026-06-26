@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistencias — SisPlus</title>
     <link rel="stylesheet" href="/css/assistance.css" th:href="@{/css/assistance.css}">
+    <link rel="stylesheet" href="/lib/leaflet/leaflet.css" th:href="@{/lib/leaflet/leaflet.css}">
+    <script src="/lib/leaflet/leaflet.js" th:src="@{/lib/leaflet/leaflet.js}"></script>
     <script src="/js/assistance.js" th:src="@{/js/assistance.js}" defer></script>
     <style>
         .date-cell {
@@ -139,6 +141,14 @@
                     <option value="complete">Completo</option>
                     <option value="pending">Pendiente</option>
                 </select>
+                <button class="btn btn-secondary" id="mapToggleBtn" onclick="toggleMap()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 21 18 21 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    Ver mapa
+                </button>
+            </div>
+
+            <div id="mapContainer" class="map-container hidden">
+                <div id="attendanceMap" class="attendance-map"></div>
             </div>
 
             <div class="state-loading" id="stateLoading">Cargando asistencias…</div>
@@ -155,6 +165,7 @@
                             <th>Trabajadas</th>
                             <th>H. Extra</th>
                             <th>H. Nocturna</th>
+                            <th>Ubicación</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -311,6 +322,36 @@
         <div class="modal-foot">
             <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
             <button class="btn btn-primary" style="background:var(--rose);border-color:var(--rose)" onclick="deleteAttendance()">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Ver direcciones ── -->
+<div class="modal-backdrop" id="modalLocation">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-head">
+            <span class="modal-title">Direcciones del registro</span>
+            <button class="modal-close" onclick="closeLocationModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="locationAlert"></div>
+
+            <div id="locEntryBlock" style="display:none;margin-bottom:18px">
+                <div class="loc-label">Dirección de entrada:</div>
+                <div class="loc-address-text" id="locEntryAddress">Obteniendo dirección…</div>
+                <div class="loc-time-text">Hora: <span id="locEntryTime"></span></div>
+            </div>
+
+            <div id="locExitBlock" style="display:none">
+                <div class="loc-label">Dirección de salida:</div>
+                <div class="loc-address-text" id="locExitAddress">Obteniendo dirección…</div>
+                <div class="loc-time-text">Hora: <span id="locExitTime"></span></div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-secondary" onclick="closeLocationModal()">Cerrar</button>
         </div>
     </div>
 </div>

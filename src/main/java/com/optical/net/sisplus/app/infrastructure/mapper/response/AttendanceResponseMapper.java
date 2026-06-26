@@ -12,7 +12,7 @@ public class AttendanceResponseMapper {
     public static AttendanceResponse toResponse(AttendanceDomain att) {
         double extraHours = 0;
         if (att.getEntryTime() != null && att.getDepartureTime() != null) {
-            extraHours = Math.max(0, att.getWorkedHours() - 8);
+            extraHours = Math.max(0, att.getWorkedHours() - 9);
         }
 
         return AttendanceResponse.builder()
@@ -25,6 +25,10 @@ public class AttendanceResponseMapper {
                         .build())
                 .entryTime(att.getEntryTime())
                 .departureTime(att.getDepartureTime())
+                .entryLatitude(att.getEntryLatitude())
+                .entryLongitude(att.getEntryLongitude())
+                .exitLatitude(att.getExitLatitude())
+                .exitLongitude(att.getExitLongitude())
                 .workedHours(att.getDepartureTime() != null ? att.getWorkedHours() : 0)
                 .nightHours(att.getDepartureTime() != null ? att.getNightHours() : 0)
                 .extraHours(extraHours)
