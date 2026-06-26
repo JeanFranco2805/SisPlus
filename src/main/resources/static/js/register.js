@@ -53,6 +53,21 @@ function setLoading(btnId, loading) {
     btn.classList.toggle('loading', loading);
 }
 
+/* ── Get location promise ── */
+function getLocation() {
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+            resolve({ latitude: null, longitude: null });
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+            () => resolve({ latitude: null, longitude: null }),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+    });
+}
+
 /* ── Register entry ── */
 async function registerEntry() {
     if (busy) return;
@@ -62,11 +77,23 @@ async function registerEntry() {
     busy = true;
     setLoading('btnEntry', true);
     setLoading('btnExit', true);
+    showFeedback('Obteniendo ubicación…', 'success');
+
+    const { latitude, longitude } = await getLocation();
+
+    if (latitude == null || longitude == null) {
+        showFeedback('No se pudo obtener la ubicación. Asegúrate de permitir el acceso a la ubicación en tu navegador. La asistencia se registrará sin coordenadas.', 'error');
+    }
 
     try {
+        const body = (latitude != null && longitude != null)
+            ? JSON.stringify({ latitude, longitude })
+            : JSON.stringify({});
+
         const res = await fetch(`${API_BASE}/${encodeURIComponent(cc)}/entryCC`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: body
         });
 
         if (res.ok) {
@@ -95,11 +122,23 @@ async function registerExit() {
     busy = true;
     setLoading('btnEntry', true);
     setLoading('btnExit', true);
+    showFeedback('Obteniendo ubicación…', 'success');
+
+    const { latitude, longitude } = await getLocation();
+
+    if (latitude == null || longitude == null) {
+        showFeedback('No se pudo obtener la ubicación. Asegúrate de permitir el acceso a la ubicación en tu navegador. La asistencia se registrará sin coordenadas.', 'error');
+    }
 
     try {
+        const body = (latitude != null && longitude != null)
+            ? JSON.stringify({ latitude, longitude })
+            : JSON.stringify({});
+
         const res = await fetch(`${API_BASE}/${encodeURIComponent(cc)}/exitCC`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: body
         });
 
         if (res.ok) {

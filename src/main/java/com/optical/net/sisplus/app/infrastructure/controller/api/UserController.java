@@ -1,6 +1,7 @@
 package com.optical.net.sisplus.app.infrastructure.controller.api;
 
 import com.optical.net.sisplus.app.infrastructure.service.UserService;
+import com.optical.net.sisplus.app.infrastructure.web.LocationRequest;
 import com.optical.net.sisplus.app.infrastructure.web.UserRequest;
 import com.optical.net.sisplus.app.infrastructure.web.UserResponse;
 import org.springframework.http.HttpStatus;
@@ -43,14 +44,22 @@ public class UserController {
     }
 
     @PostMapping("/{cc}/entryCC")
-    public ResponseEntity<String> registerEntryByCC(@PathVariable String cc) {
-        userService.registerEntryByCC(cc);
+    public ResponseEntity<String> registerEntryByCC(
+            @PathVariable String cc,
+            @RequestBody(required = false) LocationRequest request) {
+        Double latitude = request != null ? request.getLatitude() : null;
+        Double longitude = request != null ? request.getLongitude() : null;
+        userService.registerEntryByCC(cc, latitude, longitude);
         return ResponseEntity.ok("Entry registered successfully");
     }
 
     @PostMapping("/{cc}/exitCC")
-    public ResponseEntity<String> registerExit(@PathVariable String cc) {
-        userService.registerExitByCC(cc);
+    public ResponseEntity<String> registerExit(
+            @PathVariable String cc,
+            @RequestBody(required = false) LocationRequest request) {
+        Double latitude = request != null ? request.getLatitude() : null;
+        Double longitude = request != null ? request.getLongitude() : null;
+        userService.registerExitByCC(cc, latitude, longitude);
         return ResponseEntity.ok("Exit registered successfully");
     }
 

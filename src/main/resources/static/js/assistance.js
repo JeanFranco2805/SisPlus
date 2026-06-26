@@ -5,6 +5,8 @@ let filteredAttendances = [];
 let employees           = [];
 const PER_PAGE          = 10;
 let currentPage         = 1;
+let mapInstance         = null;
+let mapVisible          = false;
 
 const AVATAR_COLORS = [
     { bg:'rgba(30,58,138,.1)',  color:'#1E3A8A' },
@@ -187,6 +189,12 @@ function renderTable() {
         const entryStr = fmtTime(att.entryTime);
         const exitStr  = fmtTime(att.departureTime);
 
+        const hasLocation = (att.entryLatitude != null && att.entryLongitude != null) ||
+                            (att.exitLatitude != null && att.exitLongitude != null);
+        const locationBadge = hasLocation
+            ? `<button type="button" class="loc-badge loc-clickable" onclick="openLocationModal(${att.id})" title="Ver direcciones de entrada y salida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>`
+            : '<span class="loc-badge loc-none">—</span>';
+
         return `
         <tr>
           <td>
@@ -213,6 +221,7 @@ function renderTable() {
           <td><span class="hours-val">${hours}</span></td>
           <td>${extra}</td>
           <td>${night}</td>
+          <td>${locationBadge}</td>
           <td><span class="badge ${complete ? 'badge-complete' : 'badge-pending'}">${complete ? 'Completo' : 'Pendiente'}</span></td>
           <td>
             <div class="action-btns">
@@ -272,6 +281,178 @@ function goPage(p) {
     currentPage = Math.min(Math.max(1, p), total);
     renderTable();
     renderPagination();
+}
+
+/* ── Reverse geocoding with Nominatim (OpenStreetMap) ── */
+async function getAddress(lat, lon) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
+            headers: { 'Accept-Language': 'es' }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.display_name || null;
+    } catch {
+        return null;
+    }
+}
+
+/* ── Map ── */
+function toggleMap() {
+    const container = document.getElementById('mapContainer');
+    const btn = document.getElementById('mapToggleBtn');
+    mapVisible = !mapVisible;
+    container.classList.toggle('hidden', !mapVisible);
+    btn.innerHTML = mapVisible
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 21 18 21 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Ocultar mapa'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 21 18 21 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Ver mapa';
+    if (mapVisible) {
+        setTimeout(() => {
+            if (mapInstance) mapInstance.invalidateSize();
+            renderMap();
+        }, 150);
+    }
+}
+
+async function renderMap() {
+    const mapEl = document.getElementById('attendanceMap');
+    if (!mapEl) return;
+
+    if (!mapInstance) {
+        mapInstance = L.map(mapEl).setView([10.9838, -74.8890], 13); // Barranquilla default
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapInstance);
+    }
+
+    // Limpiar marcadores y popups anteriores
+    mapInstance.eachLayer(layer => {
+        if (layer instanceof L.Marker || layer instanceof L.CircleMarker || layer instanceof L.Popup) {
+            mapInstance.removeLayer(layer);
+        }
+    });
+    // Limpiar leyenda anterior
+    if (mapInstance._legendControl) {
+        mapInstance.removeControl(mapInstance._legendControl);
+        mapInstance._legendControl = null;
+    }
+
+    mapInstance.invalidateSize();
+
+    const markers = [];
+    let hasLocation = false;
+
+    for (const att of filteredAttendances) {
+        const user = att.user || {};
+        const name = `${user.name || ''} ${user.lastName || ''}`.trim();
+
+        if (att.entryLatitude != null && att.entryLongitude != null) {
+            const addr = await getAddress(att.entryLatitude, att.entryLongitude);
+            const popupText = `<b>${name}</b><br><span style="color:#0D9488">● Entrada</span>: ${fmtTime(att.entryTime)}<br><small>${addr || `Lat: ${att.entryLatitude.toFixed(5)}, Lng: ${att.entryLongitude.toFixed(5)}`}</small>`;
+            const m = L.marker([att.entryLatitude, att.entryLongitude], {
+                icon: L.divIcon({
+                    className: 'custom-pin',
+                    html: '<div style="background:#0D9488;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [14, 14],
+                    iconAnchor: [7, 7]
+                })
+            }).bindPopup(popupText).addTo(mapInstance);
+            markers.push([att.entryLatitude, att.entryLongitude]);
+            hasLocation = true;
+        }
+
+        if (att.exitLatitude != null && att.exitLongitude != null) {
+            const addr = await getAddress(att.exitLatitude, att.exitLongitude);
+            const popupText = `<b>${name}</b><br><span style="color:#E11D48">● Salida</span>: ${fmtTime(att.departureTime)}<br><small>${addr || `Lat: ${att.exitLatitude.toFixed(5)}, Lng: ${att.exitLongitude.toFixed(5)}`}</small>`;
+            const m = L.marker([att.exitLatitude, att.exitLongitude], {
+                icon: L.divIcon({
+                    className: 'custom-pin',
+                    html: '<div style="background:#E11D48;width:16px;height:16px;border-radius:50%;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })
+            }).bindPopup(popupText).addTo(mapInstance);
+            markers.push([att.exitLatitude, att.exitLongitude]);
+            hasLocation = true;
+        }
+    }
+
+    if (hasLocation) {
+        const bounds = L.latLngBounds(markers);
+        mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    } else {
+        mapInstance.setView([10.9838, -74.8890], 13);
+        // Mostrar mensaje informativo sobre el mapa
+        const info = L.control({ position: 'topright' });
+        info.onAdd = function () {
+            const div = L.DomUtil.create('div', 'map-info');
+            div.innerHTML = `<b>No hay ubicaciones registradas</b><br><small>Los marcadores aparecen solo cuando el empleado marca asistencia desde <b>/register</b> con geolocalización activada.</small>`;
+            return div;
+        };
+        info.addTo(mapInstance);
+        mapInstance._legendControl = info;
+    }
+
+    // Legend
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = function () {
+        const div = L.DomUtil.create('div', 'map-legend');
+        div.innerHTML = `
+            <div class="legend-item"><span class="legend-dot" style="background:#0D9488"></span> Entrada</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#E11D48"></span> Salida</div>
+        `;
+        return div;
+    };
+    legend.addTo(mapInstance);
+    if (!mapInstance._legendControl) mapInstance._legendControl = legend;
+}
+
+/* ── Location modal ── */
+function openLocationModal(attId) {
+    const att = allAttendances.find(a => a.id === attId);
+    if (!att) return;
+
+    // Ocultar mapa si está visible para evitar que se sobreponga
+    if (mapVisible) {
+        toggleMap();
+    }
+
+    document.getElementById('locationAlert').innerHTML = '';
+    document.getElementById('locEntryBlock').style.display = 'none';
+    document.getElementById('locExitBlock').style.display = 'none';
+    document.getElementById('locEntryAddress').textContent = 'Obteniendo dirección…';
+    document.getElementById('locExitAddress').textContent = 'Obteniendo dirección…';
+    document.getElementById('modalLocation').classList.add('active');
+
+    const promises = [];
+
+    if (att.entryLatitude != null && att.entryLongitude != null) {
+        document.getElementById('locEntryBlock').style.display = '';
+        document.getElementById('locEntryTime').textContent = fmtTime(att.entryTime);
+        promises.push(
+            getAddress(att.entryLatitude, att.entryLongitude).then(addr => {
+                document.getElementById('locEntryAddress').textContent = addr || 'Dirección no disponible';
+            })
+        );
+    }
+
+    if (att.exitLatitude != null && att.exitLongitude != null) {
+        document.getElementById('locExitBlock').style.display = '';
+        document.getElementById('locExitTime').textContent = fmtTime(att.departureTime);
+        promises.push(
+            getAddress(att.exitLatitude, att.exitLongitude).then(addr => {
+                document.getElementById('locExitAddress').textContent = addr || 'Dirección no disponible';
+            })
+        );
+    }
+
+    Promise.all(promises).catch(() => {
+        document.getElementById('locationAlert').innerHTML = '<div class="alert alert-error">Error al obtener direcciones.</div>';
+    });
+}
+
+function closeLocationModal() {
+    document.getElementById('modalLocation').classList.remove('active');
 }
 
 function openEntryModal() {

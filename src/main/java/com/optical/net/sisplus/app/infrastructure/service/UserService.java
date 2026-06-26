@@ -153,15 +153,15 @@ public class UserService {
     }
 
     @Transactional
-    public void registerEntryByCC(String cc) {
-        log.info("Registrando entrada para usuario con CC: {}", cc);
-        portAdapter.registerAttendanceByCc(cc);
+    public void registerEntryByCC(String cc, Double latitude, Double longitude) {
+        log.info("Registrando entrada para usuario con CC: {} con ubicación: {}, {}", cc, latitude, longitude);
+        portAdapter.registerAttendanceByCc(cc, latitude, longitude);
     }
 
     @Transactional
-    public void registerExitByCC(String cc) {
-        log.info("Registrando salida para usuario: {}", cc);
-        portAdapter.registerAttendanceByCc(cc);
+    public void registerExitByCC(String cc, Double latitude, Double longitude) {
+        log.info("Registrando salida para usuario con CC: {} con ubicación: {}, {}", cc, latitude, longitude);
+        portAdapter.registerAttendanceByCc(cc, latitude, longitude);
     }
 
     @Transactional

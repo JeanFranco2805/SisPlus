@@ -133,14 +133,19 @@ public class PortCaseAdapter implements PortAdapter {
     }
 
     @Override
+    public void registerAttendance(Long usuarioId) {
+        registerAttendance(usuarioId, null, null);
+    }
+
+    @Override
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "todayAttendances", allEntries = true),
             @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
-    public void registerAttendance(Long usuarioId) {
-        log.info("Registrando asistencia para usuario: {}", usuarioId);
+    public void registerAttendance(Long usuarioId, Double latitude, Double longitude) {
+        log.info("Registrando asistencia para usuario: {} con ubicación: {}, {}", usuarioId, latitude, longitude);
 
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
@@ -154,13 +159,15 @@ public class PortCaseAdapter implements PortAdapter {
                         att.getEntryTime().toLocalDate().equals(ahora.toLocalDate()));
 
         if (yaRegistroHoy) {
-            registerDeparture(usuarioId);
+            registerDeparture(usuarioId, latitude, longitude);
             return;
         }
 
         Attendance attendance = Attendance.builder()
                 .user(user)
                 .entryTime(ahora)
+                .entryLatitude(latitude)
+                .entryLongitude(longitude)
                 .build();
 
         attendanceRepository.save(attendance);
@@ -168,11 +175,21 @@ public class PortCaseAdapter implements PortAdapter {
 
     @Override
     public void registerAttendanceByCc(String cc) {
-        log.info("Registrando asistencia para usuario con CC: {}", cc);
+        registerAttendanceByCc(cc, null, null);
+    }
+
+    @Override
+    public void registerAttendanceByCc(String cc, Double latitude, Double longitude) {
+        log.info("Registrando asistencia para usuario con CC: {} con ubicación: {}, {}", cc, latitude, longitude);
         var user = userRepository.findByCc(cc).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con CC: " + cc)
         );
-        registerAttendance(user.getId());
+        registerAttendance(user.getId(), latitude, longitude);
+    }
+
+    @Override
+    public void registerDeparture(Long usuarioId) {
+        registerDeparture(usuarioId, null, null);
     }
 
     @Override
@@ -182,8 +199,8 @@ public class PortCaseAdapter implements PortAdapter {
             @CacheEvict(value = "userById", allEntries = true),
             @CacheEvict(value = "payrollCalculations", allEntries = true)
     })
-    public void registerDeparture(Long usuarioId) {
-        log.info("Registrando salida para usuario: {}", usuarioId);
+    public void registerDeparture(Long usuarioId, Double latitude, Double longitude) {
+        log.info("Registrando salida para usuario: {} con ubicación: {}, {}", usuarioId, latitude, longitude);
 
         var user = userRepository.findById(usuarioId).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId)
@@ -203,12 +220,19 @@ public class PortCaseAdapter implements PortAdapter {
                 ));
 
         attendance.setDepartureTime(ahora);
+        attendance.setExitLatitude(latitude);
+        attendance.setExitLongitude(longitude);
         attendanceRepository.save(attendance);
     }
 
     @Override
     public void registerDeparture(String cc) {
-        log.info("Registrando salida para usuario: {}", cc);
+        registerDeparture(cc, null, null);
+    }
+
+    @Override
+    public void registerDeparture(String cc, Double latitude, Double longitude) {
+        log.info("Registrando salida para usuario: {} con ubicación: {}, {}", cc, latitude, longitude);
 
         var user = userRepository.findByCc(cc).orElseThrow(
                 () -> new RuntimeException("Usuario no encontrado con ID: " + cc)
@@ -225,6 +249,8 @@ public class PortCaseAdapter implements PortAdapter {
                         "No se encontró un registro de entrada sin salida para hoy"
                 ));
         attendance.setDepartureTime(ahora);
+        attendance.setExitLatitude(latitude);
+        attendance.setExitLongitude(longitude);
         attendanceRepository.save(attendance);
     }
 

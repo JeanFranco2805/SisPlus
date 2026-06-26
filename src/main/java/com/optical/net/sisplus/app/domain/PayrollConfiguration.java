@@ -21,7 +21,7 @@ public class PayrollConfiguration {
     private static final int DEFAULT_WORK_HOURS_PER_MONTH = 240;
     private static final int DEFAULT_NIGHT_START_HOUR = 21;
     private static final int DEFAULT_NIGHT_END_HOUR = 6;
-    private static final int DEFAULT_REGULAR_WORK_HOURS = 8;
+    private static final int DEFAULT_REGULAR_WORK_HOURS = 9;
 
     public static PayrollConfiguration defaults() {
         return PayrollConfiguration.builder()

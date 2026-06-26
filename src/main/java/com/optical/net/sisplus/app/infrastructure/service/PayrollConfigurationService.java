@@ -27,7 +27,7 @@ public class PayrollConfigurationService {
                 .workHoursPerMonth(getConfigInt("WORK_HOURS_PER_MONTH", 240))
                 .nightStartHour(getConfigInt("NIGHT_START_HOUR", 21))
                 .nightEndHour(getConfigInt("NIGHT_END_HOUR", 6))
-                .regularWorkHours(8)
+                .regularWorkHours(9)
                 .build();
     }
 

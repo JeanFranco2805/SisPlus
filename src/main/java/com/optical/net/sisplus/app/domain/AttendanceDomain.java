@@ -17,6 +17,10 @@ public class AttendanceDomain implements Comparable<AttendanceDomain> {
     private UserDomain user;
     private LocalDateTime entryTime;
     private LocalDateTime departureTime;
+    private Double entryLatitude;
+    private Double entryLongitude;
+    private Double exitLatitude;
+    private Double exitLongitude;
     private int hoursWorked;
 
     public double getWorkedHours() {
