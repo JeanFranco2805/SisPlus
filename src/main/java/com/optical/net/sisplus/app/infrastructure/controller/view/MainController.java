@@ -42,4 +42,7 @@ public class MainController {
     }
     @GetMapping("reports")
     public String reports() { return "reports"; }
+
+    @GetMapping("cargues")
+    public String cargues() { return "cargues"; }
 }
