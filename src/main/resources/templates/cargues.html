@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cargues — SisPlus</title>
+    <link rel="stylesheet" href="/css/cargues.css?v=5" th:href="@{/css/cargues.css?v=5}">
+    <script src="/js/cargues.js?v=8" th:src="@{/js/cargues.js?v=8}" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menú">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <a href="/dashboard" class="logo">
+            <div class="logo-mark">S+</div>
+            <span class="logo-name">SisPlus</span>
+        </a>
+    </div>
+    <div class="topbar-right">
+        <span class="topbar-time" id="topbarTime"></span>
+        <div class="user-chip">
+            <div class="user-avatar">AD</div>
+            <div class="user-info-text">
+                <span class="user-name">Administrador</span>
+                <span class="user-role">Admin Principal</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="nav-section">
+        <div class="nav-section-label">Principal</div>
+        <a href="/dashboard" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+        </a>
+        <a href="/employee" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Empleados
+        </a>
+        <a href="/assistance" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Asistencias
+        </a>
+        <a href="/cargues" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 18 16 18 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Gestión de Cargues
+        </a>
+        <a href="/payroll" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Nómina
+        </a>
+        <a href="/reports" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Reportes
+        </a>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+        <div class="nav-section-label">Sistema</div>
+        <a href="/admin" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Administradores
+        </a>
+        <a href="/config" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuración
+        </a>
+    </div>
+</div>
+
+<div class="main-content" id="mainContent">
+    <div class="content-area">
+
+        <!-- Hero -->
+        <div class="cargo-hero">
+            <div class="hero-badge">
+                <div class="hero-truck">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="1" y="6" width="13" height="10" rx="1"/>
+                        <path d="M14 11h3l4 4v1a1 1 0 0 1-1 1h-1"/>
+                        <circle cx="6" cy="17" r="2"/>
+                        <circle cx="18" cy="17" r="2"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="hero-text">
+                <div class="hero-label">Módulo de logística</div>
+                <h1 class="page-title">Gestión de Cargues</h1>
+                <p class="page-subtitle">Controla tu flota, conductores y mercancía en un solo lugar</p>
+            </div>
+            <div class="hero-date">
+                <label class="date-label">Fecha de operación</label>
+                <input type="date" id="dateFilter" class="date-input" onchange="changeDate()">
+            </div>
+        </div>
+
+        <div id="alertContainer" class="alert-container"></div>
+
+        <!-- Stats -->
+        <div class="stats-fleet">
+            <div class="stat-card-fleet">
+                <div class="stat-icon-fleet navy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 11h3l3 3v2a1 1 0 0 1-1 1h-1"/><circle cx="6" cy="18" r="2"/><circle cx="19" cy="18" r="2"/></svg>
+                </div>
+                <div class="stat-info-fleet">
+                    <div class="stat-value-fleet" id="statTotalVehicles">—</div>
+                    <div class="stat-label-fleet">Carros activos</div>
+                </div>
+            </div>
+            <div class="stat-card-fleet">
+                <div class="stat-icon-fleet teal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="stat-info-fleet">
+                    <div class="stat-value-fleet" id="statDelivered">—</div>
+                    <div class="stat-label-fleet">Entregados</div>
+                </div>
+            </div>
+            <div class="stat-card-fleet">
+                <div class="stat-icon-fleet amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="stat-info-fleet">
+                    <div class="stat-value-fleet" id="statPending">—</div>
+                    <div class="stat-label-fleet">Pendientes</div>
+                </div>
+            </div>
+            <div class="stat-card-fleet">
+                <div class="stat-icon-fleet rose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="stat-info-fleet">
+                    <div class="stat-value-fleet" id="statTotalMerchandise">—</div>
+                    <div class="stat-label-fleet">Mercancía total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Grid -->
+        <div class="section-header">
+            <h2 class="section-title">Flota del día</h2>
+            <div class="section-actions">
+                <button class="btn btn-secondary" onclick="openDriverModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Conductor
+                </button>
+                <button class="btn btn-secondary" onclick="generateReport()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Ver resumen
+                </button>
+                <button class="btn btn-primary" onclick="openVehicleModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 11h3l3 3v2a1 1 0 0 1-1 1h-1"/><circle cx="6" cy="18" r="2"/><circle cx="19" cy="18" r="2"/></svg>
+                    Agregar carro
+                </button>
+            </div>
+        </div>
+
+        <div class="state-loading" id="stateLoading">Cargando flota…</div>
+
+        <div class="fleet-grid" id="fleetGrid"></div>
+
+        <!-- Report Card -->
+        <div class="report-card-container hidden" id="reportCardContainer">
+            <div class="report-card">
+                <div class="report-header">
+                    <h3>Resumen del día</h3>
+                    <span class="report-date" id="reportDate"></span>
+                </div>
+                <div class="report-body" id="reportBody"></div>
+            </div>
+        </div>
+
+        <!-- Company Expenses -->
+        <div class="section-header" style="margin-top:32px">
+            <h2 class="section-title">Gastos de la empresa</h2>
+            <div class="section-actions">
+                <button class="btn btn-secondary" onclick="openCategoriesModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                    Categorías
+                </button>
+                <button class="btn btn-primary" onclick="openExpenseModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Registrar gasto
+                </button>
+            </div>
+        </div>
+
+        <div class="expense-summary-period card">
+            <div class="expense-summary-period-header">
+                <span class="expense-summary-period-title">Resumen histórico</span>
+                <div class="expense-period-buttons">
+                    <button class="btn btn-sm btn-secondary" onclick="setExpensePeriod('today')">Hoy</button>
+                    <button class="btn btn-sm btn-secondary" onclick="setExpensePeriod('week')">Esta semana</button>
+                    <button class="btn btn-sm btn-secondary" onclick="setExpensePeriod('month')">Este mes</button>
+                </div>
+            </div>
+            <div class="expense-summary-period-body" id="expensePeriodSummary">
+                <div class="expense-period-total">
+                    <span class="expense-period-label">Total período</span>
+                    <span class="expense-period-value" id="expensePeriodTotal">—</span>
+                </div>
+                <div class="expense-period-categories" id="expensePeriodCategories"></div>
+            </div>
+        </div>
+
+        <div class="expense-filters card">
+            <div class="expense-filters-grid">
+                <div class="field-group" style="margin-bottom:0">
+                    <label class="field-label">Desde</label>
+                    <input type="date" id="expenseFilterFrom" class="field-input" onchange="loadExpenses()">
+                </div>
+                <div class="field-group" style="margin-bottom:0">
+                    <label class="field-label">Hasta</label>
+                    <input type="date" id="expenseFilterTo" class="field-input" onchange="loadExpenses()">
+                </div>
+                <div class="field-group" style="margin-bottom:0">
+                    <label class="field-label">Categoría</label>
+                    <select id="expenseFilterCategory" class="field-select" onchange="loadExpenses()">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="field-group" style="margin-bottom:0">
+                    <label class="field-label">Carro</label>
+                    <select id="expenseFilterVehicle" class="field-select" onchange="loadExpenses()">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="field-group" style="margin-bottom:0">
+                    <label class="field-label">Conductor</label>
+                    <select id="expenseFilterDriver" class="field-select" onchange="loadExpenses()">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="field-group" style="margin-bottom:0">
+                    <label class="field-label">Soporte</label>
+                    <select id="expenseFilterAttachment" class="field-select" onchange="loadExpenses()">
+                        <option value="">Todos</option>
+                        <option value="true">Con soporte</option>
+                        <option value="false">Sin soporte</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-loading" id="expenseLoading">Cargando gastos…</div>
+
+        <div class="expense-table-wrap card hidden" id="expenseTableWrap">
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                        <th>Carro / Conductor</th>
+                        <th class="num">Monto</th>
+                        <th>Soporte</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="state-loading hidden" id="expenseEmpty">No hay gastos registrados para los filtros seleccionados.</div>
+
+        <div class="expense-summary" id="expenseSummary"></div>
+
+        <div class="pagination-wrap hidden" id="expensePaginationWrap">
+            <div class="pagination-info" id="expensePaginationInfo"></div>
+            <div class="pagination-controls" id="expensePaginationControls"></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal: Acciones del carro -->
+<div class="modal-backdrop" id="modalVehicleActions">
+    <div class="modal actions-modal">
+        <div class="modal-head">
+            <span class="modal-title" id="actionsTitle">Acciones del carro</span>
+            <button class="modal-close" onclick="closeVehicleActionsModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="selected-vehicle-preview" id="selectedVehiclePreview"></div>
+            <div class="actions-grid">
+                <button type="button" class="action-tile" id="actionLoad" onclick="actionRegisterLoad()">
+                    <div class="action-icon load">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 11h3l3 3v2a1 1 0 0 1-1 1h-1"/><circle cx="6" cy="18" r="2"/><circle cx="19" cy="18" r="2"/></svg>
+                    </div>
+                    <span class="action-label">Registrar cargue</span>
+                </button>
+                <button type="button" class="action-tile" id="actionSettlement" onclick="actionRegisterSettlement()">
+                    <div class="action-icon settlement">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <span class="action-label">Cierre de jornada</span>
+                </button>
+                <button type="button" class="action-tile" id="actionDriver" onclick="actionAssignDriver()">
+                    <div class="action-icon driver">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <span class="action-label">Asignar conductor</span>
+                </button>
+                <button type="button" class="action-tile" onclick="actionEditVehicle()">
+                    <div class="action-icon edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+                    </div>
+                    <span class="action-label">Editar carro</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cargue -->
+<div class="modal-backdrop" id="modalLoad">
+    <div class="modal">
+        <div class="modal-head">
+            <span class="modal-title" id="loadModalTitle">Registrar cargue</span>
+            <button class="modal-close" onclick="closeLoadModal()">×</button>
+        </div>
+        <form id="loadForm" onsubmit="saveLoad(event)">
+            <div class="modal-body">
+                <input type="hidden" id="loadId">
+                <input type="hidden" id="loadVehicle">
+                <div class="vehicle-preview-form" id="loadVehiclePreview"></div>
+                <div class="field-group">
+                    <label class="field-label">Fecha *</label>
+                    <input type="date" id="loadDate" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Valor mercancía *</label>
+                    <input type="number" id="loadMerchandise" class="field-input" required min="0" step="1">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Notas</label>
+                    <input type="text" id="loadNotes" class="field-input">
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeLoadModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Cierre -->
+<div class="modal-backdrop" id="modalSettlement">
+    <div class="modal" style="max-width:520px">
+        <div class="modal-head">
+            <span class="modal-title">Cierre de jornada</span>
+            <button class="modal-close" onclick="closeSettlementModal()">×</button>
+        </div>
+        <form id="settlementForm" onsubmit="saveSettlement(event)">
+            <div class="modal-body">
+                <input type="hidden" id="settlementLoadId">
+                <div class="vehicle-preview-form" id="settlementVehiclePreview"></div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Entregado</label>
+                        <input type="number" id="setDelivered" class="field-input" min="0" step="1">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Devolución</label>
+                        <input type="number" id="setReturned" class="field-input" min="0" step="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Efectivo</label>
+                        <input type="number" id="setCash" class="field-input" min="0" step="1">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Monedas</label>
+                        <input type="number" id="setCoins" class="field-input" min="0" step="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">QR</label>
+                        <input type="number" id="setQr" class="field-input" min="0" step="1">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Seguridad</label>
+                        <input type="number" id="setSecurity" class="field-input" min="0" step="1">
+                    </div>
+                </div>
+                <div class="settlement-validation" id="settlementValidation"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeSettlementModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="settlementSubmitBtn">Guardar cierre</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Conductor -->
+<div class="modal-backdrop" id="modalDriver">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-head">
+            <span class="modal-title">Conductor</span>
+            <button class="modal-close" onclick="closeDriverModal()">×</button>
+        </div>
+        <form id="driverForm" onsubmit="saveDriver(event)">
+            <div class="modal-body">
+                <input type="hidden" id="driverId">
+                <div class="driver-avatar-lg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Nombre *</label>
+                    <input type="text" id="driverName" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Teléfono</label>
+                    <input type="text" id="driverPhone" class="field-input">
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeDriverModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Carro -->
+<div class="modal-backdrop" id="modalVehicle">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-head">
+            <span class="modal-title">Carro</span>
+            <button class="modal-close" onclick="closeVehicleModal()">×</button>
+        </div>
+        <form id="vehicleForm" onsubmit="saveVehicle(event)">
+            <div class="modal-body">
+                <input type="hidden" id="vehicleId">
+                <div class="vehicle-avatar-lg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 11h3l3 3v2a1 1 0 0 1-1 1h-1"/><circle cx="6" cy="18" r="2"/><circle cx="19" cy="18" r="2"/></svg>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Placa/Nombre *</label>
+                    <input type="text" id="vehiclePlate" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Nombre visible *</label>
+                    <input type="text" id="vehicleName" class="field-input" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Conductor</label>
+                    <select id="vehicleDriver" class="field-select"></select>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeVehicleModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Asignar conductor -->
+<div class="modal-backdrop" id="modalAssignDriver">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-head">
+            <span class="modal-title">Asignar conductor</span>
+            <button class="modal-close" onclick="closeAssignDriverModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="vehicle-preview-form" id="assignDriverVehiclePreview"></div>
+            <div class="field-group">
+                <label class="field-label">Conductor</label>
+                <select id="assignDriverSelect" class="field-select"></select>
+            </div>
+            <div class="actions-row" style="margin-top:16px">
+                <button class="btn btn-primary" onclick="saveAssignDriver()">Asignar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Administrar categorías -->
+<div class="modal-backdrop" id="modalCategories">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-head">
+            <span class="modal-title">Categorías de gastos</span>
+            <button class="modal-close" onclick="closeCategoriesModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="categoryForm" onsubmit="saveCategory(event)">
+                <input type="hidden" id="categoryId">
+                <div class="category-form-title" id="categoryFormTitle">Nueva categoría</div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Nombre *</label>
+                        <input type="text" id="categoryName" class="field-input" required maxlength="50">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Color</label>
+                        <input type="color" id="categoryColor" class="field-input" value="#64748B" style="padding:4px;height:38px">
+                    </div>
+                </div>
+                <div class="actions-row" style="margin-bottom:20px">
+                    <button type="submit" class="btn btn-primary">Guardar categoría</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetCategoryForm()">Nueva</button>
+                </div>
+            </form>
+            <div class="categories-list" id="categoriesList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Gasto -->
+<div class="modal-backdrop" id="modalExpense">
+    <div class="modal" style="max-width:520px">
+        <div class="modal-head">
+            <span class="modal-title" id="expenseModalTitle">Registrar gasto</span>
+            <button class="modal-close" onclick="closeExpenseModal()">×</button>
+        </div>
+        <form id="expenseForm" onsubmit="saveExpense(event)">
+            <div class="modal-body">
+                <input type="hidden" id="expenseId">
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Fecha *</label>
+                        <input type="date" id="expenseDate" class="field-input" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Categoría *</label>
+                        <select id="expenseCategory" class="field-select" required></select>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Descripción</label>
+                    <input type="text" id="expenseDescription" class="field-input" placeholder="Ej. Factura de gasolina estación Shell">
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Monto *</label>
+                        <input type="number" id="expenseAmount" class="field-input" required min="0" step="1">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Carro (opcional)</label>
+                        <select id="expenseVehicle" class="field-select"></select>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Conductor (opcional)</label>
+                    <select id="expenseDriver" class="field-select"></select>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Soporte / factura</label>
+                    <input type="file" id="expenseAttachment" class="field-input" accept=".pdf,.png,.jpg,.jpeg">
+                    <div id="expenseAttachmentInfo" class="attachment-info hidden"></div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar gasto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Confirmar eliminación -->
+<div class="modal-backdrop" id="modalDelete">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-head">
+            <span class="modal-title">Eliminar registro</span>
+            <button class="modal-close" onclick="closeDeleteModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p id="deleteMessage" style="font-size:13px;color:var(--gray-700);line-height:1.5">¿Estás seguro de eliminar este registro?</p>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+            <button class="btn btn-primary" style="background:var(--rose);border-color:var(--rose)" onclick="confirmDeleteAction()">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
